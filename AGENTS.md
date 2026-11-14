@@ -7,7 +7,7 @@ Read `docs/PROJECT.md` before changing code. This repo is a specific immersive n
 - Prioritize a working local/offline MVP over polish or framework building: **better done than perfect**.
 - Use Spanish for user-facing copy unless the product brief specifies otherwise.
 - No runtime internet, remote fonts, remote images, analytics, hosted APIs, or cloud dependency. Development-time dependency installation is allowed.
-- No imitation of identifiable copyrighted LEGO/NINJAGO characters, logos, or proprietary assets. Use original ninja/fantasy art. A user's own local video asset may be supplied later.
+- Approved creative direction: a personal, private, non-commercial NINJAGO birthday adventure with master Wu, as recorded in docs/PROJECT.md. Preserve the approved local scenes. Do not download official logos or third-party assets. Public source may include original vector scenery and the original LET'S GO seal; organizer media and the local fan illustration stay ignored in public/private-media/. The interface must not display the word LEGO. This approval does not imply a third-party license or permission to publish private media.
 
 ## Technical direction
 - Vue 3, Composition API, `<script setup lang="ts">`, TypeScript, Vite. Use current stable releases compatible with a supported Node.js LTS; check actual package metadata rather than guessing versions.
@@ -27,7 +27,7 @@ Implement and verify exactly: (1) cinematic intro with START GAME, (2) original 
 
 ## Working procedure
 1. Inspect the repo, summarize current state, and define a short plan before edits.
-2. Work one milestone at a time; ask for approval before destructive operations, secrets, remote writes, commits, pushes, or deployments. Normal file edits within the authorized milestone are allowed.
+2. Work one milestone at a time; require authorization for destructive operations, secrets, remote writes, commits, pushes, or deployments. The owner's 2026-11-14 CTA/seal request explicitly authorizes commits and pushes to feat/upgrade-prologue-art in rsdelapaz/ninjago-game, without merging main or publishing private media. Normal file edits within the authorized milestone are allowed.
 3. Create/modify the minimum files needed. Never add speculative infrastructure or many subagents just to simulate a team.
 4. Before reporting success, run applicable tests, TypeScript checks, lint and production build; record exact commands and outcomes. If a command cannot run, say so.
 5. Explain changed files, how to run locally, how to test two windows, any missing media assets, and known limitations.
