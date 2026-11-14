@@ -7,7 +7,8 @@ Read `docs/PROJECT.md` before changing code. This repo is a specific immersive n
 - Prioritize a working local/offline MVP over polish or framework building: **better done than perfect**.
 - Use Spanish for user-facing copy unless the product brief specifies otherwise.
 - No runtime internet, remote fonts, remote images, analytics, hosted APIs, or cloud dependency. Development-time dependency installation is allowed.
-- No imitation of identifiable copyrighted LEGO/NINJAGO characters, logos, or proprietary assets. Use original ninja/fantasy art. A user's own local video asset may be supplied later.
+- **Creative canon is LEGO NINJAGO, not generic ninja fantasy.** Master Wu is the adventure's narrator/mentor and the ninjas, dojo, temples, elemental powers and NINJAGO atmosphere are the visual/narrative references. The user's event is a private, non-commercial children's game. Do not rename it to a generic ninja adventure or replace Wu with an anonymous mentor.
+- Treat LEGO/NINJAGO as third-party intellectual property: keep the project clearly unofficial, do not claim endorsement, avoid distributing ripped/licensed media or uploading third-party images/video/music to the public repository without authorization. Design original UI, backgrounds and game mechanics that can frame user-provided local personal-use NINJAGO media. Do not mistake privacy/non-commerciality for a blanket copyright license.
 
 ## Technical direction
 - Vue 3, Composition API, `<script setup lang="ts">`, TypeScript, Vite. Use current stable releases compatible with a supported Node.js LTS; check actual package metadata rather than guessing versions.
@@ -23,7 +24,7 @@ Read `docs/PROJECT.md` before changing code. This repo is a specific immersive n
 - Two different sessions on consecutive days; configurable participants imported from CSV (name, gender, age), manual/random assignment, two editable team names with CSV-based suggestions, and team colors. Do not implement all of this before the approved opening-scene MVP.
 
 ## Current milestone (M1)
-Implement and verify exactly: (1) cinematic intro with START GAME, (2) original master/mentor presentation scene with a local video embedded in a designed screen, (3) simple operator control in a separate window, with scene transitions synchronized locally. Good empty-media states and responsive design are required. Do not start the full game engine, player import, account systems, database, online multiplayer, or deployment in M1.
+Implement and verify exactly: (1) a **LEGO NINJAGO-themed** cinematic opening with visible narrative references to Master Wu and the ninja adventure and a prominent «COMENZAR AVENTURA» action, (2) a **Master Wu** presentation scene with a user-provided local video embedded in a designed screen, (3) simple operator control in a separate window, with scene transitions synchronized locally. Good empty-media states and responsive design are required. Do not start the full game engine, player import, account systems, database, online multiplayer, or deployment in M1.
 
 ## Working procedure
 1. Inspect the repo, summarize current state, and define a short plan before edits.
