@@ -1,6 +1,6 @@
 # Ninja Adventure — Project brief and phased execution
 
-Status: two local scenes implemented; CTA and original seal upgraded. Validation results are recorded in README.md. Operator synchronization remains pending. Product owner directs work from ChatGPT, develops/reviews in VS Code, and is new to Codex.
+Status: two local scenes implemented; CTA and original seal upgraded. Validation results are recorded in README.md. Operator synchronization is implemented in the current slice. Product owner directs work from ChatGPT, develops/reviews in VS Code, and is new to Codex.
 
 ## Creative correction approved by the owner — 2026-11-14
 The explicit owner instruction supersedes the earlier generic-ninja direction in this brief and AGENTS.md: this is a personal, private, non-commercial LEGO NINJAGO birthday adventure, with master Wu as narrative protagonist. It must not be rewritten as a generic fantasy adventure. Earlier original-character requirements below are historical and superseded by this correction.
@@ -11,7 +11,7 @@ Only original visuals and organizer-supplied local media may be used. Do not aut
 
 Current authorized slice: visual upgrade of the opening and second scene. The opening uses a private, newly generated NINJAGO fan illustration featuring Wu, Kai and supporting ninjas around an epic monastery. The interface must never contain the word LEGO. An original red square SVG seal says LET'S GO without copying an official logo; its letterforms use paths without fonts. Red, blue, green, white and gold energy, dimensional title lettering and a prominent game-start CTA replace the earlier subdued direction.
 
-The second scene now embeds `public/private-media/master-wu.mp4` with native controls, no autoplay and inline playback, inside a layered gold dojo frame. Missing or unsupported video shows a readable fallback. No actual video has been supplied, so playback with the organizer's media remains to be rehearsed. Operator synchronization and other M1 work remain pending; game rules, teams and clues are unchanged.
+The second scene now embeds `public/private-media/master-wu.mp4` with native controls, no autoplay and inline playback, inside a layered gold dojo frame. Missing or unsupported video shows a readable fallback. No actual video has been supplied, so playback with the organizer's media remains to be rehearsed. Operator synchronization is now implemented; game rules, teams and clues are unchanged.
 
 Artwork: `public/private-media/ninjago-key-art.png`, generated with the built-in image generation tool, inspected and copied into the workspace. This directory is deliberately ignored by Git. The original vector monastery remains the fallback if the illustration is unavailable. Browser smoke verification and screenshots are recorded in README.md. The previous visual pass was local only; the current request authorizes source commit and push.
 
@@ -75,3 +75,8 @@ Built-in image generation, no downloaded reference images. Final prompt:
 Preserve the approved local composition and private illustration. The CTA now uses a gold bevel, original energy icon, matching hover/keyboard focus, pressure/flash and a guarded 360 ms exit into the existing scene reveal. Reduced motion disables animation and skips the exit delay. The header brand is removed to reveal the green ninja. A small original red square seal sits on the dark lower-left rock area; mobile places it in document flow to avoid overlaps. No new game phases or operator features are included.
 
 Public commits include source, original SVG and documentation only. Keep private-media and dist ignored. Copy authorized private media separately to the event computer before building; the vector monastery and readable video placeholder remain usable without it. The private fan illustration is not evidence of a franchise license.
+
+## Current slice: START GAME and local organizer
+The owner authorizes commit and push on feat/upgrade-prologue-art. START GAME replaces the historical CTA text. A red/gold ninja-emblem silhouette replaces the rectangular button without changing approved scenery or the video component. Organizer view: /?screen=admin, opening a named public window. Scene selection and restart synchronize via BroadcastChannel with storage-event fallback; validated localStorage state recovers the current scene on reload. Same browser profile and origin are required. This is a local operator view without authentication, not a secure account system. Video playback remains manual and is not synchronized. No later gameplay phases are included.
+References: https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API and https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event .
+The organizer's MP4 is now available locally and loads successfully; previous missing-video notes describe earlier iterations. It remains ignored and is not part of the public source release.

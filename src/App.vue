@@ -1,23 +1,29 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
+import OrganizerPanel from './OrganizerPanel.vue'
+import { usePresentation } from './usePresentation'
 import MonasteryBackdrop from './MonasteryBackdrop.vue'
 import WuMessage from './WuMessage.vue'
 import letsGoSeal from './assets/lets-go.svg'
 
 // Explicit reactive state: https://vuejs.org/api/sfc-script-setup.html#reactivity
-const scene = ref<'intro' | 'wu'>('intro')
+const isAdmin = new URLSearchParams(location.search).get('screen') === 'admin'
+const { state, select, warning } = usePresentation()
+const scene = computed(() => state.value.scene)
+watch(state, async () => { await nextTick(); if (!isAdmin) heading.value?.focus() })
 const heading = ref<HTMLHeadingElement | null>(null)
 const artworkAvailable = ref(true)
 const artworkUrl = `${import.meta.env.BASE_URL}private-media/ninjago-key-art.png`
 const transitioning = ref(false)
 async function goTo(target: 'intro' | 'wu') {
   if (transitioning.value || scene.value === target) return
+  const revision = state.value.revision
   transitioning.value = true
   // Match the CSS exit duration; reduced motion also skips this delay.
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     await new Promise(resolve => window.setTimeout(resolve, 360))
   }
-  scene.value = target
+  if (state.value.revision === revision) select(target)
   await nextTick()
   heading.value?.focus()
   transitioning.value = false
@@ -25,7 +31,8 @@ async function goTo(target: 'intro' | 'wu') {
 </script>
 
 <template>
-  <main class="adventure" :class="{ 'video-scene': scene === 'wu', 'is-transitioning': transitioning }" :aria-busy="transitioning">
+  <OrganizerPanel v-if="isAdmin" :scene="scene" :warning="warning" @select="select" />
+  <main v-else class="adventure" :class="{ 'video-scene': scene === 'wu', 'is-transitioning': transitioning }" :aria-busy="transitioning">
     <MonasteryBackdrop />
     <img v-if="artworkAvailable" class="key-art" :src="artworkUrl" alt="" @error="artworkAvailable = false" />
     <div class="energy-halo halo-fire" aria-hidden="true"></div>
@@ -43,7 +50,7 @@ async function goTo(target: 'intro' | 'wu') {
         <p class="subtitle">Una antigua misión. Dos equipos de ninjas.<br class="desktop-break" /> Un secreto que solo podrán descubrir juntos.</p>
         <button class="start-button" :disabled="transitioning" @click="goTo('wu')">
           <svg class="mission-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="m27 3-4 15 17-3-12 12 3 17-12-12-15 4 9-14-6-13 15 4Z" fill="currentColor" /><path d="m28 13-12 13h9l-4 10 14-16h-10Z" fill="#fff3b0" /></svg>
-          <span>COMENZAR AVENTURA</span><span class="mission-arrow" aria-hidden="true">&#10140;</span>
+          <span>START GAME</span><span class="mission-arrow" aria-hidden="true">&#10140;</span>
         </button>
         <p class="invitation">REÚNE A TU EQUIPO. DESPIERTA TU PODER.</p>
       </template>

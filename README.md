@@ -77,7 +77,7 @@ Archivos de esta entrega (incluidos los cambios locales anteriores): `src/App.vu
 2. Copia por separado y de forma privada `public/private-media/ninjago-key-art.png` desde este equipo al mismo directorio del equipo del evento. Añade el MP4 autorizado como `public/private-media/master-wu.mp4` si está disponible. No los subas a GitHub.
 3. Ejecuta `npm run build` después de copiar los medios y `npm run preview`. Abre http://127.0.0.1:4173. El build contiene los medios privados: no lo publiques.
 4. Sin ilustración aparece el monasterio vectorial; sin vídeo aparece el mensaje legible. No hace falta internet durante el evento.
-5. Comprueba inicio con ratón, Enter y Espacio; retorno al inicio; preferencia de movimiento reducido y monitor extendido. Dos ventanas tienen estado independiente: el operador sincronizado sigue pendiente.
+5. Comprueba inicio con ratón, Enter y Espacio; retorno al inicio; preferencia de movimiento reducido y monitor extendido. Usa el panel del organizador descrito abajo para sincronizar las ventanas.
 
 ### Validación de esta entrega
 
@@ -87,3 +87,19 @@ Archivos de esta entrega (incluidos los cambios locales anteriores): `src/App.vu
 - Capturas locales `final-intro-*`, `final-video-*`, `final-hover.png` y `final-no-art.png` en `.preview.local/`, excluidas de Git.
 - Sin scripts de lint ni suite permanente. Pendiente reproducción con vídeo real, lector de pantalla y ensayo físico con monitor externo. Los scripts smoke locales requieren Edge con DevTools en 9223 y no se distribuyen.
 - `git diff --check`: correcto.
+
+## Iteración START GAME y organizador
+
+CTA aprobado para esta iteración: **START GAME**, rojo con silueta de emblema ninja, puntas metálicas doradas, núcleo legible y shuriken integrado. Conserva teclado, presión, transición y movimiento reducido. No se modifica el reproductor de vídeo.
+
+Para probar:
+1. `npm run build` y `npm run preview`; abre http://127.0.0.1:4173 para el botón público.
+2. Abre http://127.0.0.1:4173/?screen=admin y pulsa «Abrir ventana pública». Si el navegador bloquea la ventana, usa el enlace alternativo.
+3. Mueve la ventana pública al monitor externo. Prueba inicio, vídeo y reinicio desde el panel; recarga la ventana pública: recupera la última escena.
+4. Usa el mismo navegador, perfil, host y puerto. BroadcastChannel sincroniza las escenas; el evento storage es el respaldo. La reproducción y el tiempo del vídeo no se sincronizan y no hay autoplay.
+
+El panel es una vista local separada y sin enlace público, **sin autenticación**. No incluye datos personales. El estado `ninja-presentation-v1` contiene solo escena y revisión. Si el almacenamiento está bloqueado, el panel avisa y la persistencia no está disponible. No se implementan participantes, equipos ni nuevas fases.
+
+Los apartados de verificación anteriores son registros históricos. En esta iteración: typecheck y build correctos con la ruta de npm y NODE_OPTIONS documentados; el smoke antiguo falla porque espera vídeo ausente y ahora existe un MP4 válido. La prueba adaptada bloquea ese recurso para ensayar el fallback. No hay script de lint ni suite permanente. Los medios de `public/private-media/`, los builds y las capturas siguen excluidos de Git.
+
+Validación actual: `node .preview.local/admin-smoke.mjs` correcto: comunicación bidireccional entre dos ventanas, recuperación tras recarga, reinicio, fallback sin BroadcastChannel y apertura de ventana pública. `node .preview.local/new-cta-smoke.mjs` verifica el CTA en producción, las tres resoluciones objetivo, teclado/ratón, protección de doble activación, movimiento reducido y recursos bloqueados. Capturas revisadas localmente. `git diff --check` correcto. Los scripts de verificación y sus capturas permanecen locales; no se publican con los medios.
