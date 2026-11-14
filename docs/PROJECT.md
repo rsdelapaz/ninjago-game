@@ -1,6 +1,17 @@
 # Ninja Adventure — Project brief and phased execution
 
-Status: planning complete, implementation not yet verified. Product owner directs work from ChatGPT, develops/reviews in VS Code, and is new to Codex.
+Status: opening scene implemented; validation results are recorded in README.md. The rest of M1 remains pending. Product owner directs work from ChatGPT, develops/reviews in VS Code, and is new to Codex.
+
+## Creative correction approved by the owner — 2026-11-14
+The explicit owner instruction supersedes the earlier generic-ninja direction in this brief and AGENTS.md: this is a personal, private, non-commercial LEGO NINJAGO birthday adventure, with master Wu as narrative protagonist. It must not be rewritten as a generic fantasy adventure. Earlier original-character requirements below are historical and superseded by this correction.
+
+The opening is «EL SECRETO DEL MAESTRO WU», with the subtitle «Una antigua misión. Dos equipos de ninjas. Un secreto que solo podrán descubrir juntos» and action «COMENZAR AVENTURA». Art direction: Monastery of Spinjitzu inspiration, original layered vector scenery, dark mountains, gold details, lantern light and drifting mist. Primary composition: 1920 × 1080, responsive to smaller windows. No external visual references or media were supplied; this artwork is a provisional original interpretation, not official franchise art.
+
+Only original visuals and organizer-supplied local media may be used. Do not automatically download third-party protected assets. Keep organizer media in ignored `public/private-media/`; Vite copies that folder into local builds, so those builds must also remain private. No publication, commit or push is authorized.
+
+Current authorized slice: opening and provisional second scene with a readable missing-message state and return action. Operator synchronization, embedded video playback and other M1 work remain pending; game rules, teams and clues are unchanged. No audio or video has been supplied.
+
+Technical references: https://vuejs.org/api/sfc-script-setup.html (typed Composition API), https://vuejs.org/api/general.html#nexttick (focus after scene changes), https://vite.dev/guide/assets.html#the-public-directory (local media), https://vite.dev/guide/ (local development and build).
 
 ## Product vision
 An immersive, cinematic, original ninja adventure for approximately eight-year-old children, combining physical play, riddles and local digital experiences. Exactly two rival teams accumulate complementary clues. Their finale succeeds only through cooperation: **«UN NINJA EN SOLITARIO ES MUY FUERTE, PERO JUNTOS SON INVENCIBLES»**.

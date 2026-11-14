@@ -1,0 +1,25 @@
+:root{font-family:Georgia,'Times New Roman',serif;color:#f5ecd6;background:#080f17;font-synthesis:none;--gold:#e5c17c;--muted:#c1c8c5;--ink:#11191c}
+*{box-sizing:border-box}body{margin:0}button{font:inherit}button:focus-visible{outline:3px solid #fff0bd;outline-offset:7px}h1:focus{outline:none}
+.adventure{position:relative;isolation:isolate;min-height:100svh;display:flex;flex-direction:column;overflow:hidden;background:#101d27}
+.landscape,.vignette{position:absolute;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none}
+.vignette{z-index:-1;background:linear-gradient(180deg,rgba(3,9,16,.35),rgba(3,9,16,.57) 42%,rgba(3,9,16,.23) 70%,#060c13),radial-gradient(ellipse at center,transparent 20%,rgba(3,8,14,.7) 100%)}
+.scene-header{display:flex;justify-content:space-between;gap:1rem;padding:2.5rem 3.5rem;font:600 .7rem/1.5 system-ui,sans-serif;letter-spacing:.22em;color:var(--muted)}
+.world-name{color:var(--gold)}.world-name span{padding:0 .75rem}.chapter span{color:#8b999e}
+.scene-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem 1.5rem 5rem;animation:reveal 1.4s ease-out both}
+.eyebrow{font:500 .75rem/1.6 system-ui,sans-serif;letter-spacing:.38em;color:var(--gold);margin:0 0 1rem}
+.ornament{display:flex;align-items:center;gap:1rem;color:var(--gold);font-size:.65rem;margin-bottom:1.75rem}.ornament span{height:1px;width:4rem;background:linear-gradient(90deg,transparent,var(--gold))}.ornament span:last-child{transform:rotate(180deg)}
+h1{font-size:clamp(3.2rem,6.8vw,8.1rem);line-height:1.03;letter-spacing:.035em;font-weight:500;margin:0;color:#f1d6a0;text-shadow:0 4px 32px #000,0 2px 2px #000;max-width:100%}
+h1>span{display:block;font-size:.37em;letter-spacing:.2em;margin-bottom:.8rem;color:#f6efdd}
+.subtitle{font-size:clamp(1rem,1.4vw,1.5rem);line-height:1.75;color:#e5e4d9;max-width:44rem;margin:1.75rem 0 2.5rem;text-shadow:0 2px 6px #000}
+.start-button{display:flex;align-items:center;justify-content:center;gap:2rem;min-height:3.75rem;padding:1.1rem 2.25rem;border:1px solid #eed59c;background:linear-gradient(115deg,#efd49a,#c79748);box-shadow:0 0 0 5px #0c141a,0 0 0 6px #b2945659,0 8px 35px #0008;color:var(--ink);font:750 .85rem/1.5 system-ui,sans-serif;letter-spacing:.14em;cursor:pointer;transition:filter .2s,transform .2s}
+.start-button:hover{filter:brightness(1.12);transform:translateY(-2px)}.start-button:active{transform:translateY(1px)}.start-button span{font-size:1.5rem;line-height:1}
+.invitation{font:500 .6rem/1.6 system-ui,sans-serif;letter-spacing:.24em;color:var(--muted);margin:1.5rem 0 0}
+.scene-footer{text-align:center;padding:0 1.5rem 2rem;color:var(--muted)}.element-line{color:var(--gold);letter-spacing:.5em;font-size:.7rem}.scene-footer p{font:500 .6rem/1.6 system-ui,sans-serif;letter-spacing:.22em;margin:1rem 0 0}
+.mist{animation:drift 22s ease-in-out infinite alternate}.encounter{padding-top:1rem;padding-bottom:2rem}.second-title{font-size:clamp(2rem,3.5vw,4rem)}
+.video-frame{position:relative;width:min(48rem,100%);aspect-ratio:16/9;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:1.5rem;margin:2rem 0 1.5rem;background:#081018ed;border:1px solid #b09052;box-shadow:0 0 0 7px #0b151b,0 0 0 8px #5c5138,0 15px 70px #0008}
+.seal{color:var(--gold);font-size:1.5rem}.video-frame h2{color:var(--gold);font-size:clamp(1.25rem,2vw,2rem);font-weight:400;margin:.75rem 0}.video-frame p{line-height:1.6;margin:.5rem 0}.video-frame .media-note{font: .8rem/1.5 system-ui,sans-serif;color:var(--muted);margin-top:1.5rem}
+.back-button{border:0;border-bottom:1px solid #ac935f;background:transparent;color:var(--gold);padding:.75rem;cursor:pointer;font:600 .75rem/1.5 system-ui,sans-serif;letter-spacing:.1em}
+@keyframes reveal{from{opacity:0;transform:translateY(1rem)}to{opacity:1;transform:translateY(0)}}@keyframes drift{to{transform:translateX(75px)}}
+@media(min-width:1600px){.scene-content{padding-bottom:7rem}.scene-header{padding:3rem 4rem}.scene-footer{padding-bottom:2.5rem}}
+@media(max-width:600px){.scene-header{padding:1.5rem;letter-spacing:.12em}.world-name{max-width:12rem}.chapter{white-space:nowrap}.scene-content{padding:3rem 1.25rem}.eyebrow{font-size:.6rem;letter-spacing:.2em}h1{font-size:clamp(2.5rem,10vw,3.8rem)}h1>span{font-size:.4em}.subtitle{margin:1.5rem 0 2rem}.desktop-break{display:none}.start-button{gap:1rem;padding:1rem 1.25rem;font-size:.72rem}.scene-footer p{font-size:.55rem;letter-spacing:.12em}.video-frame{aspect-ratio:auto;min-height:18rem}.video-frame p{font-size:.9rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}

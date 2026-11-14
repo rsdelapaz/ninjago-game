@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.local
+public/private-media/*
+!public/private-media/.gitkeep
