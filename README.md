@@ -1,6 +1,6 @@
 # El secreto del maestro Wu
 
-> **Guía vigente: Hito 06 — El despertar de los clanes (15/11/2026).** Consulta el apartado final y «Partida completa de demostración» para el arranque con npm recuperado. Las secciones previas son históricas. El director autoriza en este hito commit y push de fuente auditada exclusivamente a `feat/upgrade-prologue-art`, sin publicar medios ni capturas privadas.
+> **Guía vigente: Hito 07 — Formación ninja compacta (15/11/2026).** Consulta el apartado final y «Partida completa de demostración» para el arranque con npm recuperado. Las secciones previas son históricas. El director autoriza en este hito commit y push de fuente auditada exclusivamente a `feat/upgrade-prologue-art`, sin publicar medios ni capturas privadas.
 
 Introducción local para una aventura personal de cumpleaños ambientada en NINJAGO. Vue 3 + TypeScript + Vite; ilustración generada para este proyecto, sin imágenes, fuentes ni servicios remotos en ejecución.
 
@@ -400,3 +400,22 @@ Ensayo en navegador normal:
 Fuente añadida: `ClanReveal.vue`, `reveal.ts`, `useRevealClock.ts`, `tests/reveal.test.mjs`. Se adaptan CeremonyStage/Controls, CSS, control de presentación y el paso de eventos por App/Organizer/SceneController. La publicación autorizada incluye también los cambios locales anteriores auditados; excluye medios privados, JSON personales, capturas, dist, node_modules y credenciales. Se publica solo a origin/feat/upgrade-prologue-art; main no se modifica.
 
 Cierre de código Hito 06: **46/46 pruebas superadas**, `run typecheck`, `run build`, `test`, sintaxis del smoke y `git diff --check` con **código 0** mediante el npm detectado y las opciones de preservación de enlaces. Smoke/capturas de navegador y comprobación real de scroll, nombres largos y red: pendientes por entorno, no superadas. No hay lint configurado. Se audita y prepara únicamente fuente/pruebas/documentación acumuladas; medios privados, capturas, JSON personales y build siguen excluidos.
+
+## Hito 07 — Formación ninja compacta
+
+Las placas ahora son filas compactas de igual tamaño: sello discreto, nombre completo y, solo para el capitán, estrella dorada con texto CAPITÁN. Capitán primero y resto en orden español. Desaparecen los conectores individuales; permanece únicamente el vínculo entre los dos clanes. Portada, elecciones de nombre/color, vídeo, perfiles, almacenamiento y sincronización no cambian.
+
+La causa de la paginación anterior era un límite de cuatro integrantes y un límite de uno si el nombre de un integrante o del equipo era largo. Ahora los nombres se ajustan por líneas y no intervienen en los grupos: dos columnas hasta ocho integrantes, tres hasta doce (cuatro filas); a partir de trece, grupos de hasta doce con indicador y controles existentes. El último grupo contiene solo sus miembros, sin casillas ficticias. Un equipo que ya terminó muestra un aviso compacto. Los límites son idénticos en ambas ventanas. En móvil los equipos se apilan, con dos columnas y desplazamiento vertical normal; contenido excepcionalmente largo conserva acceso mediante scroll en escritorio, sin elipsis ni recortes de nombres.
+
+Revelación: emblemas, aparición rápida de miembros, destello breve de estrella y activación colectiva. Una sola página nunca alterna automáticamente. Se conservan omitir/repetir y movimiento reducido.
+
+Ensayo visual pendiente por entorno, sin capturas nuevas ni afirmación de aprobación visual:
+
+1. Arrancar con el procedimiento PowerShell de «Partida completa de demostración», abrir dashboard y pública en el mismo origen.
+2. En un perfil de prueba, preparar dos equipos de siete participantes ficticios, con capitanes. Mostrar llegada a 1920×1080 y 1366×768: comprobar catorce nombres simultáneos, dos columnas por clan, ninguna barra de scroll para nombres normales y placas iguales. Esperar más de diez segundos: no cambia de grupo.
+3. Completar nombres/colores y revisar la misma formación final. Repetir con nombres largos, equipo 1/14 y equipo 13/25; comprobar tres columnas, grupos, último grupo compacto, omitir/repetir y ausencia de pérdidas. Verificar que las decisiones se conservan al recargar ambas ventanas.
+4. Revisar 390×844, desplazamiento vertical, nombres completos, teclado del operador y movimiento reducido. Guardar e inspeccionar capturas locales de llegada con 14 integrantes y final; no versionar capturas con datos reales.
+
+No hay navegador conectado en 9223; no se repite Edge headless bloqueado. La inspección real a esas tres resoluciones, las dos capturas solicitadas y el ensayo en monitor externo quedan pendientes. Las pruebas automatizadas comprueban grupos y control; no sustituyen la medición visual de legibilidad y encaje. No hay lint configurado. Se publica exclusivamente fuente auditada a feat/upgrade-prologue-art, conservando medios locales privados.
+
+Cierre técnico Hito 07: 48/48 pruebas superadas; typecheck, build, sintaxis del smoke y git diff --check con código 0. npm utilizado: C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js, invocado mediante Node con --preserve-symlinks --preserve-symlinks-main y NODE_OPTIONS restaurado al terminar. La ejecución del smoke de navegador y las capturas siguen pendientes por entorno.

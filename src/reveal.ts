@@ -2,6 +2,9 @@ import { publicMembers, type ProfileConfig } from './profile.ts'
 
 export const REVEAL_PAGE_MS = 10000
 export const REVEAL_ACTIVATION_MS = 2200
+// Four compact rows: two columns for up to eight, three for larger formations.
+// Keep group boundaries identical in both windows, independent of name length.
+export const REVEAL_CAPACITY = 12
 export type RevealState = { startedAt: number; page: number; animate: boolean; automatic: boolean }
 export type RevealAction = 'replay' | 'skip' | 'previous' | 'next' | 'pause'
 export function createReveal(now: number): RevealState { return { startedAt: now, page: 0, animate: true, automatic: true } }
@@ -11,13 +14,11 @@ export function validReveal(value: unknown): value is RevealState {
   return Number.isSafeInteger(r.startedAt) && r.startedAt >= 0 && Number.isSafeInteger(r.page) && r.page >= 0 && r.page <= 500 && typeof r.animate === 'boolean' && typeof r.automatic === 'boolean'
 }
 export function revealPlan(config: ProfileConfig) {
-  // Identical group boundaries in admin/public at every viewport. Long names get their own large seal.
   const teams = config.teams.map(team => {
     const members = publicMembers(config, team)
-    const spacious = members.some(p => p.name.length > 32) || (team.name?.length ?? 0) > 40
-    const capacity = spacious ? 1 : 4
+    const capacity = REVEAL_CAPACITY
     const pages = Array.from({ length: Math.max(1, Math.ceil(members.length / capacity)) }, (_, i) => members.slice(i * capacity, (i + 1) * capacity))
-    return { team, members, spacious, pages }
+    return { team, members, pages }
   })
   return { teams, count: Math.max(...teams.map(t => t.pages.length)) }
 }
