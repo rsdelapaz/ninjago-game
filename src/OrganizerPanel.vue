@@ -5,15 +5,16 @@ import ProfileTeams from './ProfileTeams.vue'
 import ProfileResources from './ProfileResources.vue'
 import ProfileTransfer from './ProfileTransfer.vue'
 import SceneController from './SceneController.vue'
-import { cloneProfile, distributeProfile, profileIds, profileLabels, type ProfileConfig, type ProfileId } from './profile'
+import { ceremonyProblems, cloneProfile, distributeProfile, profileIds, profileLabels, type ProfileConfig, type ProfileId } from './profile'
+import type { CeremonyAction, CeremonyProgress } from './ceremony'
 import type { SceneDefinition } from './scenes'
 import { orderedScenes } from './scenes'
 import { useProfileDraft } from './useProfileDraft'
 import { legacyEntries } from './profileStorage'
 import './command-center.css'
-const props = defineProps<{ profile: ProfileConfig; scene: SceneDefinition; warning: string }>()
-const emit = defineEmits<{ select: [id: string]; activate: [id: ProfileId]; saved: [] }>()
-const { current, dirty, pending, validation, save, discard, message, error, report } = useProfileDraft(() => props.profile, () => emit('saved'))
+const props = defineProps<{ profile: ProfileConfig; scene: SceneDefinition; ceremony: CeremonyProgress; busy: boolean; warning: string }>()
+const emit = defineEmits<{ select: [id: string]; activate: [id: ProfileId]; ceremony: [action: CeremonyAction]; saved: [] }>()
+const { current, dirty, pending, validation, saving, save, discard, message, error, report } = useProfileDraft(() => props.profile, () => emit('saved'))
 const config = computed(() => current.value.config)
 const modules = [
   { id: 'overview', label: 'Resumen', icon: '◈', description: 'Una mirada a todo lo que necesita tu aventura.' },
@@ -32,6 +33,7 @@ const checks = computed(() => [
   { label: 'Todos tienen un equipo', done: config.value.participants.length > 0 && unassigned.value.length === 0, target: 'teams' },
 ])
 const ready = computed(() => checks.value.filter(c => c.done).length)
+const preparationProblems = computed(() => ceremonyProblems(props.profile))
 const popupBlocked = ref(false), publicUrl = new URL('./', location.href).href
 const legacyCount = ref(0)
 try { legacyCount.value = legacyEntries(localStorage).length } catch { /* The storage warning is handled by the draft controller. */ }
@@ -48,9 +50,9 @@ function shuffle() {
   if (!window.confirm('¿Sortear y guardar un reparto nuevo en este perfil? Sustituirá las asignaciones actuales.')) return
   try { const candidate = cloneProfile(config.value); distributeProfile(candidate); save(candidate) } catch(e) { report(e) }
 }
-function replace(candidate: ProfileConfig) {
+async function replace(candidate: ProfileConfig) {
   if (!window.confirm(`¿Reemplazar la configuración de ${profileLabels[props.profile.id]} y reiniciar su presentación?${dirty.value ? ' Se descartará su borrador sin guardar.' : ''} La configuración guardada anterior quedará en el historial local.`)) return
-  if (save(candidate)) emit('activate', props.profile.id)
+  if (await save(candidate)) emit('activate', candidate.id)
 }
 function restart() { if (window.confirm('¿Volver al inicio de la presentación del perfil activo?')) emit('select', orderedScenes[0].id) }
 </script>
@@ -59,8 +61,8 @@ function restart() { if (window.confirm('¿Volver al inicio de la presentación 
     <a class="skip-link" href="#command-main">Saltar al contenido</a>
     <header class="command-header">
       <div class="command-brand"><span class="brand-mark" aria-hidden="true">✦</span><div><strong>CENTRO DE MANDO</strong><small>EL SECRETO DEL MAESTRO WU</small></div></div>
-      <label class="active-profile"><span>PERFIL ACTIVO</span><select :value="profile.id" @change="activate"><option v-for="id in profileIds" :key="id" :value="id">{{ profileLabels[id] }}</option></select></label>
-      <div class="header-actions"><span class="save-status" :class="{ unsaved: dirty }" role="status">{{ dirty ? '● Cambios sin guardar' : '✓ Perfil guardado' }}</span><button class="primary save-profile" :disabled="!dirty || !!validation" @click="save()">Guardar cambios</button><button class="open-public" @click="openPublic">Abrir pantalla pública ↗</button></div>
+      <label class="active-profile"><span>PERFIL ACTIVO</span><select :value="profile.id" :disabled="busy || saving" @change="activate"><option v-for="id in profileIds" :key="id" :value="id">{{ profileLabels[id] }}</option></select></label>
+      <div class="header-actions"><span class="save-status" :class="{ unsaved: dirty }" role="status">{{ dirty ? '● Cambios sin guardar' : '✓ Perfil guardado' }}</span><button class="primary save-profile" :disabled="!dirty || !!validation || busy || saving" @click="save()">Guardar cambios</button><button class="open-public" @click="openPublic">Abrir pantalla pública ↗</button></div>
     </header>
     <div class="dashboard-layout">
       <aside class="command-sidebar"><p class="nav-caption">TU AVENTURA</p><nav aria-label="Módulos del centro de mando"><button v-for="entry in modules" :key="entry.id" :data-module="entry.id" :aria-current="module === entry.id ? 'page' : undefined" @click="navigate(entry.id)"><span aria-hidden="true">{{ entry.icon }}</span>{{ entry.label }}<small v-if="entry.id === 'participants'">{{ config.participants.length }}</small></button></nav><div class="sidebar-note"><span aria-hidden="true">◆</span><strong>Dos equipos.<br />Un mismo poder.</strong><p>Preparados por separado.<br />Invencibles juntos.</p></div></aside>
@@ -69,8 +71,10 @@ function restart() { if (window.confirm('¿Volver al inicio de la presentación 
         <p v-if="error || warning" class="notice error-notice" role="alert">{{ error || warning }}</p>
         <p v-if="message" class="notice" role="status">{{ message }}</p>
         <p v-if="validation" class="notice error-notice" role="alert">{{ validation }}</p>
+        <p v-if="preparationProblems.length" class="notice" role="status">Ceremonia bloqueada: {{ preparationProblems.join(' ') }} Prepara y guarda los equipos.</p>
         <p v-if="popupBlocked" class="notice" role="status">El navegador ha bloqueado la ventana. <a :href="publicUrl" target="_blank" rel="noopener">Abrir pantalla pública</a></p>
         <p v-if="pending.some(id => id !== profile.id)" class="hint">Hay borradores sin guardar en: {{ pending.filter(id => id !== profile.id).map(id => profileLabels[id]).join(', ') }}. Vuelve a ese perfil antes de cerrar.</p>
+        <fieldset class="module-content" :disabled="saving || busy"><legend class="module-legend">Contenido de {{ selectedModule.label }}</legend>
         <template v-if="module === 'overview'">
           <div v-if="legacyCount" class="notice">Hay {{ legacyCount }} configuraciones anteriores conservadas. Elige explícitamente qué datos trasladar a cada perfil. <button class="text-button" @click="navigate('settings')">Revisar datos anteriores →</button></div>
           <div class="metric-grid"><article class="metric"><span aria-hidden="true">♙</span><div><strong>{{ config.participants.length }}</strong><small>Participantes</small></div><button aria-label="Administrar participantes" @click="navigate('participants')">↗</button></article><article class="metric"><span aria-hidden="true">⚑</span><div><strong>2</strong><small>Equipos ninja</small></div><button aria-label="Administrar equipos" @click="navigate('teams')">↗</button></article><article class="metric"><span aria-hidden="true">◇</span><div><strong>{{ unassigned.length }}</strong><small>Sin equipo asignado</small></div><button aria-label="Asignar integrantes" @click="navigate('teams')">↗</button></article></div>
@@ -82,11 +86,15 @@ function restart() { if (window.confirm('¿Volver al inicio de la presentación 
         <ParticipantEditor v-else-if="module === 'participants'" :key="profile.id" :config="config" />
         <ProfileTeams v-else-if="module === 'teams'" :config="config" @distribute="shuffle" />
         <ProfileResources v-else-if="module === 'media'" :key="profile.id" :config="config" />
-        <template v-else-if="module === 'presentation'"><SceneController :scene="scene" :config="profile" @select="$emit('select', $event)" /><div class="command-row"><button @click="restart">Reiniciar presentación…</button><span class="hint">Los números son posiciones. El progreso conserva el identificador estable de la escena.</span></div></template>
+        <template v-else-if="module === 'presentation'"><SceneController :scene="scene" :config="profile" :ceremony="ceremony" :disabled="busy || saving || dirty" @select="$emit('select', $event)" @ceremony="$emit('ceremony', $event)" /><p v-if="dirty" class="notice">Guarda o descarta el borrador antes de dirigir la ceremonia.</p><div class="command-row"><button :disabled="busy || saving" @click="restart">Volver a la portada…</button><span class="hint">Volver a la portada conserva las decisiones. Retoma la ceremonia desde su entrada en el catálogo.</span></div></template>
         <ProfileTransfer v-else :key="profile.id" :config="config" @replace="replace" />
-        <div v-if="dirty" class="draft-actions"><span>Los cambios pertenecen solo a {{ profileLabels[profile.id] }}.</span><button @click="discard">Descartar borrador…</button></div>
+        <div v-if="dirty" class="draft-actions"><span>Los cambios pertenecen solo a {{ profileLabels[profile.id] }}. Guardar la preparación vuelve la ceremonia a su presentación inicial; conserva los nombres y colores guardados.</span><button @click="discard">Descartar borrador…</button></div>
+        </fieldset>
         <footer class="command-footer"><span>✦ CENTRO DE MANDO NINJA</span><span>Configuración local · Recursos privados</span></footer>
       </main>
     </div>
   </div>
 </template>
+<style scoped>
+.module-content { border: 0; padding: 0; margin: 0; min-width: 0; }.module-legend { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>

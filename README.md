@@ -1,6 +1,6 @@
 # El secreto del maestro Wu
 
-> **Guía vigente: Centro de Mando por perfiles (15/11/2026).** Consulta el apartado «Guía actual: perfiles» al final. Las secciones de sesiones y sus validaciones se conservan como historial y ya no describen la interfaz actual. Esta iteración tiene autorización de commit local; no hay autorización de push.
+> **Guía vigente: MVP jugable y ceremonia (15/11/2026).** Consulta «Partida completa de demostración» al final. Las secciones anteriores y sus validaciones se conservan como historial. Este hito queda local, sin commit ni push hasta nueva orden.
 
 Introducción local para una aventura personal de cumpleaños ambientada en NINJAGO. Vue 3 + TypeScript + Vite; ilustración generada para este proyecto, sin imágenes, fuentes ni servicios remotos en ejecución.
 
@@ -196,3 +196,82 @@ Claves nuevas: `ninja-profile-v2:colegio`, `ninja-profile-v2:urbanizacion`, `nin
 La orden del director del 15/11/2026 autoriza cerrar el commit base local. No autoriza push, merge, reset, clean ni despliegue. Los cambios previos sin commit se han conservado y adaptado a los nuevos requisitos.
 
 Cierre del commit base (15/11/2026): typecheck y build repetidos con código 0; 10/10 pruebas unitarias superadas. npm recuperado mediante Node con --preserve-symlinks y --preserve-symlinks-main y NODE_OPTIONS equivalente. Smoke: PENDIENTE POR ENTORNO; el intento anterior terminó con ECONNREFUSED en 127.0.0.1:9223 porque Edge/Mojo no pudo arrancar por Access is denied (0x5). No se considera superado ni se reintenta como condición del commit, por orden expresa del director. No hay script de lint. Pendientes el smoke en una terminal normal, la auditoría con lector de pantalla y el ensayo físico sin red de esta versión. No se implementan funcionalidades nuevas en este cierre.
+
+## Partida completa de demostración — guía vigente, 15/11/2026
+
+Recorrido: **START GAME → dos equipos y sus capitanes → color 1 → nombre 1 → color 2 → nombre 2 → equipos definitivos → vídeo del maestro Wu**. El público no ve controles de ceremonia. La portada, su CTA y el reproductor existentes conservan su diseño. No hay fases de desafíos, puntos o pistas en este MVP.
+
+### Arranque local con el npm recuperado
+
+Desde la raíz, con las dependencias ya instaladas, ejecuta en PowerShell:
+
+```powershell
+$npmCli = Join-Path (Split-Path (Get-Command npm.cmd).Source -Parent) 'node_modules\npm\bin\npm-cli.js'
+if (!(Test-Path -LiteralPath $npmCli)) { throw 'No se encuentra npm-cli.js en la instalación detectada.' }
+$previousNodeOptions = $env:NODE_OPTIONS
+try {
+    $env:NODE_OPTIONS = '--preserve-symlinks --preserve-symlinks-main'
+    node --preserve-symlinks --preserve-symlinks-main $npmCli run build
+    if ($LASTEXITCODE -ne 0) { throw 'Build fallido: no iniciar la partida.' }
+    node --preserve-symlinks --preserve-symlinks-main $npmCli run preview -- --port 4173 --strictPort
+} finally {
+    $env:NODE_OPTIONS = $previousNodeOptions
+}
+```
+
+Mantén esta terminal y el servidor abiertos durante la partida. Abre `http://127.0.0.1:4173/?screen=admin` en Edge, Chrome o Firefox actual. Se necesitan Web Locks para coordinar las escrituras; HTTP en 127.0.0.1 funciona como contexto seguro. Usa el mismo navegador, perfil y origen para las dos ventanas. No uses `file://`, no se necesita internet durante el juego.
+
+### Preparación y recorrido, sin intervención técnica durante el juego
+
+1. Elige **Colegio** o **Urbanización**. En **Participantes**, introduce los nombres reales localmente. No se crean participantes de ejemplo. Guarda los cambios.
+2. En **Equipos**, asigna integrantes manualmente o elige **Automático → Sortear y guardar reparto**. Después del reparto, elige **Capitán del equipo** en cada uno. Debe ser uno de sus integrantes. Si lo mueves o eliminas, la designación se invalida; un nuevo sorteo conserva únicamente capitanes que sigan en su equipo. Se permiten borradores incompletos, pero la ceremonia queda bloqueada hasta guardar dos equipos con integrantes y capitán.
+3. Escribe **Títulos sugeridos** propios para cada equipo, uno por línea. Para probar SÍ/NO, prepara dos o tres por equipo. Puedes dejar los nombres definitivos y colores sin definir: se elegirán en público. Guarda. Exporta una copia JSON privada antes del evento.
+4. Pulsa **Abrir pantalla pública**, muévela al monitor extendido y maximízala. En el panel, abre **Presentación**. Desde la portada pública pulsa **START GAME**, o selecciona la ceremonia en el catálogo y **Mostrar esta escena**. Aparecen dos estandartes neutrales con todos los integrantes y el capitán primero, con insignia especial. Los nombres/colores definitivos permanecen ocultos en esta fase, aunque estuvieran guardados de una partida anterior.
+5. En el panel pulsa **Avanzar fase**. Wu ofrece exactamente dos colores al equipo 1. Confirma el elegido y avanza. Los colores se definen en `src/ceremony.ts`; el segundo equipo recibe dos opciones que excluyen el color ya confirmado para el primero.
+6. En la fase de nombre, el público ve una propuesta cada vez. **SÍ · Aceptar nombre** la guarda; **NO · Siguiente propuesta** pasa a la siguiente. Cuando se agotan, introduce y confirma el nombre elegido en el formulario del panel. El nombre no puede coincidir con el del otro equipo, ignorando mayúsculas y espacios. Avanza después de confirmar.
+7. Repite color/nombre con el equipo 2. Al avanzar aparecen los dos equipos definitivos, sus colores, nombres, capitanes y miembros. **Continuar al mensaje de Wu** abre el vídeo existente. Inicia la reproducción con sus controles nativos: no hay autoplay sonoro ni fullscreen automático.
+
+### Recuperación y consistencia
+
+- **Fase anterior** conserva las decisiones. Una propuesta aceptada no se pierde al volver. Para cambiarla, rechaza la propuesta actual y revisa las siguientes o llega al nombre manual. Los botones solo se habilitan cuando la fase lo permite.
+- Recargar panel o pública recupera el perfil, escena y fase guardados. Cambiar de perfil vuelve a su portada, preservando su progreso independiente. Seleccionar **El despertar de los equipos** en el catálogo retoma la fase de ese perfil. **Volver a la portada** no borra decisiones. **Repetir ceremonia** requiere confirmación y vuelve al inicio: conserva los nombres/colores almacenados, pero hay que confirmarlos otra vez.
+- Cambiar y guardar la preparación o importar una configuración modificada reinicia las confirmaciones de la ceremonia. Los nombres/colores que figuren en el JSON se conservan; primero se presentan los equipos neutrales. Si una configuración editada invalida el vídeo o la ceremonia, la vista vuelve a portada con aviso. Guarda la preparación antes de comenzar y utiliza los controles de ceremonia para las elecciones durante la partida.
+- Un segundo panel no puede sobrescribir silenciosamente configuración o progreso más recientes. Si otro panel ha cambiado algo, se rechaza la operación. Conserva/exporta el borrador, revisa el estado y descártalo para releer la configuración. Los campos se bloquean durante una escritura; no son un autosave.
+- `ProfileConfig` sigue en esquema 2 con `captainId: string | null` por equipo. Los JSON v2 anteriores sin ese campo se normalizan sin reescribir el original; la conversión legacy deja los capitanes sin designar. JSON exporta configuración y capitanes, nunca fase ni confirmaciones. No se eliminan datos legacy.
+- El progreso de ceremonia está en `ninja-ceremony-v1:<perfil>`; la escena activa sigue en `ninja-control-v3`. Los nombres/colores finales están solo en configuración. Un registro temporal `ninja-ceremony-pending:<perfil>` permite terminar una elección interrumpida al recargar, sin sobrescribir cambios posteriores. Este registro es local y puede contener datos privados, igual que el historial del navegador; no se exporta ni versiona.
+- Los medios por perfil siguen en `public/private-media/<perfil>/`. Ambos perfiles tienen sus copias locales existentes; no se han modificado ni descargado recursos. Si faltan, el monasterio vectorial y el aviso de vídeo siguen disponibles. Vite los copia a `dist`: el build es privado.
+
+### Verificaciones reales y pendientes
+
+Se ha ejecutado el npm detectado en `C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js` mediante Node con las dos opciones de preservación de enlaces y `NODE_OPTIONS` equivalente:
+
+- `run typecheck`: código 0.
+- `run build`: código 0.
+- `test`: **21/21 pruebas correctas**, incluidas capitanes, compatibilidad JSON, transiciones, opciones de color, nombres repetidos y agotados, vuelta atrás, persistencia, recuperación de escritura interrumpida, aislamiento y controlador real con navegador simulado. La prueba de dos controladores simula Web Locks/almacenamiento; no es una prueba de procesos reales de navegador.
+- `git diff --check`: correcto. No hay script de lint. No se han añadido dependencias.
+- Revisión estática de recursos: sin peticiones remotas ejecutables, fuentes externas, fetch/XHR/WebSocket, APIs o medios descargados en el código de aplicación. Las URL de documentación en comentarios y los identificadores SVG no generan tráfico. La verificación dinámica de red queda pendiente con el smoke.
+- **Smoke visual y capturas: PENDIENTES POR ENTORNO.** No hay DevTools disponible en 9223; el bloqueo Edge/Mojo de la operación anterior no se ha reintentado. No se han generado ni revisado nuevas capturas de este hito. Las capturas antiguas de perfiles no acreditan la ceremonia nueva.
+
+El smoke versionado `tests/command-center.smoke.mjs` está adaptado al recorrido nuevo. En un navegador disponible crea un contexto aislado y solo participantes sintéticos, comprueba las elecciones, la recarga y el fallback sin BroadcastChannel, detecta/bloquea peticiones externas y guarda 16 capturas en `.preview.local/ceremony-{arrival,color,name,final}-{1920,1366,768,390}.png`. El script está comprobado sintácticamente, pendiente de ejecución real.
+
+Para ejecutarlo fuera del entorno restringido: mantén preview en 4173, abre Edge desde una terminal normal con un perfil de pruebas separado y DevTools, después ejecuta el script:
+
+```powershell
+Start-Process -FilePath 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' -WindowStyle Hidden -ArgumentList '--headless=new','--remote-debugging-address=127.0.0.1','--remote-debugging-port=9223',('--user-data-dir="' + (Join-Path $PWD '.preview.local\ceremony-edge') + '"'),'--no-first-run','about:blank'
+$npmCli = Join-Path (Split-Path (Get-Command npm.cmd).Source -Parent) 'node_modules\npm\bin\npm-cli.js'
+$previousNodeOptions = $env:NODE_OPTIONS
+try {
+    $env:NODE_OPTIONS = '--preserve-symlinks --preserve-symlinks-main'
+    node --preserve-symlinks --preserve-symlinks-main $npmCli run test:smoke
+    Write-Output "SMOKE_EXIT=$LASTEXITCODE"
+} finally { $env:NODE_OPTIONS = $previousNodeOptions }
+```
+
+Ensayo manual breve en el navegador normal, antes de usarlo con niños:
+
+1. Completa el recorrido anterior con ambos monitores: nombres largos legibles, capitán primero, elección inicial neutral, dos opciones de color, SÍ/NO y nombre manual. Revisa 1920×1080, 1366×768, tablet y móvil; con grupos grandes se permite desplazamiento, sin ocultar integrantes ni reducirlos a texto diminuto.
+2. Recarga en mitad de una elección, retrocede y cambia de perfil; comprueba que se recupera cada ceremonia sin mezclar nombres ni decisiones. Abre otro panel, deja un borrador y confirma una elección desde el primero; verifica el rechazo del guardado desactualizado.
+3. Prueba teclado y movimiento reducido; reproduce el vídeo dentro de su marco. Comprueba los fallbacks quitando temporalmente la disponibilidad del recurso desde DevTools, sin borrar los medios.
+4. En **Network**, filtra HTTP y comprueba que todas las peticiones pertenecen a `127.0.0.1:4173`. Después desconecta Wi-Fi/Ethernet con el servidor activo y repite la secuencia. Este nuevo ensayo físico, el lector de pantalla y la revisión visual quedan pendientes.
+
+Implementación: `profile.ts`, `ProfileTeams.vue`, `ParticipantEditor.vue` (capitanes); `ceremony.ts` y `ceremonyStorage.ts` (reglas y recuperación); `usePresentation.ts`, `profileStorage.ts`, `useProfileDraft.ts` (sincronización y escrituras); `CeremonyStage.vue`/`ceremony.css` (pantalla pública) y `CeremonyControls.vue` dentro de `SceneController.vue` (operador). Referencias: https://vuejs.org/guide/essentials/forms.html , https://vuejs.org/guide/built-ins/transition.html y https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API . Los cambios de este hito siguen sin commit ni push.

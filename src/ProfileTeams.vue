@@ -22,6 +22,8 @@ function assign(id: string, event: Event) { assignProfileMember(props.config, id
         <label>Nombre definitivo<input :value="team.name || ''" :list="`names-${index}`" maxlength="120" placeholder="Escribe o elige un título" @input="team.name = ($event.target as HTMLInputElement).value || null" /></label>
         <datalist :id="`names-${index}`"><option v-for="(name, n) in team.suggestedNames" :key="n" :value="name" /></datalist>
         <label>Títulos sugeridos · uno por línea<textarea :value="suggestions[index]" rows="3" @input="editSuggestions(index, $event)" /></label>
+        <label>Capitán del equipo<select v-model="team.captainId"><option :value="null">Sin capitán</option><option v-for="id in team.memberIds" :key="id" :value="id">{{ config.participants.find(p => p.id === id)?.name }}</option></select></label>
+        <p class="hint">El capitán debe estar asignado a este equipo. Elige uno después del reparto. Los nombres y colores pueden decidirse durante la ceremonia.</p>
         <div class="command-row color-row"><label>Color del equipo<input type="color" :class="{ 'color-unset': !team.color }" :value="team.color || '#ffffff'" @input="team.color = ($event.target as HTMLInputElement).value" /></label><span>{{ team.color || 'Sin color definido' }}</span><button v-if="team.color" @click="team.color = null">Quitar color</button></div>
         <ul v-if="team.memberIds.length" class="member-chips"><li v-for="id in team.memberIds" :key="id">{{ config.participants.find(p => p.id === id)?.name }}</li></ul><p v-else class="empty-inline">Todavía no tiene integrantes.</p>
       </section>

@@ -7,10 +7,11 @@ import { mediaUrl, profileLabels } from './profile'
 import MonasteryBackdrop from './MonasteryBackdrop.vue'
 import WuMessage from './WuMessage.vue'
 import letsGoSeal from './assets/lets-go.svg'
+import CeremonyStage from './CeremonyStage.vue'
 
 // Explicit reactive state: https://vuejs.org/api/sfc-script-setup.html#reactivity
 const isAdmin = new URLSearchParams(location.search).get('screen') === 'admin'
-const { state, profile, activeScene, select, selectProfile, refreshProfile, warning } = usePresentation()
+const { state, profile, ceremony, busy, activeScene, select, selectProfile, actCeremony, refreshProfile, warning } = usePresentation()
 const scene = computed(() => state.value.sceneId)
 watch(state, async () => { await nextTick(); if (!isAdmin) heading.value?.focus() })
 const heading = ref<HTMLHeadingElement | null>(null)
@@ -27,7 +28,7 @@ async function goTo(target: string) {
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     await new Promise(resolve => window.setTimeout(resolve, 360))
   }
-  if (state.value.revision === revision) select(target)
+  if (state.value.revision === revision) await select(target)
   await nextTick()
   heading.value?.focus()
   transitioning.value = false
@@ -36,7 +37,8 @@ async function goTo(target: string) {
 
 <template>
   <ProfileChooser v-if="!profile" :warning="warning" @choose="selectProfile" />
-  <OrganizerPanel v-else-if="isAdmin" :profile="profile" :scene="activeScene" :warning="warning" @select="select" @activate="selectProfile" @saved="refreshProfile" />
+  <OrganizerPanel v-else-if="isAdmin" :profile="profile" :scene="activeScene" :ceremony="ceremony!" :busy="busy" :warning="warning" @select="select" @activate="selectProfile" @ceremony="actCeremony" @saved="refreshProfile" />
+  <CeremonyStage v-else-if="activeScene.type === 'ceremony' && ceremony" :config="profile" :progress="ceremony" />
   <main v-else class="adventure" :class="{ 'video-scene': activeScene.type === 'video', 'is-transitioning': transitioning }" :aria-busy="transitioning">
     <MonasteryBackdrop />
     <img v-if="artworkAvailable" :key="artworkUrl" class="key-art" :src="artworkUrl" alt="" @error="artworkAvailable = false" />
@@ -53,11 +55,12 @@ async function goTo(target: string) {
       <template v-if="activeScene.type === 'opening'">
         <h1 id="scene-title" ref="heading" tabindex="-1"><span>EL SECRETO DEL</span>MAESTRO <strong>WU</strong></h1>
         <p class="subtitle">Una antigua misión. Dos equipos de ninjas.<br class="desktop-break" /> Un secreto que solo podrán descubrir juntos.</p>
-        <button class="start-button" :disabled="transitioning" @click="goTo('wu')">
+        <button class="start-button" :disabled="transitioning || busy" @click="goTo('ceremony')">
           <svg class="mission-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="m27 3-4 15 17-3-12 12 3 17-12-12-15 4 9-14-6-13 15 4Z" fill="currentColor" /><path d="m28 13-12 13h9l-4 10 14-16h-10Z" fill="#fff3b0" /></svg>
           <span>START GAME</span><span class="mission-arrow" aria-hidden="true">&#10140;</span>
         </button>
         <p class="invitation">REÚNE A TU EQUIPO. DESPIERTA TU PODER.</p>
+        <p v-if="warning" class="public-warning" role="status">El organizador debe revisar la preparación de los equipos antes de continuar.</p>
       </template>
       <template v-else>
         <h1 id="scene-title" ref="heading" tabindex="-1" class="second-title"><span>VUESTRA MISIÓN COMIENZA AQUÍ</span>ESCUCHAD AL MAESTRO WU</h1>
@@ -72,4 +75,5 @@ async function goTo(target: string) {
 
 <style scoped>
 .public-profile { display: block; color: #ffe18a; margin-bottom: .5rem; font-size: .65rem; letter-spacing: .08em; }
+.public-warning { max-width: 36rem; padding: .75rem 1rem; color: #fff3cf; background: #102a36ed; border: 1px solid #e3c787; font-size: 1rem; line-height: 1.5; }
 </style>

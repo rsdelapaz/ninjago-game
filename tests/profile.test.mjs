@@ -51,8 +51,8 @@ test('strict config validation rejects broken references, duplicates, binary/rem
   assert.equal(mediaUrl(createProfile('urbanizacion'),'video','./'),'./private-media/urbanizacion/master-wu.mp4')
 })
 test('scene IDs and types are independent of presentation numbers and order values', () => {
-  assert.equal(sceneByNumber(1).id,'intro');assert.equal(sceneByNumber(2).type,'video')
-  assert.equal(sceneById('wu').order,20);assert.equal(adjacentScene('intro',1).id,'wu')
+  assert.equal(sceneByNumber(1).id,'intro');assert.equal(sceneByNumber(2).type,'ceremony');assert.equal(sceneByNumber(3).type,'video')
+  assert.equal(sceneById('wu').order,30);assert.equal(adjacentScene('intro',1).id,'ceremony')
   assert.equal(adjacentScene('intro',-1),undefined);assert.equal(adjacentScene('wu',1),undefined)
   assert.equal(new Set(orderedScenes.map(s=>s.id)).size,orderedScenes.length)
 })

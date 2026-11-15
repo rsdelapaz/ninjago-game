@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { newId, type Participant } from './profile'
-const props = defineProps<{ config: { participants: Participant[]; teams: { memberIds: string[] }[] } }>()
+import { clearInvalidCaptains, newId, type Participant } from './profile'
+const props = defineProps<{ config: { participants: Participant[]; teams: { memberIds: string[]; captainId?: string | null }[] } }>()
 const name = ref('')
 function add() {
   if (!name.value.trim() || props.config.participants.length >= 500) return
@@ -11,6 +11,7 @@ function remove(id: string) {
   if (!window.confirm('¿Quitar este participante y sus asignaciones del borrador?')) return
   props.config.participants = props.config.participants.filter(p => p.id !== id)
   props.config.teams.forEach(t => { t.memberIds = t.memberIds.filter(member => member !== id) })
+  clearInvalidCaptains(props.config)
 }
 function age(id: string, event: Event) {
   const p = props.config.participants.find(p => p.id === id)!

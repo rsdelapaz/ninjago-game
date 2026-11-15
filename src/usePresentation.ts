@@ -1,7 +1,9 @@
 ﻿import { computed, onUnmounted, ref } from 'vue'
-import { isProfileId, type GameProgress, type ProfileConfig, type ProfileId } from './profile'
-import { initializeProfiles, profileKey, readProfile } from './profileStorage'
-import { orderedScenes, sceneById } from './scenes'
+import { ceremonyProblems, isProfileId, profileIds, type GameProgress, type ProfileConfig, type ProfileId } from './profile.ts'
+import { initializeProfiles, profileKey, readProfile, withLocalWrite } from './profileStorage.ts'
+import { applyCeremony, ceremonyKey, readCeremony, recoverCeremony } from './ceremonyStorage.ts'
+import { ceremonyFinalProblems, type CeremonyAction, type CeremonyProgress } from './ceremony.ts'
+import { orderedScenes, sceneById } from './scenes.ts'
 export type Scene = string
 export type PresentationState = Omit<GameProgress, 'profileId'> & { profileId: ProfileId | null }
 const key = 'ninja-control-v3'
@@ -12,45 +14,85 @@ function valid(value: unknown): value is PresentationState {
 }
 export function usePresentation() {
   const state = ref<PresentationState>({ profileId: null, sceneId: orderedScenes[0].id, revision: 0, token: '' })
-  const profile = ref<ProfileConfig | null>(null)
-  const warning = ref('')
-  try {
-    initializeProfiles(localStorage)
-    const saved: unknown = JSON.parse(localStorage.getItem(key) || 'null')
-    if (valid(saved)) { profile.value = readProfile(localStorage, saved.profileId!); state.value = saved }
-  } catch { warning.value = 'No se puede leer la configuración local. Los datos anteriores se conservan; comprueba el almacenamiento del navegador.' }
-  let channel: BroadcastChannel | undefined
-  function receive(value: unknown) {
-    if (!valid(value) || (value.revision < state.value.revision) || (value.revision === state.value.revision && value.token <= state.value.token)) return
-    try { profile.value = readProfile(localStorage, value.profileId!); state.value = value }
-    catch { warning.value = 'El perfil recibido no se puede leer. No se ha aplicado el cambio.' }
-  }
-  try { channel = new BroadcastChannel(key); channel.onmessage = e => receive(e.data) }
-  catch { warning.value = 'Se usará almacenamiento local para sincronizar las ventanas.' }
+  const profile = ref<ProfileConfig | null>(null), ceremony = ref<CeremonyProgress | null>(null)
+  const warning = ref(''), busy = ref(false)
+  let controlBaseline: string | null = null, configBaseline: string | null = null, ceremonyBaseline: string | null = null
+  let disposed = false, channel: BroadcastChannel | undefined
+  const report = (e: unknown) => { warning.value = e instanceof Error ? e.message : 'No se ha podido guardar. Conserva tus datos y recarga.' }
   function refreshProfile() {
-    if (!state.value.profileId) return
-    try { profile.value = readProfile(localStorage, state.value.profileId) }
-    catch { warning.value = 'El perfil guardado contiene datos inválidos. No se reemplazará automáticamente.' }
+    try {
+      controlBaseline = localStorage.getItem(key)
+      const saved: unknown = JSON.parse(controlBaseline || 'null')
+      if (!valid(saved)) return
+      const id = saved.profileId!
+      const config = readProfile(localStorage, id), progress = readCeremony(localStorage, id)
+      configBaseline = localStorage.getItem(profileKey(id)); ceremonyBaseline = localStorage.getItem(ceremonyKey(id))
+      profile.value = config; ceremony.value = progress; state.value = saved
+      // An edited/imported setup cannot leave the public display on an unearned final video.
+      try { checkScene(saved.sceneId, config, progress) }
+      catch (e) { state.value = { ...saved, sceneId: 'intro' }; report(e) }
+    } catch (e) { report(e) }
   }
+  const initialized = withLocalWrite(() => {
+    if (disposed) return
+    initializeProfiles(localStorage)
+    profileIds.forEach(id => recoverCeremony(localStorage, id))
+    refreshProfile()
+  }).catch(report)
+  try { channel = new BroadcastChannel(key); channel.onmessage = () => refreshProfile() }
+  catch { /* Same-origin storage events remain available. */ }
   const storage = (event: StorageEvent) => {
-    if (event.key === key && event.newValue) { try { receive(JSON.parse(event.newValue)) } catch { /* Ignore malformed messages. */ } }
-    if (state.value.profileId && event.key === profileKey(state.value.profileId)) refreshProfile()
+    const id = state.value.profileId
+    if (event.key === key || id && [profileKey(id), ceremonyKey(id)].includes(event.key || '')) refreshProfile()
   }
   window.addEventListener('storage', storage)
-  function publish(sceneId: string, profileId: ProfileId) {
-    if (!sceneById(sceneId)) return
-    const next: PresentationState = { profileId, sceneId, revision: Math.max(Date.now(), state.value.revision + 1), token: Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-') }
-    try {
-      const config = readProfile(localStorage, profileId)
-      localStorage.setItem(key, JSON.stringify(next))
-      profile.value = config; state.value = next
-      channel?.postMessage(next)
-    } catch { warning.value = 'No se ha aplicado el cambio: no es posible leer o guardar el perfil activo.' }
+  function checkCurrent(expected: string | null) {
+    if (localStorage.getItem(key) !== expected) throw Error('Otra ventana cambió la presentación. Revisa la fase actual antes de volver a confirmar.')
   }
-  function select(sceneId: string) { if (state.value.profileId) publish(sceneId, state.value.profileId) }
-  // Switching profiles always returns the public display to the first stable scene.
-  function selectProfile(id: ProfileId) { publish(orderedScenes[0].id, id) }
-  onUnmounted(() => { channel?.close(); window.removeEventListener('storage', storage) })
+  function checkScene(sceneId: string, config: ProfileConfig, progress: CeremonyProgress) {
+    if (!sceneById(sceneId)) throw Error('Escena desconocida.')
+    if (sceneId === 'ceremony') {
+      const errors = ceremonyProblems(config); if (errors.length) throw Error(errors.join(' '))
+    }
+    if (sceneId === 'wu') {
+      const errors = ceremonyFinalProblems(config, progress)
+      if (!['ready', 'complete'].includes(progress.phase) || errors.length) throw Error('Completa la ceremonia antes de mostrar el vídeo. ' + errors.join(' '))
+    }
+  }
+  function writeControl(sceneId: string, id: ProfileId) {
+    const next: PresentationState = { profileId: id, sceneId, revision: Math.max(Date.now(), state.value.revision + 1), token: Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-') }
+    localStorage.setItem(key, JSON.stringify(next))
+    refreshProfile(); channel?.postMessage(next) // no participant names in channel messages
+  }
+  async function run(write: () => void) {
+    if (busy.value) return
+    busy.value = true
+    try { await initialized; await withLocalWrite(write); warning.value = '' }
+    catch (e) { refreshProfile(); report(e) }
+    finally { busy.value = false }
+  }
+  function publish(sceneId: string, id: ProfileId) {
+    const expected = controlBaseline
+    return run(() => {
+      checkCurrent(expected)
+      recoverCeremony(localStorage, id)
+      checkScene(sceneId, readProfile(localStorage, id), readCeremony(localStorage, id))
+      writeControl(sceneId, id)
+    })
+  }
+  function select(sceneId: string) { if (state.value.profileId) return publish(sceneId, state.value.profileId) }
+  // The profile's ceremony is preserved; choose its catalogue entry to resume it.
+  function selectProfile(id: ProfileId) { return publish('intro', id) }
+  function actCeremony(action: CeremonyAction) {
+    const id = state.value.profileId, expected = controlBaseline, config = configBaseline, progress = ceremonyBaseline
+    if (!id || !config || state.value.sceneId !== 'ceremony') return
+    return run(() => {
+      checkCurrent(expected)
+      const result = applyCeremony(localStorage, id, config, progress, action)
+      writeControl(result.progress.phase === 'complete' ? 'wu' : 'ceremony', id)
+    })
+  }
+  onUnmounted(() => { disposed = true; channel?.close(); window.removeEventListener('storage', storage) })
   const activeScene = computed(() => sceneById(state.value.sceneId)!)
-  return { state, profile, activeScene, select, selectProfile, refreshProfile, warning }
+  return { state, profile, ceremony, busy, activeScene, select, selectProfile, actCeremony, refreshProfile, warning, initialized }
 }
