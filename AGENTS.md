@@ -22,12 +22,19 @@ Read `docs/PROJECT.md` before changing code. This repo is a specific immersive n
 - Final message: «UN NINJA EN SOLITARIO ES MUY FUERTE, PERO JUNTOS SON INVENCIBLES».
 - Two different sessions on consecutive days; configurable participants imported from CSV (name, gender, age), manual/random assignment, two editable team names with CSV-based suggestions, and team colors. Do not implement all of this before the approved opening-scene MVP.
 
-## Current milestone (M1)
+## Current authorized slice — profile command center (2026-11-15)
+The latest owner request supersedes the session-based organizer: exactly two initial profiles (colegio, urbanizacion), independent ProfileConfig schema v2 and GameProgress, initially unnamed/uncolored/empty teams, per-team suggestions, per-profile media folders, explicit legacy conversion without deletion, generic stable-ID scene control, responsive modular dashboard. Preserve approved public art/video. No backend, remote runtime dependencies, connectivity modes, scoring or later game phases. Keep legacy schema-v1 source only for recovery and regression tests.
+
+All changes must remain local in this iteration. No commit, push, merge, reset, clean, destructive Git operations or publication without NEW authorization. This replaces every earlier publication authorization below.
+
+## Historical milestone (M1)
+The latest owner requirement expands the authorized organizer slice into session configuration: separate SessionConfig and GameProgress; participants, exactly two teams, explicit balanced assignment, versioned JSON preview/import/export and duplication. Implement these without changing the approved public artwork, CTA or video. No CSV, scoring, challenges or later gameplay logic is authorized in this slice. The same static application must work on local or web servers without connectivity-dependent rules, cross-origin synchronization or required cloud services.
+
 Implement and verify exactly: (1) cinematic intro with START GAME, (2) original master/mentor presentation scene with a local video embedded in a designed screen, (3) simple operator control in a separate window, with scene transitions synchronized locally. Good empty-media states and responsive design are required. Do not start the full game engine, player import, account systems, database, online multiplayer, or deployment in M1.
 
 ## Working procedure
 1. Inspect the repo, summarize current state, and define a short plan before edits.
-2. Work one milestone at a time; require authorization for destructive operations, secrets, remote writes, commits, pushes, or deployments. The owner's 2026-11-14 CTA/seal request explicitly authorizes commits and pushes to feat/upgrade-prologue-art in rsdelapaz/ninjago-game, without merging main or publishing private media. Normal file edits within the authorized milestone are allowed.
+2. Work one milestone at a time; require authorization for destructive operations, secrets, remote writes, commits, pushes, or deployments. The earlier 2026-11-14 Git publication authorization is superseded: the current profile iteration must remain local. Normal file edits within the authorized milestone are allowed.
 3. Create/modify the minimum files needed. Never add speculative infrastructure or many subagents just to simulate a team.
 4. Before reporting success, run applicable tests, TypeScript checks, lint and production build; record exact commands and outcomes. If a command cannot run, say so.
 5. Explain changed files, how to run locally, how to test two windows, any missing media assets, and known limitations.

@@ -3,5 +3,9 @@ dist/
 *.local
 .env
 .env.*
-public/private-media/*
+public/private-media/**
 !public/private-media/.gitkeep
+!public/private-media/colegio/
+!public/private-media/colegio/.gitkeep
+!public/private-media/urbanizacion/
+!public/private-media/urbanizacion/.gitkeep
