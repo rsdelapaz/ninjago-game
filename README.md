@@ -1,6 +1,6 @@
 # El secreto del maestro Wu
 
-> **Guía vigente: Hito 08 — Pruebas configurables y administración (15/11/2026).** Consulta el apartado final y «Partida completa de demostración» para el arranque con npm recuperado. Las secciones previas son históricas. El director autoriza en este hito commit y push de fuente auditada exclusivamente a `feat/upgrade-prologue-art`, sin publicar medios ni capturas privadas.
+> **Guía vigente: Hito 09 — La llamada del cielo (15/11/2026), pendiente de aprobación artística en navegador.** Consulta el apartado final y «Partida completa de demostración» para el arranque con npm recuperado. Las secciones previas son históricas. El director autoriza en este hito commit y push de fuente auditada exclusivamente a `feat/upgrade-prologue-art`, sin publicar medios ni capturas privadas.
 
 Introducción local para una aventura personal de cumpleaños ambientada en NINJAGO. Vue 3 + TypeScript + Vite; ilustración generada para este proyecto, sin imágenes, fuentes ni servicios remotos en ejecución.
 
@@ -492,3 +492,41 @@ try {
 }
 git diff --check
 ```
+
+## Hito 09 — La llamada del cielo
+
+La misión deja de ser una pantalla de texto e imagen en columnas: aparece dentro de una proyección de energía en el cielo, sobre un monasterio original con montañas, torres, árboles, niebla, terraza y escaleras. Dos grupos de siluetas ninja de espaldas, con alturas y posturas distintas, contemplan la proyección desde el primer plano. Son representación de los clanes, no un recuento ni nuevos participantes. Las telas y contornos usan los colores definitivos cuando existen. No se modifican portada, ceremonia ni medios privados.
+
+La misión conserva la imagen completa mediante object-fit: contain, sin filtros ni perspectiva sobre su contenido. El halo elíptico, nubes iluminadas y partículas rodean la información; no hay monitor rectangular ni dos columnas independientes. Número pequeño, título, imagen dominante e instrucciones forman un único foco. Entrada de aproximadamente 1,6 segundos, después reposo, sin audio; movimiento reducido muestra todo inmediatamente. Las descripciones largas siguen completas en una región de instrucciones desplazable con teclado/táctil y aviso para textos extensos. En escritorio el escenario ocupa el viewport sin scroll de página habitual; el encaje/legibilidad real siguen pendientes de comprobar. En móvil se adapta la proyección y se conserva el panorama completo del primer plano, sin recortar un equipo fuera de la pantalla.
+
+El anuncio explícito ilumina el mismo cielo con el color ganador, muestra el emblema original correspondiente y su nombre, conservando a ambos equipos en escena. Guardar resultados no anuncia nada automáticamente. La vista previa usa el mismo ChallengeStage, con geometría 16:9 y tipografía relativa al contenedor; avisos de archivo ausente aparecen fuera de la composición solo en administración. La identidad de degradados SVG es única para que varias previas no se interfieran. No hay nuevos modelos, dependencias ni escrituras de almacenamiento en este hito.
+
+### Catálogo: activa frente a vista previa
+
+La causa del error era aria-pressed ligado a previewId y el estilo de selección correspondiente, junto a initialPreview persistente. Ahora la escena guardada activa tiene el borde principal y aria-current="step". Una miniatura diferente usa borde discontinuo y «Vista previa»; no publica. «En pantalla» aparece solo con disponibilidad pública confirmada; si no, indica «Activa · pantalla sin confirmar». Esa disponibilidad no certifica que el monitor físico esté encendido ni sustituye observarlo.
+
+Al confirmar Mostrar, Anterior, Siguiente o número, la previa sigue el estado activo. Cambiar perfil o retirar una prueba vuelve a una entrada válida. Las solicitudes del editor se consumen al entrar al control y se limpian al navegar, sin quedar atadas a un initialPreview antiguo. El número de navegación también se recalcula al reordenar. Se conservan handshake y apertura síncrona de ventana pública.
+
+### Revisión crítica y segunda pasada
+
+Primera composición: misión unificada en halo y tres planos originales. Segunda pasada: proyección elevada para revelar la arquitectura, escaleras por delante del suelo, tamaños relativos al contenedor para que el dashboard no convierta la previa en otra composición, y panorama inferior completo en móvil para conservar ambos clanes. Se han eliminado distorsiones/filtros sobre la imagen y efectos continuos para mantener lectura estable.
+
+Dirección artística: el planteamiento abandona las columnas y coloca figuras, arquitectura y fenómeno en un mismo mundo; aprobación premium pendiente de capturas reales. Interfaz de videojuego: información integrada en la proyección y anuncio ligado a su energía. Experiencia infantil: dos grupos atentos cooperan y ambos permanecen en la celebración, sin ridiculizar al contrario. Accesibilidad: texto íntegro, foco, imagen contenida, instrucciones desplazables y reduced motion; legibilidad a distancia y encaje no se declaran aprobados sin navegador.
+
+Fuentes técnicas oficiales: Vue watch (https://vuejs.org/api/reactivity-core.html#watch) para reconciliar vista previa y estado activo; contenedores CSS (https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Containment/Container_size_and_style_queries) para conservar proporciones en la previa. Gráficos originales SVG/CSS; no se descargan materiales protegidos.
+
+### Ensayo visual obligatorio pendiente
+
+El servidor del propietario responde en http://localhost:5173/, pero no hay navegador automatizable conectado en 9223/9222. No se vuelve a arrancar Edge headless bloqueado. Se publica como implementación **pendiente de aprobación artística**, no como diseño visual aprobado. No se generan capturas ficticias ni se sustituyen por imágenes de una versión anterior.
+
+1. Abrir http://localhost:5173/?screen=admin y preparar la pública con el botón del panel. Usar localhost:5173 en ambas ventanas, sin mezclar con 127.0.0.1. Usar un perfil de ensayo, exportando primero cualquier configuración real.
+2. Con dos equipos preparados, crear una prueba con imagen horizontal que contenga texto y mostrarla a 1920×1080 y 1366×768. Comprobar imagen completa/legible, título/instrucciones, monasterio y dos grupos, ausencia de scroll habitual y de superposiciones sobre la información.
+3. Repetir con imagen vertical, cuadrada, sin imagen, archivo ausente, título de 160 caracteres y descripción extensa. Recorrer las instrucciones con Tab/flechas y comprobar que todo el texto se puede leer.
+4. Seleccionar otra miniatura: activa con borde principal/aria-current y previa diferenciada. Mostrar, usar Anterior/Siguiente/número y cambiar perfil. Ocultar/eliminar la activa y guardar: portada válida. Cerrar pública y esperar expiración: el panel debe dejar de afirmar «En pantalla».
+5. Guardar un ganador: la misión sigue visible. Anunciarlo: emblema/color/nombre ganador con ambos grupos presentes. Corregir resultado y volver a mostrar la prueba; no hay anuncios automáticos.
+6. Revisar 390×844 y movimiento reducido (herramientas del navegador o preferencia del sistema). La previa debe representar la misma composición, y el cambio no debe alterar configuración ni ceremonia.
+7. Guardar e inspeccionar capturas en .preview.local/h09-mision-1920.png, h09-mision-1366.png, h09-vertical.png, h09-movil.png, h09-ganador.png y h09-catalogo.png. Usar solo datos ficticios y mantener la carpeta ignorada. La aceptación artística y de lectura en el monitor externo corresponde a este ensayo pendiente.
+
+Archivos de implementación: ChallengeStage.vue, SkyMonastery.vue (nuevo), challenge-sky.css (nuevo), SceneController.vue, OrganizerPanel.vue y useSceneCatalogue.ts (nuevo). Pruebas: challenge-stage.test.mjs y scene-catalogue.test.mjs (nuevo). Documentación: AGENTS.md, docs/PROJECT.md y README.md. Los modelos, las claves de datos, los medios y las pantallas aprobadas no cambian.
+
+Cierre técnico Hito 09: **67/67 pruebas superadas**; typecheck, build y git diff --check con **código 0**, mediante el mismo procedimiento PowerShell con npm detectado y preservación de enlaces documentado arriba. La plantilla y el catálogo reales se compilan con los compiladores existentes; pruebas de renderer/SSR verifican contenido, estados accesibles, dos clanes, colores y unicidad de pinturas, sin medir píxeles. Los controladores existentes mantienen cobertura de decisiones, retirada activa, recarga y resultados explícitos. Vite sirve la nueva ChallengeStage con HTTP 200. No hay lint configurado. Capturas, navegador real y aprobación artística: **pendientes**, no superados.

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { confirmAction } from './confirmation'
 
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import ParticipantEditor from './ParticipantEditor.vue'
 import ProfileTeams from './ProfileTeams.vue'
 import ProfileResources from './ProfileResources.vue'
@@ -23,7 +23,8 @@ const emit = defineEmits<{ select: [id: string]; activate: [id: ProfileId]; cere
 const { current, dirty, pending, validation, saving, save, reset, discard, message, error, report } = useProfileDraft(() => props.profile, () => emit('saved'))
 const config = computed(() => current.value.config)
 const orderedScenes = computed(() => scenesFor(props.profile)), presentationPreview = ref('')
-function controlChallenge(id: string) { presentationPreview.value = `challenge:${id}`; navigate('presentation') }
+watch(() => props.profile.id, () => { presentationPreview.value = '' })
+function controlChallenge(id: string) { navigate('presentation', `challenge:${id}`) }
 const modules = [
   { id: 'overview', label: 'Resumen', icon: '◈', description: 'Una mirada a todo lo que necesita tu aventura.' },
   { id: 'participants', label: 'Participantes', icon: '♙', description: 'Prepara los nombres de los ninjas de este perfil.' },
@@ -45,7 +46,7 @@ const ready = computed(() => checks.value.filter(c => c.done).length)
 const preparationProblems = computed(() => ceremonyProblems(props.profile))
 const legacyCount = ref(0)
 try { legacyCount.value = legacyEntries(localStorage).length } catch { /* The storage warning is handled by the draft controller. */ }
-async function navigate(id: string) { module.value = id; await nextTick(); title.value?.focus() }
+async function navigate(id: string, preview = '') { presentationPreview.value = preview; module.value = id; await nextTick(); title.value?.focus() }
 async function activate(event: Event) {
   const select = event.target as HTMLSelectElement, id = select.value as ProfileId, reviewed = props.profile.id
   select.value = props.profile.id
@@ -93,7 +94,7 @@ function restart() { emit('select', 'intro') }
           <div v-if="legacyCount" class="notice">Hay {{ legacyCount }} configuraciones anteriores conservadas. Elige explícitamente qué datos trasladar a cada perfil. <button class="text-button" @click="navigate('settings')">Revisar datos anteriores →</button></div>
           <div class="metric-grid"><article class="metric"><span aria-hidden="true">♙</span><div><strong>{{ config.participants.length }}</strong><small>Participantes</small></div><button aria-label="Administrar participantes" @click="navigate('participants')">↗</button></article><article class="metric"><span aria-hidden="true">⚑</span><div><strong>2</strong><small>Equipos ninja</small></div><button aria-label="Administrar equipos" @click="navigate('teams')">↗</button></article><article class="metric"><span aria-hidden="true">◇</span><div><strong>{{ unassigned.length }}</strong><small>Sin equipo asignado</small></div><button aria-label="Asignar integrantes" @click="navigate('teams')">↗</button></article></div>
           <div class="overview-grid"><section class="panel mission-panel"><div class="section-title"><div><p class="kicker">ANTES DE LA AVENTURA</p><h2>Prepara tu misión</h2></div><span class="readiness-ring">{{ ready }}/3</span></div><p class="hint">Prepara integrantes y capitanes, y guarda. Los nombres y colores se eligen con los niños durante la ceremonia; no son requisitos previos.</p><div class="readiness-list"><button v-for="(check, i) in checks" :key="check.label" @click="navigate(check.target)"><span class="check-marker" :class="{ done: check.done }">{{ check.done ? '✓' : String(i + 1).padStart(2, '0') }}</span><strong>{{ check.label }}</strong><span aria-hidden="true">→</span></button></div><button class="quiet-button" @click="navigate('media')">Comprobar imagen y vídeo →</button><button class="primary" @click="navigate('presentation')">Ir a presentación →</button></section>
-            <section class="panel live-panel"><p class="kicker"><span class="status-dot"></span> CONTROL DE PANTALLA</p><div class="live-scene-number">{{ String(orderedScenes.findIndex(s => s.id === scene.id) + 1).padStart(2, '0') }}<small>/ {{ orderedScenes.length }}</small></div><h2>{{ scene.title }}</h2><p class="hint">{{ scene.type === 'challenge' ? 'Prueba en pantalla · registra y anuncia el ganador en Presentación' : scene.type === 'ceremony' ? 'Ceremonia de equipos' : scene.type === 'opening' ? 'Portada cinematográfica' : 'Vídeo local del maestro' }}</p><button class="primary" @click="navigate('presentation')">Controlar presentación →</button></section>
+            <section class="panel live-panel"><p class="kicker"><span class="status-dot"></span> CONTROL DE PANTALLA</p><div class="live-scene-number">{{ String(orderedScenes.findIndex(s => s.id === scene.id) + 1).padStart(2, '0') }}<small>/ {{ orderedScenes.length }}</small></div><h2>{{ scene.title }}</h2><p class="hint">{{ scene.type === 'challenge' ? (publicReady ? 'Prueba en pantalla' : 'Prueba activa · pantalla sin confirmar') + ' · registra y anuncia el ganador en Presentación' : scene.type === 'ceremony' ? 'Ceremonia de equipos' : scene.type === 'opening' ? 'Portada cinematográfica' : 'Vídeo local del maestro' }}</p><button class="primary" @click="navigate('presentation')">Controlar presentación →</button></section>
             <section class="panel"><div class="section-title"><h2>Tus equipos</h2><button class="text-button" @click="navigate('teams')">Editar →</button></div><div class="summary-teams"><div v-for="(team, i) in config.teams" :key="team.id"><span class="team-swatch" :style="{ background: team.color || 'transparent' }"></span><div><strong>{{ team.name || `Equipo ${i + 1}` }}</strong><small>{{ team.name ? `${team.memberIds.length} integrantes` : 'Nombre y color por definir' }}</small></div><b>{{ team.memberIds.length }}</b></div></div></section>
             <section class="panel"><p class="kicker">RECURSOS DEL PERFIL</p><h2>Una aventura con su propia voz</h2><p class="hint">Referencias configuradas; comprueba su disponibilidad en Recursos multimedia.</p><div class="file-reference"><span>IMG</span><code>{{ config.media.artwork }}</code></div><div class="file-reference"><span>VID</span><code>{{ config.media.video }}</code></div></section></div>
         </template>
@@ -101,7 +102,7 @@ function restart() { emit('select', 'intro') }
         <ProfileTeams v-else-if="module === 'teams'" :config="config" @distribute="shuffle" />
         <ChallengeEditor v-else-if="module === 'challenges'" :key="profile.id" :config="config" :results="results" :dirty="dirty" @present="controlChallenge" />
         <ProfileResources v-else-if="module === 'media'" :key="profile.id" :config="config" />
-        <template v-else-if="module === 'presentation'"><SceneController :key="`${profile.id}:${presentationPreview}`" :initial-preview="presentationPreview" :scene="scene" :results="results" :results-version="resultsVersion" :save-result="recordResult" @announce="(id,winner) => $emit('announce',id,winner)" :config="profile" :ceremony="ceremony" :reveal="reveal" :disabled="busy || saving || dirty" @select="$emit('select', $event)" @ceremony="$emit('ceremony', $event)" @reveal="$emit('reveal', $event)" /><p v-if="dirty" class="notice">Guarda o descarta el borrador antes de dirigir la ceremonia.</p><div class="command-row"><button :disabled="busy || saving" @click="restart">Volver a la portada…</button><span class="hint">Volver a la portada conserva las decisiones. Retoma la ceremonia desde su entrada en el catálogo.</span></div></template>
+        <template v-else-if="module === 'presentation'"><SceneController :key="profile.id" :requested-preview="presentationPreview" :public-ready="publicReady" :scene="scene" :results="results" :results-version="resultsVersion" :save-result="recordResult" @announce="(id,winner) => $emit('announce',id,winner)" :config="profile" :ceremony="ceremony" :reveal="reveal" :disabled="busy || saving || dirty" @select="$emit('select', $event)" @ceremony="$emit('ceremony', $event)" @reveal="$emit('reveal', $event)" /><p v-if="dirty" class="notice">Guarda o descarta el borrador antes de dirigir la ceremonia.</p><div class="command-row"><button :disabled="busy || saving" @click="restart">Volver a la portada…</button><span class="hint">Volver a la portada conserva las decisiones. Retoma la ceremonia desde su entrada en el catálogo.</span></div></template>
         <ProfileTransfer v-else :key="profile.id" :config="config" :dirty="dirty" :reset-baseline="{ profileId: config.id, expectedConfig: current.baseline, expectedProgress: current.ceremonyBaseline }" @replace="replace" @reset="reset(resetProfile, $event)" />
         <div v-if="dirty" class="draft-actions"><span>Los cambios pertenecen solo a {{ profileLabels[profile.id] }}. Editar solo las pruebas conserva la ceremonia. Cambiar participantes, equipos o recursos reinicia sus confirmaciones; conserva nombres y colores.</span><button @click="discard">Descartar borrador…</button></div>
         </fieldset>
