@@ -1,6 +1,7 @@
 import { createProfile, exportProfile, parseProfile, profileIds, type ProfileConfig, type ProfileId } from './profile.ts'
 import { createCeremony } from './ceremony.ts'
 export const profileKey = (id: ProfileId) => `ninja-profile-v2:${id}`
+export const presentationKey = 'ninja-control-v3'
 export function initializeProfiles(storage: Storage) {
   for (const id of profileIds) if (storage.getItem(profileKey(id)) === null) storage.setItem(profileKey(id), exportProfile(createProfile(id)))
 }

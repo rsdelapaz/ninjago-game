@@ -6,6 +6,16 @@ export const profileIds = ['colegio', 'urbanizacion'] as const
 export type ProfileId = typeof profileIds[number]
 export type GameProgress = { profileId: ProfileId; sceneId: string; revision: number; token: string }
 export const profileLabels: Record<ProfileId, string> = { colegio: 'Colegio', urbanizacion: 'Urbanización' }
+export const initialSuggestedNames = [
+  ['Los Pepinillos del Trueno', 'Los Churros Voladores', 'Los Calcetines Ninja'],
+  ['Las Croquetas Supersónicas', 'Los Flanes Furiosos', 'Los Pijamas del Dragón'],
+] as const
+const participantCollator = new Intl.Collator('es', { sensitivity: 'base', numeric: true })
+// Display order only: a new array keeps the original objects and stable identifiers.
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator
+export function sortParticipants<T extends { name: string }>(participants: readonly T[]): T[] {
+  return [...participants].sort((a, b) => participantCollator.compare(a.name, b.name))
+}
 export type ProfileTeam = { id: string; suggestedNames: string[]; name: string | null; color: string | null; memberIds: string[]; captainId: string | null }
 export type ProfileConfig = {
   schemaVersion: 2; id: ProfileId; participants: Participant[]
@@ -14,8 +24,8 @@ export type ProfileConfig = {
 }
 export function isProfileId(value: unknown): value is ProfileId { return profileIds.includes(value as ProfileId) }
 export function createProfile(id: ProfileId): ProfileConfig {
-  const team = (): ProfileTeam => ({ id: newId(), name: null, color: null, memberIds: [], suggestedNames: [], captainId: null })
-  return { schemaVersion: 2, id, participants: [], assignmentMode: 'manual', teams: [team(), team()], media: { artwork: 'ninjago-key-art.png', video: 'master-wu.mp4' } }
+  const team = (names: readonly string[]): ProfileTeam => ({ id: newId(), name: null, color: null, memberIds: [], suggestedNames: [...names], captainId: null })
+  return { schemaVersion: 2, id, participants: [], assignmentMode: 'manual', teams: [team(initialSuggestedNames[0]), team(initialSuggestedNames[1])], media: { artwork: 'ninjago-key-art.png', video: 'master-wu.mp4' } }
 }
 function obj(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('Se esperaba un objeto JSON.')
@@ -80,6 +90,11 @@ export function assignProfileMember(config: ProfileConfig, id: string, target: s
   config.teams.forEach(t => { t.memberIds = t.memberIds.filter(p => p !== id); if (t.id === target) t.memberIds.push(id) })
   clearInvalidCaptains(config)
 }
+export function assignProfileMembers(config: ProfileConfig, ids: string[], target: string) {
+  // Validate the whole operation before mutating; a stale/invalid selection cannot partially move a team.
+  if (!config.teams.some(t => t.id === target) || new Set(ids).size !== ids.length || ids.some(id => !config.participants.some(p => p.id === id))) throw Error('Selección de integrantes no válida.')
+  ids.forEach(id => assignProfileMember(config, id, target))
+}
 export function distributeProfile(config: ProfileConfig, random = Math.random) {
   const ids = config.participants.map(p => p.id)
   for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]] }
@@ -94,8 +109,19 @@ export function ceremonyProblems(config: ProfileConfig): string[] {
   return config.teams.flatMap((t, i) => !t.memberIds.length ? [`Equipo ${i + 1}: añade integrantes.`] : !t.captainId || !t.memberIds.includes(t.captainId) ? [`Equipo ${i + 1}: elige un capitán de su equipo.`] : [])
 }
 export function publicMembers(config: ProfileConfig, team: ProfileTeam): Participant[] {
-  return [team.captainId, ...team.memberIds.filter(id => id !== team.captainId)]
-    .map(id => config.participants.find(p => p.id === id)).filter((p): p is Participant => !!p)
+  const members = teamMembers(config, team)
+  const captain = members.find(p => p.id === team.captainId)
+  return captain ? [captain, ...members.filter(p => p.id !== captain.id)] : members
+}
+export function teamMembers(config: { participants: Participant[] }, team: { memberIds: string[] }): Participant[] {
+  return sortParticipants(config.participants.filter(p => team.memberIds.includes(p.id)))
+}
+export function memberCandidateGroups(config: ProfileConfig, target: string) {
+  const available = config.participants.filter(p => !config.teams.find(t => t.id === target)?.memberIds.includes(p.id))
+  return [
+    { id: 'unassigned', label: 'Participantes sin equipo', participants: sortParticipants(available.filter(p => !config.teams.some(t => t.memberIds.includes(p.id)))) },
+    { id: 'other', label: 'Integrantes del equipo contrario', participants: sortParticipants(available.filter(p => config.teams.some(t => t.id !== target && t.memberIds.includes(p.id)))) },
+  ]
 }
 export function mediaUrl(c: ProfileConfig, kind: 'artwork' | 'video', base: string): string {
   return `${base}private-media/${c.id}/${encodeURIComponent(c.media[kind])}`

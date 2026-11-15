@@ -11,10 +11,12 @@ import type { SceneDefinition } from './scenes'
 import { orderedScenes } from './scenes'
 import { useProfileDraft } from './useProfileDraft'
 import { legacyEntries } from './profileStorage'
+import type { ProfileResetRequest } from './ceremonyStorage'
+import type { RevealState, RevealAction } from './reveal'
 import './command-center.css'
-const props = defineProps<{ profile: ProfileConfig; scene: SceneDefinition; ceremony: CeremonyProgress; busy: boolean; warning: string }>()
-const emit = defineEmits<{ select: [id: string]; activate: [id: ProfileId]; ceremony: [action: CeremonyAction]; saved: [] }>()
-const { current, dirty, pending, validation, saving, save, discard, message, error, report } = useProfileDraft(() => props.profile, () => emit('saved'))
+const props = defineProps<{ profile: ProfileConfig; scene: SceneDefinition; ceremony: CeremonyProgress; reveal: RevealState; busy: boolean; warning: string; publicReady: boolean; publicWaiting: boolean; publicMessage: string; publicUrl: string; resetProfile: (request: ProfileResetRequest) => Promise<boolean> }>()
+const emit = defineEmits<{ select: [id: string]; activate: [id: ProfileId]; ceremony: [action: CeremonyAction]; reveal: [action: RevealAction]; saved: []; openPublic: [] }>()
+const { current, dirty, pending, validation, saving, save, reset, discard, message, error, report } = useProfileDraft(() => props.profile, () => emit('saved'))
 const config = computed(() => current.value.config)
 const modules = [
   { id: 'overview', label: 'Resumen', icon: '◈', description: 'Una mirada a todo lo que necesita tu aventura.' },
@@ -29,12 +31,11 @@ const selectedModule = computed(() => modules.find(m => m.id === module.value)!)
 const unassigned = computed(() => config.value.participants.filter(p => !config.value.teams.some(t => t.memberIds.includes(p.id))))
 const checks = computed(() => [
   { label: 'Participantes preparados', done: config.value.participants.length > 0, target: 'participants' },
-  { label: 'Nombres y colores definidos', done: config.value.teams.every(t => t.name && t.color), target: 'teams' },
-  { label: 'Todos tienen un equipo', done: config.value.participants.length > 0 && unassigned.value.length === 0, target: 'teams' },
+  { label: 'Dos equipos con integrantes', done: config.value.teams.every(t => t.memberIds.length > 0), target: 'teams' },
+  { label: 'Un capitán en cada equipo', done: config.value.teams.every(t => t.captainId && t.memberIds.includes(t.captainId)), target: 'teams' },
 ])
 const ready = computed(() => checks.value.filter(c => c.done).length)
 const preparationProblems = computed(() => ceremonyProblems(props.profile))
-const popupBlocked = ref(false), publicUrl = new URL('./', location.href).href
 const legacyCount = ref(0)
 try { legacyCount.value = legacyEntries(localStorage).length } catch { /* The storage warning is handled by the draft controller. */ }
 async function navigate(id: string) { module.value = id; await nextTick(); title.value?.focus() }
@@ -45,7 +46,6 @@ function activate(event: Event) {
   if (!window.confirm(`¿Cambiar a ${profileLabels[id]}? La pantalla pública volverá al inicio. Los borradores de cada perfil se conservarán mientras este panel permanezca abierto.`)) return
   emit('activate', id)
 }
-function openPublic() { popupBlocked.value = !window.open(publicUrl, 'ninja-public', 'popup,width=1280,height=720') }
 function shuffle() {
   if (!window.confirm('¿Sortear y guardar un reparto nuevo en este perfil? Sustituirá las asignaciones actuales.')) return
   try { const candidate = cloneProfile(config.value); distributeProfile(candidate); save(candidate) } catch(e) { report(e) }
@@ -62,23 +62,25 @@ function restart() { if (window.confirm('¿Volver al inicio de la presentación 
     <header class="command-header">
       <div class="command-brand"><span class="brand-mark" aria-hidden="true">✦</span><div><strong>CENTRO DE MANDO</strong><small>EL SECRETO DEL MAESTRO WU</small></div></div>
       <label class="active-profile"><span>PERFIL ACTIVO</span><select :value="profile.id" :disabled="busy || saving" @change="activate"><option v-for="id in profileIds" :key="id" :value="id">{{ profileLabels[id] }}</option></select></label>
-      <div class="header-actions"><span class="save-status" :class="{ unsaved: dirty }" role="status">{{ dirty ? '● Cambios sin guardar' : '✓ Perfil guardado' }}</span><button class="primary save-profile" :disabled="!dirty || !!validation || busy || saving" @click="save()">Guardar cambios</button><button class="open-public" @click="openPublic">Abrir pantalla pública ↗</button></div>
+      <div class="header-actions"><span class="save-status" :class="{ unsaved: dirty }" role="status">{{ dirty ? '● Cambios sin guardar' : '✓ Perfil guardado' }}</span><button class="primary save-profile" :disabled="!dirty || !!validation || busy || saving" @click="save()">Guardar cambios</button><button class="open-public" :disabled="publicWaiting" @click="$emit('openPublic')">{{ publicWaiting ? 'Esperando pantalla…' : 'Preparar pantalla pública ↗' }}</button></div>
     </header>
     <div class="dashboard-layout">
       <aside class="command-sidebar"><p class="nav-caption">TU AVENTURA</p><nav aria-label="Módulos del centro de mando"><button v-for="entry in modules" :key="entry.id" :data-module="entry.id" :aria-current="module === entry.id ? 'page' : undefined" @click="navigate(entry.id)"><span aria-hidden="true">{{ entry.icon }}</span>{{ entry.label }}<small v-if="entry.id === 'participants'">{{ config.participants.length }}</small></button></nav><div class="sidebar-note"><span aria-hidden="true">◆</span><strong>Dos equipos.<br />Un mismo poder.</strong><p>Preparados por separado.<br />Invencibles juntos.</p></div></aside>
       <main id="command-main" class="command-main" tabindex="-1">
-        <div class="module-heading"><div><p class="kicker">{{ profileLabels[profile.id] }} / CENTRO DE MANDO</p><h1 ref="title" tabindex="-1">{{ selectedModule.label }}</h1><p>{{ selectedModule.description }}</p></div><span class="module-tag">{{ module === 'overview' ? `${ready} / 3 pasos preparados` : profileLabels[profile.id] }}</span></div>
+        <div class="module-heading"><div><p class="kicker">{{ profileLabels[profile.id] }} / CENTRO DE MANDO</p><h1 ref="title" tabindex="-1">{{ selectedModule.label }}</h1><p>{{ selectedModule.description }}</p></div><span class="module-tag">{{ module === 'overview' ? `${ready} / 3 · ${dirty ? 'Borrador' : 'Preparación guardada'}` : profileLabels[profile.id] }}</span></div>
+        <p class="operator-journey">1 · Preparar integrantes y capitanes <span aria-hidden="true">→</span> 2 · Guardar <span aria-hidden="true">→</span> 3 · Presentar y elegir con los niños <span aria-hidden="true">→</span> 4 · Vídeo de Wu</p>
         <p v-if="error || warning" class="notice error-notice" role="alert">{{ error || warning }}</p>
         <p v-if="message" class="notice" role="status">{{ message }}</p>
         <p v-if="validation" class="notice error-notice" role="alert">{{ validation }}</p>
         <p v-if="preparationProblems.length" class="notice" role="status">Ceremonia bloqueada: {{ preparationProblems.join(' ') }} Prepara y guarda los equipos.</p>
-        <p v-if="popupBlocked" class="notice" role="status">El navegador ha bloqueado la ventana. <a :href="publicUrl" target="_blank" rel="noopener">Abrir pantalla pública</a></p>
+        <p class="public-screen-status" :class="{ available: publicReady }" role="status">{{ publicWaiting ? '◌ Esperando confirmación de la pantalla pública…' : publicReady ? '✓ Pantalla pública disponible' : '○ Pantalla pública sin confirmar · se abrirá al mostrar una escena' }}</p>
+        <p v-if="publicMessage" class="notice error-notice" role="alert">{{ publicMessage }} <a :href="publicUrl" target="ninja-public" rel="noopener">Abrir pantalla pública manualmente</a></p>
         <p v-if="pending.some(id => id !== profile.id)" class="hint">Hay borradores sin guardar en: {{ pending.filter(id => id !== profile.id).map(id => profileLabels[id]).join(', ') }}. Vuelve a ese perfil antes de cerrar.</p>
         <fieldset class="module-content" :disabled="saving || busy"><legend class="module-legend">Contenido de {{ selectedModule.label }}</legend>
         <template v-if="module === 'overview'">
           <div v-if="legacyCount" class="notice">Hay {{ legacyCount }} configuraciones anteriores conservadas. Elige explícitamente qué datos trasladar a cada perfil. <button class="text-button" @click="navigate('settings')">Revisar datos anteriores →</button></div>
           <div class="metric-grid"><article class="metric"><span aria-hidden="true">♙</span><div><strong>{{ config.participants.length }}</strong><small>Participantes</small></div><button aria-label="Administrar participantes" @click="navigate('participants')">↗</button></article><article class="metric"><span aria-hidden="true">⚑</span><div><strong>2</strong><small>Equipos ninja</small></div><button aria-label="Administrar equipos" @click="navigate('teams')">↗</button></article><article class="metric"><span aria-hidden="true">◇</span><div><strong>{{ unassigned.length }}</strong><small>Sin equipo asignado</small></div><button aria-label="Asignar integrantes" @click="navigate('teams')">↗</button></article></div>
-          <div class="overview-grid"><section class="panel mission-panel"><div class="section-title"><div><p class="kicker">ANTES DE LA AVENTURA</p><h2>Prepara tu misión</h2></div><span class="readiness-ring">{{ ready }}/3</span></div><p class="hint">Completa la configuración y comprueba tus recursos antes de reunir a los ninjas.</p><div class="readiness-list"><button v-for="(check, i) in checks" :key="check.label" @click="navigate(check.target)"><span class="check-marker" :class="{ done: check.done }">{{ check.done ? '✓' : String(i + 1).padStart(2, '0') }}</span><strong>{{ check.label }}</strong><span aria-hidden="true">→</span></button></div><button class="quiet-button" @click="navigate('media')">Comprobar imagen y vídeo →</button></section>
+          <div class="overview-grid"><section class="panel mission-panel"><div class="section-title"><div><p class="kicker">ANTES DE LA AVENTURA</p><h2>Prepara tu misión</h2></div><span class="readiness-ring">{{ ready }}/3</span></div><p class="hint">Prepara integrantes y capitanes, y guarda. Los nombres y colores se eligen con los niños durante la ceremonia; no son requisitos previos.</p><div class="readiness-list"><button v-for="(check, i) in checks" :key="check.label" @click="navigate(check.target)"><span class="check-marker" :class="{ done: check.done }">{{ check.done ? '✓' : String(i + 1).padStart(2, '0') }}</span><strong>{{ check.label }}</strong><span aria-hidden="true">→</span></button></div><button class="quiet-button" @click="navigate('media')">Comprobar imagen y vídeo →</button><button class="primary" @click="navigate('presentation')">Ir a presentación →</button></section>
             <section class="panel live-panel"><p class="kicker"><span class="status-dot"></span> CONTROL DE PANTALLA</p><div class="live-scene-number">{{ String(orderedScenes.findIndex(s => s.id === scene.id) + 1).padStart(2, '0') }}<small>/ {{ orderedScenes.length }}</small></div><h2>{{ scene.title }}</h2><p class="hint">{{ scene.type === 'opening' ? 'Portada cinematográfica' : 'Vídeo local del maestro' }}</p><button class="primary" @click="navigate('presentation')">Controlar presentación →</button></section>
             <section class="panel"><div class="section-title"><h2>Tus equipos</h2><button class="text-button" @click="navigate('teams')">Editar →</button></div><div class="summary-teams"><div v-for="(team, i) in config.teams" :key="team.id"><span class="team-swatch" :style="{ background: team.color || 'transparent' }"></span><div><strong>{{ team.name || `Equipo ${i + 1}` }}</strong><small>{{ team.name ? `${team.memberIds.length} integrantes` : 'Nombre y color por definir' }}</small></div><b>{{ team.memberIds.length }}</b></div></div></section>
             <section class="panel"><p class="kicker">RECURSOS DEL PERFIL</p><h2>Una aventura con su propia voz</h2><p class="hint">Referencias configuradas; comprueba su disponibilidad en Recursos multimedia.</p><div class="file-reference"><span>IMG</span><code>{{ config.media.artwork }}</code></div><div class="file-reference"><span>VID</span><code>{{ config.media.video }}</code></div></section></div>
@@ -86,8 +88,8 @@ function restart() { if (window.confirm('¿Volver al inicio de la presentación 
         <ParticipantEditor v-else-if="module === 'participants'" :key="profile.id" :config="config" />
         <ProfileTeams v-else-if="module === 'teams'" :config="config" @distribute="shuffle" />
         <ProfileResources v-else-if="module === 'media'" :key="profile.id" :config="config" />
-        <template v-else-if="module === 'presentation'"><SceneController :scene="scene" :config="profile" :ceremony="ceremony" :disabled="busy || saving || dirty" @select="$emit('select', $event)" @ceremony="$emit('ceremony', $event)" /><p v-if="dirty" class="notice">Guarda o descarta el borrador antes de dirigir la ceremonia.</p><div class="command-row"><button :disabled="busy || saving" @click="restart">Volver a la portada…</button><span class="hint">Volver a la portada conserva las decisiones. Retoma la ceremonia desde su entrada en el catálogo.</span></div></template>
-        <ProfileTransfer v-else :key="profile.id" :config="config" @replace="replace" />
+        <template v-else-if="module === 'presentation'"><SceneController :scene="scene" :config="profile" :ceremony="ceremony" :reveal="reveal" :disabled="busy || saving || dirty" @select="$emit('select', $event)" @ceremony="$emit('ceremony', $event)" @reveal="$emit('reveal', $event)" /><p v-if="dirty" class="notice">Guarda o descarta el borrador antes de dirigir la ceremonia.</p><div class="command-row"><button :disabled="busy || saving" @click="restart">Volver a la portada…</button><span class="hint">Volver a la portada conserva las decisiones. Retoma la ceremonia desde su entrada en el catálogo.</span></div></template>
+        <ProfileTransfer v-else :key="profile.id" :config="config" :dirty="dirty" :reset-baseline="{ profileId: config.id, expectedConfig: current.baseline, expectedProgress: current.ceremonyBaseline }" @replace="replace" @reset="reset(resetProfile, $event)" />
         <div v-if="dirty" class="draft-actions"><span>Los cambios pertenecen solo a {{ profileLabels[profile.id] }}. Guardar la preparación vuelve la ceremonia a su presentación inicial; conserva los nombres y colores guardados.</span><button @click="discard">Descartar borrador…</button></div>
         </fieldset>
         <footer class="command-footer"><span>✦ CENTRO DE MANDO NINJA</span><span>Configuración local · Recursos privados</span></footer>
@@ -97,4 +99,5 @@ function restart() { if (window.confirm('¿Volver al inicio de la presentación 
 </template>
 <style scoped>
 .module-content { border: 0; padding: 0; margin: 0; min-width: 0; }.module-legend { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.public-screen-status { border-left: 3px solid #c0aa70; background: #c0aa700c; color: #ffe3a2; padding: .75rem 1rem; font-size: .9rem; }.public-screen-status.available { border-color: #91d6ae; color: #b8eccd; }.operator-journey { color: #bfcfd2; font-size: .8rem; line-height: 1.8; }.operator-journey span { color: #e8c778; margin: 0 .5rem; }
 </style>

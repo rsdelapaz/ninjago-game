@@ -5,8 +5,9 @@ import { mediaUrl, type ProfileConfig } from './profile'
 import CeremonyControls from './CeremonyControls.vue'
 import { ceremonyFinalProblems, type CeremonyAction, type CeremonyProgress } from './ceremony'
 import { ceremonyProblems } from './profile'
-const props = defineProps<{ scene: SceneDefinition; config: ProfileConfig; ceremony: CeremonyProgress; disabled: boolean }>()
-const emit = defineEmits<{ select: [id: string]; ceremony: [action: CeremonyAction] }>()
+import type { RevealAction, RevealState } from './reveal'
+const props = defineProps<{ scene: SceneDefinition; config: ProfileConfig; ceremony: CeremonyProgress; reveal: RevealState; disabled: boolean }>()
+const emit = defineEmits<{ select: [id: string]; ceremony: [action: CeremonyAction]; reveal: [action: RevealAction] }>()
 const number = ref(1)
 const previewId = ref(props.scene.id)
 const preview = computed(() => orderedScenes.find(s => s.id === previewId.value)!)
@@ -19,7 +20,9 @@ function jump() { const target = sceneByNumber(number.value); if (target && !blo
 function blocked(id: string) { return props.disabled || id === 'ceremony' && ceremonyProblems(props.config).length > 0 || id === 'wu' && (!['ready','complete'].includes(props.ceremony.phase) || ceremonyFinalProblems(props.config, props.ceremony).length > 0) }
 </script>
 <template>
-  <CeremonyControls v-if="scene.type === 'ceremony'" :config="config" :progress="ceremony" :disabled="disabled" @action="$emit('ceremony', $event)" />
+  <section v-if="scene.type !== 'ceremony'" class="notice operator-scene-guide"><strong>{{ scene.type === 'opening' ? 'Preparados para empezar' : 'Paso 7 · El mensaje del maestro Wu' }}</strong><p>{{ scene.type === 'opening' ? 'Los niños esperan. Tú revisas integrantes y capitanes, guardas y pulsas «Siguiente» para presentar los equipos. La pantalla pública se prepara automáticamente antes de mostrar la escena.' : 'Los niños escuchan a Wu. Inicia el vídeo con sus controles en la pantalla pública. Para volver a la ceremonia, utiliza «Anterior»; las decisiones se conservan.' }}</p><p v-if="disabled">Hay una operación en curso o cambios sin guardar: guarda o descarta el borrador antes de continuar.</p></section>
+  <CeremonyControls v-if="scene.type === 'ceremony'" :config="config" :progress="ceremony" :reveal="reveal" :disabled="disabled" @action="$emit('ceremony', $event)" @reveal="$emit('reveal', $event)" />
+  <details class="scene-catalogue" :open="scene.type !== 'ceremony'"><summary>Catálogo de escenas y vista previa · no cambia la fase de la ceremonia</summary>
   <div class="presentation-grid">
     <section class="panel scene-list"><p class="kicker">SECUENCIA DE PRESENTACIÓN</p><h3>El recorrido de la aventura</h3><p class="hint">Elegir una miniatura cambia la vista previa. Solo «Mostrar» cambia la pantalla pública. El vídeo requiere completar la ceremonia.</p>
       <button v-for="(entry, index) in orderedScenes" :key="entry.id" class="scene-card" :aria-pressed="previewId === entry.id" @click="previewId = entry.id"><span class="scene-number">{{ String(index + 1).padStart(2, '0') }}</span><span><strong>{{ entry.title }}</strong><small>{{ descriptions[entry.type] }}</small></span><span v-if="scene.id === entry.id" class="live-dot">En pantalla</span></button>
@@ -32,4 +35,8 @@ function blocked(id: string) { return props.disabled || id === 'ceremony' && cer
       <button class="primary" :disabled="blocked(preview.id)" @click="$emit('select', preview.id)">Mostrar esta escena</button><p class="hint">En pantalla: {{ scene.title }}</p>
     </section>
   </div>
+  </details>
 </template>
+<style scoped>
+.operator-scene-guide > strong { display: block; color: #ffe1a0; margin-bottom: .5rem; }.operator-scene-guide p { line-height: 1.6; margin: 0; }.scene-catalogue > summary { margin-bottom: 1rem; }
+</style>

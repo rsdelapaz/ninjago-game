@@ -2,6 +2,19 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createProfile, parseProfile, exportProfile, ceremonyProblems, assignProfileMember, clearInvalidCaptains, publicMembers, distributeProfile, migrateLegacy } from '../src/profile.ts'
 import { createConfig } from '../src/session.ts'
+import { assignProfileMembers } from '../src/profile.ts'
+test('bulk assignment transfers exclusive members, clears the old captain and validates atomically',()=>{
+  const c=createProfile('colegio');c.participants=['a','b','c'].map(id=>({id,name:'Prueba '+id}))
+  c.teams[0].memberIds=['a','b'];c.teams[0].captainId='a'
+  assignProfileMembers(c,['a','c'],c.teams[1].id)
+  assert.deepEqual(c.teams[0].memberIds,['b']);assert.equal(c.teams[0].captainId,null)
+  assert.deepEqual(c.teams[1].memberIds,['a','c'])
+  c.teams[1].captainId='a';assignProfileMembers(c,['a'],c.teams[1].id);assert.equal(c.teams[1].captainId,'a')
+  const before=JSON.stringify(c)
+  assert.throws(()=>assignProfileMembers(c,['b','missing'],c.teams[1].id))
+  assert.throws(()=>assignProfileMembers(c,['b','b'],c.teams[1].id))
+  assert.equal(JSON.stringify(c),before)
+})
 test('old v2 and legacy configs normalize to no captain without mutating source', () => {
   const old = createProfile('colegio'); old.teams.forEach(t => delete t.captainId)
   assert(parseProfile(old).teams.every(t => t.captainId === null))

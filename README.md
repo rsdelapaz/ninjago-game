@@ -1,6 +1,6 @@
 # El secreto del maestro Wu
 
-> **Guía vigente: MVP jugable y ceremonia (15/11/2026).** Consulta «Partida completa de demostración» al final. Las secciones anteriores y sus validaciones se conservan como historial. Este hito queda local, sin commit ni push hasta nueva orden.
+> **Guía vigente: Hito 06 — El despertar de los clanes (15/11/2026).** Consulta el apartado final y «Partida completa de demostración» para el arranque con npm recuperado. Las secciones previas son históricas. El director autoriza en este hito commit y push de fuente auditada exclusivamente a `feat/upgrade-prologue-art`, sin publicar medios ni capturas privadas.
 
 Introducción local para una aventura personal de cumpleaños ambientada en NINJAGO. Vue 3 + TypeScript + Vite; ilustración generada para este proyecto, sin imágenes, fuentes ni servicios remotos en ejecución.
 
@@ -275,3 +275,128 @@ Ensayo manual breve en el navegador normal, antes de usarlo con niños:
 4. En **Network**, filtra HTTP y comprueba que todas las peticiones pertenecen a `127.0.0.1:4173`. Después desconecta Wi-Fi/Ethernet con el servidor activo y repite la secuencia. Este nuevo ensayo físico, el lector de pantalla y la revisión visual quedan pendientes.
 
 Implementación: `profile.ts`, `ProfileTeams.vue`, `ParticipantEditor.vue` (capitanes); `ceremony.ts` y `ceremonyStorage.ts` (reglas y recuperación); `usePresentation.ts`, `profileStorage.ts`, `useProfileDraft.ts` (sincronización y escrituras); `CeremonyStage.vue`/`ceremony.css` (pantalla pública) y `CeremonyControls.vue` dentro de `SceneController.vue` (operador). Referencias: https://vuejs.org/guide/essentials/forms.html , https://vuejs.org/guide/built-ins/transition.html y https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API . Los cambios de este hito siguen sin commit ni push.
+
+## Estabilización y ensayo completo — 15/11/2026
+
+Base de esta operación: `116decb4b7ee2239578be4ea4a10e60b3a4dc403`, rama `feat/upgrade-prologue-art`. No se hace commit ni push. No se cambian la portada aprobada, el vídeo, los medios privados, las dependencias ni los datos de participantes guardados.
+
+**Corrección estructural:** `parseCeremony` construye un objeto y tres tuplas nuevas de escalares validados. Se eliminó `structuredClone`, que lanzaba `DataCloneError` al recibir proxies de Vue. La regresión se reprodujo antes de corregirla y se prueba ahora con `reactive()` y `computed()` reales. `ceremonyNextProblem` devuelve los bloqueos esperados sin capturar errores genéricos. La clonación de perfiles sigue pasando por validación y JSON de datos planos; los mensajes de sincronización contienen solo control, nunca proxies o participantes.
+
+**Equipos:** dentro de cada equipo, **Añadir ninjas** abre una lista con selección múltiple. Confirma para asignarlos al borrador. Los del otro equipo aparecen identificados y requieren confirmar el traslado; un capitán trasladado deja de serlo en su equipo anterior. En la lista de integrantes, **Hacer capitán** designa uno y **Quitar** lo deja sin equipo. La asignación individual se mantiene como alternativa. Sugerencias, selector de capitán y opciones de identidad están en un desplegable para evitar un formulario largo. Guarda después de preparar los equipos; las elecciones de ceremonia se guardan automáticamente al confirmarlas.
+
+**Pantalla pública automática:** Mostrar esta escena, Siguiente/Anterior del catálogo y las acciones de ceremonia pasan por el handshake de `publicScreen.ts`. En la interacción original se obtiene/abre la ventana `ninja-public`, sin recargarla si ya vive allí la aplicación. Después se exige una respuesta al identificador nuevo de esa solicitud; la pública responde solo tras montar Vue e inicializar su estado. Una referencia de ventana no acredita disponibilidad. Si no contesta en cinco segundos, no se ejecuta la acción y aparece un aviso con enlace manual. **Preparar pantalla pública** reintenta; tras recuperarla, repite la acción. El estado de disponibilidad se comprueba periódicamente y caduca si deja de responder; también se detecta el cierre de una ventana con referencia conocida. Si cambian el perfil o la presentación durante la espera, se cancela la acción en lugar de dirigirla al perfil nuevo. Una ventana pública abierta de forma independiente puede requerir recuperar la ventana con nombre del panel; no hay sincronización entre orígenes o perfiles de navegador.
+
+El protocolo `ninja-public-v1` transporta únicamente solicitudes y confirmaciones efímeras. Usa BroadcastChannel y storage como respaldo, incluidos casos mixtos donde solo una ventana tiene canal. No contiene configuración ni nombres. La selección de una miniatura sigue siendo vista previa: no abre ventanas ni cambia la escena. Durante la ceremonia, el catálogo de escenas queda plegado; **Fase anterior**/**Avanzar fase** dirigen la máquina de estados, mientras el catálogo cambia de escena.
+
+**Guía del organizador:** el panel muestra disponibilidad de la pública, cambios sin guardar, recorrido general y paso actual. En cada fase hay tres instrucciones: **Los niños**, **Tú, organizador**, **Para continuar**. Los requisitos de preparación son participantes, dos equipos con integrantes y un capitán válido por equipo. Los nombres y colores NO son requisitos previos. El indicador distingue borrador y preparación guardada.
+
+**Wu y presentación:** se conserva la máquina de estados y cada lista de sugerencias independiente. Wu reacciona al índice de propuesta, al rechazo, al agotamiento y a la aceptación. Cualquier propuesta puede aceptarse; no se insertan nombres ni participantes automáticamente. Para un ensayo divertido puedes escribir sugerencias como «Los Pepinillos del Trueno» y «Los Churros Voladores» en tu perfil local. El retrato de Wu reutiliza mediante CSS la ilustración aprobada del perfil; si falta, se ve una silueta SVG original. Nuevos emblemas, trazos de energía y una celebración breve acompañan los nombres, sin ocultar los participantes. `prefers-reduced-motion` desactiva las nuevas animaciones y transiciones.
+
+### Ensayo completo reproducible
+
+1. Inicia build/preview con el procedimiento Node/npm de «Partida completa de demostración». Abre `http://127.0.0.1:4173/?screen=admin` en un navegador actual y selecciona un perfil.
+2. Añade participantes reales localmente. En Equipos, usa **Añadir ninjas** con varios seleccionados, confirma y designa capitanes desde sus listas. Traslada a uno al otro equipo y comprueba que no se duplica; si era capitán, vuelve a designar otro. Rellena sugerencias por equipo en el desplegable. Deja nombres/colores definitivos sin definir y guarda: debe quedar preparado sin exigirlos.
+3. Cierra la pública, abre Presentación y pulsa **Siguiente**. Debe abrirse automáticamente y, tras confirmar disponibilidad, presentar los equipos. Seleccionar solo una miniatura no debe cambiar nada en la pública. Si bloqueas ventanas emergentes, comprueba el aviso y recupera con el botón o enlace antes de repetir la acción.
+4. En la ceremonia, sigue la guía: color del equipo 1, nombre con SÍ/NO, color del equipo 2, nombre. Prueba aceptar la primera propuesta; en otro ensayo, rechaza todas y confirma un nombre manual. Los colores y nombres finales no pueden repetirse. Revisa la reacción de Wu y la celebración al aceptar.
+5. Retrocede y recarga a mitad de la ceremonia: las decisiones permanecen. Cierra/reabre la pública desde otra acción y comprueba su recuperación; no debe avanzar hasta responder. Cambia de perfil y retoma su ceremonia sin mezclar grupos. Continúa hasta equipos definitivos y vídeo; inicia su reproducción con los controles nativos.
+6. Revisa **1920×1080, 1366×768 y 390×844**, teclado, nombres largos y movimiento reducido. En Network, todas las peticiones de recursos deben pertenecer al servidor local. Repite con Wi-Fi/Ethernet desconectados y el servidor abierto antes del evento.
+
+### Evidencia y límites de esta ejecución
+
+- Prueba inicial de proxies: falló con `DataCloneError` en el código base. Tras corregirlo, la regresión pasa.
+- Suite final: **30/30 pruebas superadas**, incluyendo proxies, desbloqueo tras color, nombres, asignación múltiple y capitán, bloqueo de escenas, handshake síncrono, ventana bloqueada/cerrada, respuesta antigua y respaldo storage. Los tests de disponibilidad utilizan puertos/ventanas simulados: no acreditan el comportamiento de un navegador real.
+- Comandos finales: `node --preserve-symlinks --preserve-symlinks-main $npmCli run typecheck`, `run build` y `test`, con `NODE_OPTIONS` equivalente y la ruta detectada de npm. Typecheck, build y test terminaron con código 0. `node --check tests/command-center.smoke.mjs` y `git diff --check` terminaron con código 0. No hay script de lint.
+- Sin nuevas dependencias ni recursos externos. Revisión estática de src sin fetch/XHR/WebSocket ni fuentes/medios remotos ejecutables; las referencias documentales y SVG no son peticiones externas.
+- **Capturas y smoke visual: PENDIENTES POR ENTORNO.** No había endpoint de navegador en 9223 y no se repitió el arranque bloqueado de Edge. No se presentan imágenes antiguas como evidencia nueva. El smoke actualizado incorpora selección múltiple y captura `arrival`, `color`, `name`, `accepted`, `final` a cuatro resoluciones, en `.preview.local/ceremony-<estado>-<ancho>.png` (20 capturas privadas cuando se ejecute). Falta verificar dinámicamente layout, popup/handshake, teclado y red en navegador normal.
+
+Referencias oficiales consultadas: Vue reactive https://vuejs.org/api/reactivity-core.html#reactive y apertura ligada al gesto del usuario https://developer.mozilla.org/en-US/docs/Web/API/Window/open . Toda la comunicación añadida usa mecanismos locales del navegador; no hay servicios externos.
+
+## Usabilidad y restablecimiento de perfiles — 15/11/2026
+
+Los cambios previos de ceremonia se conservan sin commit. Esta ampliación no cambia la portada ni añade fases del juego.
+
+**Orden de participantes.** Todos los listados y selectores de participantes usan `sortParticipants`, con `Intl.Collator('es', { sensitivity: 'base', numeric: true })`. Se ordena una copia, manteniendo referencias de objetos e IDs; ni abrir una vista ni ordenar cambia los arrays guardados, el reparto o el JSON exportado. En público, el capitán va primero y los demás por nombre. En «Añadir ninjas» se muestran dos grupos, cada uno alfabético: **Participantes sin equipo** y **Integrantes del equipo contrario**. Los del destino quedan excluidos. Puedes seleccionar varios de ambos grupos y confirmar; trasladar integrantes exige confirmación y retira cualquier capitanía que deje de ser válida. La vista de JSON completo conserva el orden del documento original.
+
+**Sugerencias iniciales.** Solo al crear un perfil nuevo se incluyen estas propuestas, sin nombre definitivo ni color:
+
+| Equipo 1 | Equipo 2 |
+| --- | --- |
+| Los Pepinillos del Trueno | Las Croquetas Supersónicas |
+| Los Churros Voladores | Los Flanes Furiosos |
+| Los Calcetines Ninja | Los Pijamas del Dragón |
+
+En Equipos → «Sugerencias, capitán y opciones de identidad», edita el textarea: una propuesta por línea, en el orden de aparición. Puedes cambiarlas, reordenarlas, añadir o quitar líneas y vaciar la lista. Se guardan por equipo y perfil. **Las configuraciones existentes y las listas vaciadas intencionadamente no se rellenan**, ni al recargar, importar o convertir datos heredados. Con una lista vacía, Wu pasa al nombre manual. Restablecer expresamente el perfil sí recupera las tres propuestas de cada equipo.
+
+**Restablecer perfil a su estado inicial.** En Configuración y JSON:
+
+1. Pulsa **Restablecer perfil a su estado inicial** y revisa el nombre del perfil activo.
+2. Puedes **Exportar configuración guardada antes de restablecer**. Si tienes un borrador que quieras conservar, usa además **Exportar perfil JSON**. Los archivos contienen datos privados y no deben añadirse al repositorio.
+3. Lee las pérdidas y marca la casilla explícita. Solo entonces se habilita **Sí, restablecer Colegio/Urbanización**. Cancelar no escribe nada.
+
+La operación elimina del perfil activo participantes, miembros y capitanes; deja nombres definitivos y colores en null; restaura las tres sugerencias, el modo manual y las referencias `ninjago-key-art.png` / `master-wu.mp4` de su propia carpeta. Conserva los IDs de sus dos equipos. El borrador de ese perfil se sustituye por la configuración inicial. La ceremonia vuelve a `arrival`, con índices cero y confirmaciones falsas; la navegación persistida vuelve a `intro`, con nueva revisión. Una pública abierta recibe el cambio por los mecanismos locales; si está cerrada, se recupera la portada al abrirla. El restablecimiento no depende de abrir otra ventana ni del handshake para poder limpiar una preparación.
+
+**Diferencias:** «Repetir ceremonia» conserva participantes, equipos y sus nombres/colores guardados, pero reinicia fases/confirmaciones. «Descartar borrador» conserva la configuración y el progreso guardados y solo descarta cambios de edición. «Restablecer perfil» borra esa preparación y vuelve a los valores iniciales.
+
+**Protección de datos.** Se usa el mismo Web Lock, `saveProfile` y registro `ninja-ceremony-pending:<perfil>` que para las elecciones. La confirmación conserva las versiones revisadas al abrir el panel: cambios posteriores en configuración, ceremonia o navegación invalidan el restablecimiento, aunque el dashboard ya haya recibido el estado nuevo. En ese caso revisa/descarta el borrador si corresponde y abre de nuevo la confirmación. La configuración previa se archiva en el historial local. No se limpia localStorage, no se eliminan historiales ni claves legacy, no se toca el otro perfil ni sus borradores. El registro de recuperación incluye la vuelta a portada para completar un restablecimiento interrumpido solo si no hubo escrituras posteriores. Si detecta otra navegación, se detiene para conservarla.
+
+**Atención:** esto no borra físicamente medios, exportaciones ni los nombres que permanezcan en el historial del navegador. Exporta antes si necesitas una copia independiente: el historial local no protege frente a borrar datos del navegador. Una cuota de almacenamiento agotada puede impedir la operación; el aviso no se considera éxito y el registro pendiente se conserva para recuperación.
+
+**Validación de esta ampliación:** 40 pruebas automatizadas, con casos de orden español (tildes, ñ y números), capitán primero, grupos, asignaciones/traslados, sugerencias editables y vacías, restablecimiento, aislamiento, historial/legacy, rechazo de confirmaciones antiguas, recarga y recuperación tras fallo. El controlador público recibe el retorno a portada en la prueba de comunicación simulada. Un test del harness tuvo que usar un renderer Vue montado para ejercitar watchers; SSR no los mantiene activos. No se han instalado dependencias.
+
+Comandos de cierre mediante el npm recuperado: `run typecheck`, `run build`, `test`, todos con Node `--preserve-symlinks --preserve-symlinks-main` y `NODE_OPTIONS` equivalente; además `node --check tests/command-center.smoke.mjs` y `git diff --check`. El smoke se amplió con sugerencias iniciales, exportación previa, casilla de confirmación, restablecimiento, conservación del otro perfil y recarga. Su ejecución en navegador sigue pendiente por el entorno; no se reintenta Edge como condición de entrega. No hay script de lint.
+
+Ensayo manual: prepara un perfil con nombres acentuados y numerados; revisa el orden en Participantes, integrantes, selector de capitán y ambos grupos de «Añadir ninjas». Muestra su ceremonia y comprueba capitán primero. En Configuración/JSON exporta, cancela una vez y después confirma el restablecimiento: la pública debe volver a portada, los equipos quedar vacíos con tres sugerencias y el otro perfil intacto. Recarga ambas ventanas. Prueba también una confirmación abierta mientras otro panel cambia la ceremonia: debe rechazarse sin borrar datos nuevos. Conserva los archivos exportados privadamente. El arranque de preview y la URL local siguen en «Partida completa de demostración».
+
+Archivos principales: `profile.ts` (orden y valores iniciales), componentes de participantes/equipos, `ProfileTransfer.vue` (confirmación/exportación), `useProfileDraft.ts` (borradores), `usePresentation.ts` y `ceremonyStorage.ts` (operación coordinada y recuperación). Referencias: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator y https://vuejs.org/api/custom-renderer.html . Sin commit ni push.
+
+Cierre real de usabilidad/restablecimiento: **40/40 pruebas superadas**. `run typecheck`, `run build`, `test`, comprobación de sintaxis del smoke y `git diff --check`: **código 0**. La rama sigue en `feat/upgrade-prologue-art`, HEAD `116decb4b7ee2239578be4ea4a10e60b3a4dc403`; no se prepararon archivos ni se ejecutaron commit/push. Los cambios previos continúan locales. La comprobación del navegador sigue pendiente, distinta de los tests automatizados.
+
+## Hito 06 — El despertar de los clanes, 15/11/2026
+
+Cada integrante tiene una placa ninja original, con nombre completo y sello propio. El capitán conserva el primer lugar y una insignia especial; su placa usa el mismo tamaño y jerarquía de nombre que las demás. Los integrantes restantes van alfabéticamente. Tras revelar los sellos, sus conexiones activan el emblema del clan y el vínculo entre ambos equipos: **cada ninja cuenta y la unión les da su poder**. No se inventan habilidades, poderes individuales, fotos ni roles nuevos.
+
+La presentación sustituye los listados anteriores por una composición de selección de clanes. El monasterio y Wu reutilizan la ilustración local aprobada; la ausencia de medios conserva escenario vectorial y retrato SVG original. Antes de las elecciones se ocultan nombres/colores definitivos; al final se aplican al emblema, las placas y la celebración común. La portada START GAME y el reproductor de vídeo conservan su diseño.
+
+### Revelación, grupos y recuperación
+
+La secuencia breve presenta emblemas, capitán e integrantes (en cascada), conexiones y unión central. Termina en unos 2,2 segundos por grupo; después queda quieta para leer. No bloquea «Avanzar fase».
+
+- En Presentación aparecen **Omitir animación** y **Repetir revelación**. Solo modifican el estado visual, no participantes, reparto, nombres/colores ni decisiones de ceremonia.
+- Para evitar encoger o truncar nombres se muestran hasta cuatro placas por clan y grupo. Si hay un nombre de participante de más de 32 caracteres o un título de clan de más de 40, ese clan usa placas amplias de una persona por grupo. Los límites de cada grupo son idénticos en operador y pública, independientemente de su tamaño de ventana. Los equipos desiguales no pierden miembros; cuando un clan ya terminó sus grupos conserva el emblema y un mensaje de unión.
+- Con varios grupos, avanzan automáticamente cada diez segundos y se detienen en el último. Puedes pausar, continuar o pasar al grupo anterior/siguiente desde el panel. Para leer con calma, pausa. Si vuelves de una ventana minimizada o recargada, el reloj recupera el grupo actual; repite la revelación para verla desde el principio. Nadie se elimina ni se descarta del recorrido.
+- La hora de inicio, grupo y opciones visuales viajan como campo opcional `reveal` en `ninja-control-v3`. El catálogo, ProfileConfig y CeremonyProgress no cambian de esquema. Se aceptan estados antiguos sin ese campo. La sincronización usa el mismo bloqueo, revisión, canal y respaldo storage. Un control visual de una ventana desactualizada se rechaza.
+- El diseño de escritorio utiliza el alto de la ventana, con dos clanes lado a lado y nombres completos. En móvil los clanes se apilan y se permite desplazamiento para conservar legibilidad. La ausencia real de scroll/cortes a 1920×1080 y 1366×768 queda pendiente del ensayo visual, no se da por validada solo por el CSS.
+- Movimiento reducido elimina las animaciones y transiciones. Los cambios de grupo siguen siendo discretos; el organizador puede pausarlos. No hay parpadeos ni animaciones continuas de partículas.
+
+### Pergaminos y humor
+
+Wu propone nombres dentro de un pergamino del monasterio, con la propuesta como elemento central. Los rechazos cambian el diálogo: sorpresa inicial, dudas crecientes y una última propuesta desesperada. La progresión utiliza posición y longitud real de la lista, no tres pasos fijos. Con cero propuestas se entra directamente en un pergamino vacío; al agotar una lista Wu reconoce que los niños tienen mejores ideas y les invita a crear. El panel conserva SÍ/NO, formulario manual, preguntas/instrucciones y confirmación. Al aceptar se revela el título definitivo con un pulso y rayos breves.
+
+Se pueden aceptar todas las propuestas, salvo un nombre ya confirmado por el otro equipo en esta ceremonia. Nombres históricos del otro equipo aún sin confirmar no obligan a rechazar propuestas; al terminar, ambos nombres definitivos deben ser distintos. Se conservan las tres sugerencias iniciales de perfiles nuevos, todas las listas editadas (incluidas vacías), importación/exportación, restablecimiento y recuperación tras recarga.
+
+### Fundamentos de diseño
+
+- **Material Choreography:** foco compartido y aparición escalonada. Aplicación: los emblemas anclan la composición y los sellos se conectan después de revelarse. https://m1.material.io/motion/choreography.html
+- **NN/g, Animation for Attention and Comprehension (21/09/2014):** el movimiento debe explicar una relación o cambio. Aplicación: energía solo en aparición/aceptación, después reposo para leer. https://www.nngroup.com/articles/animation-usability/
+- **Nintendo, Jamboree:** tono de fiesta y participación colectiva de su presentación oficial. Aplicación propia: todos tienen placa, la celebración pertenece a ambos clanes. No se han copiado recursos, personajes ni composición. https://www.nintendo.com/es-es/Juegos/Juegos-de-Nintendo-Switch/Super-Mario-Party-Jamboree-2591147.html
+- El enlace de Overwatch facilitado devolvió **403**; no se considera una referencia inspeccionada ni se intenta eludirlo. No se descargan recursos externos. Las referencias solo se consultaron durante desarrollo.
+
+### Verificación y ensayo
+
+Suite actual: **46 pruebas**, incluyendo conservación de todos los integrantes, orden/capitán, grupos desiguales y nombres largos, reloj/repetición/omisión sin tocar decisiones, recarga y aislamiento, listas de nombres de 0/1/2/3/7/20/100 propuestas, aceptación de cualquiera, rechazo sucesivo, agotamiento/manual y duplicados. Se mantienen pruebas anteriores de perfiles, reset, ventanas y continuación al vídeo. El test del controlador comprueba sincronización simulada; no equivale a un navegador real.
+
+Se ejecutan con `C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js` mediante Node, ambas opciones `--preserve-symlinks`/`--preserve-symlinks-main` y NODE_OPTIONS equivalente: typecheck, build, test. Además se comprueban sintaxis del smoke y diff. No hay lint configurado ni dependencias nuevas.
+
+**Capturas y smoke visual: PENDIENTES POR ENTORNO.** No hay endpoint disponible en 9223; no se repite el arranque bloqueado de Edge. No hay capturas nuevas de este hito y no se presentan las antiguas como evidencia. El smoke actualizado prepara en `.preview.local/` capturas de `arrival`, `color`, `name`, `exhausted`, `accepted`, `final` en cuatro tamaños (24 imágenes privadas cuando se ejecute). Incluye comprobaciones de scroll vertical en escritorio, límites de los nombres y peticiones externas. La imposibilidad de este smoke no bloquea por sí sola el commit de desarrollo autorizado por el director, pero la validación visual permanece pendiente.
+
+Ensayo en navegador normal:
+
+1. Arranca con el procedimiento npm recuperado y abre el panel en `http://127.0.0.1:4173/?screen=admin`. Prepara dos equipos, capitanes y listas de sugerencias; usa nombres largos y números para comprobar distribución y orden.
+2. Muestra la ceremonia desde Presentación: la pública debe abrirse y confirmar su disponibilidad. Observa la cascada capitán/integrantes, las conexiones y el vínculo central. Prueba omitir/repetir y pausar/pasar grupos; comprueba que todos los nombres aparecen y que las decisiones no cambian.
+3. Recorre colores y nombres. Acepta una primera propuesta en un ensayo; en otro, rechaza una lista completa y escribe un nombre manual. Comprueba el pergamino vacío, el humor creciente, la celebración y el bloqueo de nombres/colores repetidos.
+4. Recarga ambas ventanas, cambia de perfil y retoma; vuelve desde el vídeo a la ceremonia y continúa otra vez. Los datos deben seguir separados y las decisiones confirmadas deben permanecer.
+5. Revisa 1920×1080, 1366×768, 390×844 y movimiento reducido; comprueba contraste, nombres completos y ausencia de scroll vertical/cortes en escritorio. Pausa grupos si hace falta tiempo de lectura. En Network comprueba solo recursos del servidor local y ensaya sin Wi-Fi/Ethernet, manteniendo el servidor abierto.
+
+Fuente añadida: `ClanReveal.vue`, `reveal.ts`, `useRevealClock.ts`, `tests/reveal.test.mjs`. Se adaptan CeremonyStage/Controls, CSS, control de presentación y el paso de eventos por App/Organizer/SceneController. La publicación autorizada incluye también los cambios locales anteriores auditados; excluye medios privados, JSON personales, capturas, dist, node_modules y credenciales. Se publica solo a origin/feat/upgrade-prologue-art; main no se modifica.
+
+Cierre de código Hito 06: **46/46 pruebas superadas**, `run typecheck`, `run build`, `test`, sintaxis del smoke y `git diff --check` con **código 0** mediante el npm detectado y las opciones de preservación de enlaces. Smoke/capturas de navegador y comprobación real de scroll, nombres largos y red: pendientes por entorno, no superadas. No hay lint configurado. Se audita y prepara únicamente fuente/pruebas/documentación acumuladas; medios privados, capturas, JSON personales y build siguen excluidos.

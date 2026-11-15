@@ -15,7 +15,7 @@ test('two profiles initialize with exactly two unnamed, uncolored, empty teams',
   const s = new MemoryStorage(); initializeProfiles(s)
   for (const id of ['colegio','urbanizacion']) {
     const p = readProfile(s,id); assert.equal(p.teams.length,2)
-    assert(p.teams.every(t=>t.name===null&&t.color===null&&t.memberIds.length===0&&t.suggestedNames.length===0))
+    assert(p.teams.every(t=>t.name===null&&t.color===null&&t.memberIds.length===0&&t.suggestedNames.length===3))
   }
   const before = [...s.data]; initializeProfiles(s); assert.deepEqual([...s.data], before)
 })

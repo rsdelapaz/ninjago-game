@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { reactive, isProxy, computed } from 'vue'
 import { createProfile, exportProfile } from '../src/profile.ts'
-import { createCeremony, parseCeremony, transitionCeremony, colorOptions, currentProposal, ceremonyFinalProblems } from '../src/ceremony.ts'
+import { createCeremony, parseCeremony, transitionCeremony, colorOptions, currentProposal, ceremonyFinalProblems, wuNarration, ceremonyGuidance, ceremonyNextProblem } from '../src/ceremony.ts'
 import { initializeProfiles, profileKey, readProfile, saveProfile } from '../src/profileStorage.ts'
 import { applyCeremony, readCeremony, ceremonyKey, recoverCeremony } from '../src/ceremonyStorage.ts'
 function fixture(id='colegio') {
@@ -10,6 +11,62 @@ function fixture(id='colegio') {
   c.teams.forEach((t,i)=>{t.memberIds=[c.participants[i].id];t.captainId=t.memberIds[0];t.suggestedNames=i?['Vientos','Rocas']:['Llamas','Rayos']})
   return c
 }
+test('Vue reactive progress and profile support forward, back, colors and every name response',()=>{
+  let c=reactive(fixture()), p=reactive(createCeremony('colegio'))
+  const parsed=parseCeremony(p,c.id)
+  assert(!isProxy(parsed));assert(!isProxy(parsed.proposalIndexes))
+  parsed.proposalIndexes[0]=1;assert.equal(p.proposalIndexes[0],0)
+  const canAdvance=computed(()=>transitionCeremony(c,p,{type:'next'}))
+  assert.equal(canAdvance.value.progress.phase,'color-1')
+  function act(a){const result=transitionCeremony(c,p,a);c=reactive(result.config);p=reactive(result.progress)}
+  act({type:'next'});act({type:'color',color:colorOptions(c,p)[0].hex});act({type:'next'})
+  act({type:'accept-name'});assert.equal(c.teams[0].name,'Llamas')
+  act({type:'back'});act({type:'next'});act({type:'reject-name'});act({type:'reject-name'})
+  assert.equal(currentProposal(c,p),null)
+  act({type:'manual-name',name:'Ninjas de prueba'});act({type:'next'})
+  assert.equal(p.phase,'color-2');assert.equal(c.teams[0].name,'Ninjas de prueba')
+})
+test('Wu reacts to proposals, rejection, exhaustion and acceptance without changing team suggestions',()=>{
+  const c=reactive(fixture()),p=reactive(createCeremony(c.id));p.phase='name-1'
+  const initial=wuNarration(c,p),before=JSON.stringify(c)
+  assert.match(initial,/pergaminos/);assert.match(ceremonyGuidance(c,p).operator,/SÍ/)
+  p.proposalIndexes[0]++;assert.notEqual(wuNarration(c,p),initial);assert.match(wuNarration(c,p),/actualización/)
+  p.proposalIndexes[0]++;assert.match(wuNarration(c,p),/creativos/);assert.match(ceremonyGuidance(c,p).operator,/Escribe/)
+  assert.match(ceremonyNextProblem(c,p),/nombre/)
+  p.confirmedNames[0]=true;assert.match(wuNarration(c,p),/aplauso/)
+  assert.equal(JSON.stringify(c),before)
+})
+test('the reactive can-advance computed unlocks immediately after confirming a color',()=>{
+  const c=reactive(fixture()),p=reactive(createCeremony(c.id));p.phase='color-1'
+  const nextProblem=computed(()=>ceremonyNextProblem(c,p))
+  assert.match(nextProblem.value,/color/)
+  const chosen=transitionCeremony(c,p,{type:'color',color:colorOptions(c,p)[0].hex})
+  Object.assign(c,chosen.config);Object.assign(p,chosen.progress)
+  assert.equal(nextProblem.value,'')
+  Object.assign(p,transitionCeremony(c,p,{type:'next'}).progress)
+  assert.equal(p.phase,'name-1');assert.match(nextProblem.value,/nombre/)
+})
+test('variable proposal lists accept any proposal or reach an empty creation scroll with progressive reactions',()=>{
+  for(const length of [0,1,2,3,7,20,100]) {
+    let c=fixture(),p=createCeremony(c.id);p.phase='name-1'
+    c.teams[0].suggestedNames=Array.from({length},(_,i)=>'Propuesta de prueba '+i)
+    const heard=[]
+    for(let i=0;i<length;i++) {
+      heard.push(wuNarration(c,p))
+      const accepted=transitionCeremony(c,p,{type:'accept-name'})
+      assert.equal(accepted.config.teams[0].name,c.teams[0].suggestedNames[i])
+      ;({config:c,progress:p}=transitionCeremony(c,p,{type:'reject-name'}))
+    }
+    assert.equal(new Set(heard).size,length);assert.equal(currentProposal(c,p),null);assert.match(wuNarration(c,p),/blanco/)
+    ;({config:c,progress:p}=transitionCeremony(c,p,{type:'manual-name',name:'Nombre inventado de prueba'}))
+    assert.equal(c.teams[0].name,'Nombre inventado de prueba');assert(p.confirmedNames[0])
+  }
+})
+test('unconfirmed historical names do not force rejection, but confirmed duplicate names remain blocked',()=>{
+  const c=fixture(),p=createCeremony(c.id);p.phase='name-1';c.teams[1].name=c.teams[0].suggestedNames[0]
+  assert.doesNotThrow(()=>transitionCeremony(c,p,{type:'accept-name'}))
+  p.confirmedNames[1]=true;assert.throws(()=>transitionCeremony(c,p,{type:'accept-name'}),/diferentes/)
+})
 class MemoryStorage {
   data=new Map(); failKey=null
   get length(){return this.data.size} key(i){return [...this.data.keys()][i]??null}
@@ -44,7 +101,7 @@ test('incomplete teams, wrong profiles, invalid phases and premature actions are
 })
 test('exhausted suggestions allow manual names; duplicates ignore case and whitespace',()=>{
   let c=fixture(),p=createCeremony(c.id)
-  p.phase='name-1';c.teams[1].name='  RAYOS  '
+  p.phase='name-1';c.teams[1].name='  RAYOS  ';p.confirmedNames[1]=true
   assert.throws(()=>transitionCeremony(c,p,{type:'manual-name',name:'Uno'}),/propuestas/)
   ;({config:c,progress:p}=transitionCeremony(c,p,{type:'reject-name'}))
   assert.throws(()=>transitionCeremony(c,p,{type:'accept-name'}),/diferentes/)

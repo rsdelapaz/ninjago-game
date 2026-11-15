@@ -1,7 +1,7 @@
 import { computed, onUnmounted, reactive, ref, watch } from 'vue'
 import { cloneProfile, exportProfile, type ProfileConfig, type ProfileId } from './profile.ts'
-import { profileKey, saveProfile, withLocalWrite } from './profileStorage.ts'
-import { ceremonyKey } from './ceremonyStorage.ts'
+import { profileKey, presentationKey, saveProfile, withLocalWrite } from './profileStorage.ts'
+import { ceremonyKey, type ProfileResetRequest } from './ceremonyStorage.ts'
 type Draft = { config: ProfileConfig; baseline: string | null; normalized: string; ceremonyBaseline: string | null }
 export function useProfileDraft(source: () => ProfileConfig, saved: () => void) {
   const drafts = reactive(new Map<ProfileId, Draft>())
@@ -33,6 +33,20 @@ export function useProfileDraft(source: () => ProfileConfig, saved: () => void) 
       drafts.set(config.id, { config, baseline, normalized: baseline, ceremonyBaseline: localStorage.getItem(ceremonyKey(config.id)) }); error.value = ''; message.value = 'Perfil guardado en este navegador.'; saved(); return true
     } catch (e) { report(e); return false } finally { saving.value = false }
   }
+  async function reset(resetProfile: (request: ProfileResetRequest) => Promise<boolean>, reviewed?: ProfileResetRequest): Promise<boolean> {
+    if (saving.value) return false
+    const draft = current.value, id = draft.config.id
+    saving.value = true; error.value = ''; message.value = ''
+    try {
+      const request = reviewed || { profileId: id, expectedConfig: draft.baseline, expectedProgress: draft.ceremonyBaseline, expectedControl: localStorage.getItem(presentationKey) }
+      if (request.profileId !== id) throw Error('El perfil del restablecimiento ya no coincide con el borrador activo.')
+      const ok = await resetProfile(request)
+      if (!ok) return false
+      const raw = localStorage.getItem(profileKey(id)), config = cloneProfile(JSON.parse(raw || 'null'))
+      drafts.set(id, { config, baseline: raw, normalized: exportProfile(config), ceremonyBaseline: localStorage.getItem(ceremonyKey(id)) })
+      error.value = ''; message.value = 'Perfil restablecido. La presentación vuelve a la portada.'; saved(); return true
+    } catch (e) { report(e); return false } finally { saving.value = false }
+  }
   function discard() {
     if (!window.confirm('¿Descartar los cambios sin guardar de este perfil?')) return
     try {
@@ -46,5 +60,5 @@ export function useProfileDraft(source: () => ProfileConfig, saved: () => void) 
   window.addEventListener('beforeunload', beforeUnload)
   onUnmounted(() => window.removeEventListener('beforeunload', beforeUnload))
   const validation = computed(() => { try { exportProfile(current.value.config); return '' } catch (e) { return e instanceof Error ? e.message : 'Revisa el borrador.' } })
-  return { current, dirty, pending, validation, saving, save, discard, message, error, report }
+  return { current, dirty, pending, validation, saving, save, reset, discard, message, error, report }
 }

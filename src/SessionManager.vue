@@ -4,6 +4,7 @@ import ParticipantEditor from './ParticipantEditor.vue'
 import TeamEditor from './TeamEditor.vue'
 import { copyConfig, createConfig, distribute, exportConfig, parseConfig, type LegacySessionConfig } from './session'
 import { loadConfigs, saveConfig, storedConfig } from './sessionStorage'
+import { sortParticipants, teamMembers } from './profile'
 const props = defineProps<{ activeId: string | null }>()
 const emit = defineEmits<{ activate: [id: string] }>()
 const configs = ref<LegacySessionConfig[]>([])
@@ -111,8 +112,8 @@ function activate() { if (dirty.value) { message.value = 'Guarda la configuraci�
       <button @click="download">Exportar configuración JSON</button>
       <label>Seleccionar JSON local<input type="file" accept=".json,application/json" :disabled="loading" @change="read" /></label>
       <div v-if="preview" class="import-preview"><h3>Revisar antes de importar</h3><p>{{ preview.name }} · {{ preview.date }} · {{ preview.assignmentMode === 'manual' ? 'Manual' : 'Automático' }}</p>
-        <p>{{ preview.participants.length }} participantes: {{ preview.participants.map(p => p.name).join(', ') }}</p>
-        <ul><li v-for="t in preview.teams" :key="t.id">{{ t.name }} · {{ t.color }} · {{ t.memberIds.length }} miembros: {{ t.memberIds.map(id => preview!.participants.find(p => p.id === id)?.name).join(', ') }}</li></ul>
+        <p>{{ preview.participants.length }} participantes: {{ sortParticipants(preview.participants).map(p => p.name).join(', ') }}</p>
+        <ul><li v-for="t in preview.teams" :key="t.id">{{ t.name }} · {{ t.color }} · {{ t.memberIds.length }} miembros: {{ teamMembers(preview, t).map(p => p.name).join(', ') }}</li></ul>
         <p>Nombres propuestos: {{ preview.proposedTeamNames.join(', ') || 'Ninguno' }}</p>
         <details><summary>Ver todos los datos de configuración</summary><pre>{{ JSON.stringify(preview, null, 2) }}</pre></details>
         <button @click="importNew">Confirmar: crear sesión nueva</button><button @click="preview = null">Cancelar importación</button>

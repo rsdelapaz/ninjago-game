@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import OrganizerPanel from './OrganizerPanel.vue'
 import { usePresentation } from './usePresentation'
 import ProfileChooser from './ProfileChooser.vue'
@@ -8,10 +8,42 @@ import MonasteryBackdrop from './MonasteryBackdrop.vue'
 import WuMessage from './WuMessage.vue'
 import letsGoSeal from './assets/lets-go.svg'
 import CeremonyStage from './CeremonyStage.vue'
+import { browserScreenTransport, createPublicScreen } from './publicScreen'
+import type { CeremonyAction } from './ceremony'
+import type { RevealAction } from './reveal'
 
 // Explicit reactive state: https://vuejs.org/api/sfc-script-setup.html#reactivity
 const isAdmin = new URLSearchParams(location.search).get('screen') === 'admin'
-const { state, profile, ceremony, busy, activeScene, select, selectProfile, actCeremony, refreshProfile, warning } = usePresentation()
+const { state, profile, ceremony, reveal, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized } = usePresentation()
+const publicUrl = new URL(import.meta.env.BASE_URL, location.origin).href
+const screenTransport = browserScreenTransport()
+function openPublicWindow() {
+  // Obtain/reuse the named window without reloading a live ceremony or its video.
+  const view = window.open('', 'ninja-public', 'popup,width=1280,height=720')
+  if (view && view.location.href === 'about:blank') view.location.replace(publicUrl)
+  return view
+}
+const publicScreen = createPublicScreen({ role: isAdmin ? 'admin' : 'public', transport: screenTransport, open: openPublicWindow })
+const { available: publicReady, message: publicMessage, waiting: publicWaiting } = publicScreen
+const requestWarning = ref(''), operatorBusy = computed(() => busy.value || publicWaiting.value)
+let mounted = true, publicMounted = false
+onMounted(async () => { await initialized; await nextTick(); if (mounted && !isAdmin) { publicMounted = true; window.name = 'ninja-public'; publicScreen.markReady(!!profile.value && !!ceremony.value) } })
+watch([profile, ceremony], () => { if (publicMounted && !isAdmin) publicScreen.markReady(!!profile.value && !!ceremony.value) })
+onUnmounted(() => { mounted = false; publicScreen.dispose(); screenTransport.dispose() })
+function withPublicScreen(action: () => Promise<unknown> | undefined) {
+  const revision = state.value.revision, id = state.value.profileId
+  requestWarning.value = ''
+  // ensure opens synchronously in this click stack, then waits for a live public application's reply.
+  const ready = publicScreen.ensure()
+  return ready.then(confirmed => {
+    if (!confirmed || !mounted) return
+    if (state.value.revision !== revision || state.value.profileId !== id) { requestWarning.value = 'La presentación cambió durante la apertura. Revisa el perfil y repite la acción.'; return }
+    return action()
+  })
+}
+const showScene = (id: string) => withPublicScreen(() => select(id))
+const commandCeremony = (action: CeremonyAction) => withPublicScreen(() => actCeremony(action))
+const commandReveal = (action: RevealAction) => withPublicScreen(() => actReveal(action))
 const scene = computed(() => state.value.sceneId)
 watch(state, async () => { await nextTick(); if (!isAdmin) heading.value?.focus() })
 const heading = ref<HTMLHeadingElement | null>(null)
@@ -37,8 +69,8 @@ async function goTo(target: string) {
 
 <template>
   <ProfileChooser v-if="!profile" :warning="warning" @choose="selectProfile" />
-  <OrganizerPanel v-else-if="isAdmin" :profile="profile" :scene="activeScene" :ceremony="ceremony!" :busy="busy" :warning="warning" @select="select" @activate="selectProfile" @ceremony="actCeremony" @saved="refreshProfile" />
-  <CeremonyStage v-else-if="activeScene.type === 'ceremony' && ceremony" :config="profile" :progress="ceremony" />
+  <OrganizerPanel v-else-if="isAdmin" :profile="profile" :scene="activeScene" :ceremony="ceremony!" :reveal="reveal" :busy="operatorBusy" :reset-profile="resetProfile" :public-ready="publicReady" :public-waiting="publicWaiting" :public-message="publicMessage" :public-url="publicUrl" :warning="requestWarning || warning" @select="showScene" @activate="selectProfile" @ceremony="commandCeremony" @reveal="commandReveal" @open-public="publicScreen.ensure()" @saved="refreshProfile" />
+  <CeremonyStage v-else-if="activeScene.type === 'ceremony' && ceremony" :config="profile" :progress="ceremony" :reveal="reveal" />
   <main v-else class="adventure" :class="{ 'video-scene': activeScene.type === 'video', 'is-transitioning': transitioning }" :aria-busy="transitioning">
     <MonasteryBackdrop />
     <img v-if="artworkAvailable" :key="artworkUrl" class="key-art" :src="artworkUrl" alt="" @error="artworkAvailable = false" />

@@ -34,7 +34,7 @@ async function page(url, noChannel = false) {
   const c = (m, p = {}) => send(m, p, sessionId)
   const e = async expression => {
     if (expression.trimStart().startsWith('const ')) expression = `(() => { ${expression} })()`
-    const r = await c('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })
+    const r = await c('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true, userGesture: true })
     if (r.exceptionDetails) throw Error(JSON.stringify(r.exceptionDetails))
     return r.result.value
   }
@@ -56,7 +56,7 @@ try {
   assert.equal(await admin.e('localStorage.getItem("ninja-control-v3")'), null)
   for (const id of ['colegio','urbanizacion']) {
     const p=await admin.e('JSON.parse(localStorage.getItem('+JSON.stringify('ninja-profile-v2:'+id)+'))')
-    assert.equal(p.teams.length,2);assert(p.teams.every(t=>t.name===null&&t.color===null&&t.memberIds.length===0))
+    assert.equal(p.teams.length,2);assert(p.teams.every(t=>t.name===null&&t.color===null&&t.memberIds.length===0&&t.suggestedNames.length===3))
   }
   await admin.c('Emulation.setFocusEmulationEnabled', { enabled: true })
   await admin.e('document.querySelector(".profile-options button").focus()')
@@ -109,6 +109,17 @@ try {
   await admin.wait('JSON.parse(localStorage.getItem("ninja-profile-v2:colegio")).participants.length === 7')
   assert.equal((await getConfig('colegio')).participants.length,7)
   await module('teams')
+  // Direct multi-selection and captain transfer, before the explicit random draw.
+  await admin.e('document.querySelectorAll(".add-ninjas")[0].click()')
+  await admin.e('Array.from(document.querySelectorAll(".member-options input")).slice(0,3).forEach(input=>input.click())')
+  await admin.click('Confirmar 3 integrantes')
+  await admin.e('document.querySelector(".team-member-list button").click()')
+  await admin.e('document.querySelectorAll(".add-ninjas")[1].click()')
+  await admin.e('document.querySelectorAll(".candidate-group")[1].querySelector("input").click()')
+  await admin.click('Confirmar 1 integrante')
+  assert.equal(await admin.e('document.querySelectorAll(".captain-chip").length'),0)
+  await admin.click('Guardar cambios')
+  await admin.wait('JSON.parse(localStorage.getItem("ninja-profile-v2:colegio")).teams[1].memberIds.length === 1')
   await admin.e('const mode=document.querySelector(".teams-module select");mode.value="automatic";mode.dispatchEvent(new Event("change",{bubbles:true}))')
   await admin.click('Sortear y guardar reparto')
   await admin.wait('JSON.parse(localStorage.getItem("ninja-profile-v2:colegio")).assignmentMode === "automatic"')
@@ -138,6 +149,10 @@ try {
     for(const [width,height] of [[1920,1080],[1366,768],[768,1024],[390,844]]) {
       await publicPage.c('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false})
       assert.equal(await publicPage.e('document.documentElement.scrollWidth <= innerWidth'),true,'ceremony overflow '+label+' '+width)
+      if(width >= 1366) {
+        assert.equal(await publicPage.e('document.documentElement.scrollHeight <= innerHeight + 1'),true,'desktop vertical overflow '+label+' '+width)
+        assert.equal(await publicPage.e('Array.from(document.querySelectorAll(".ninja-name,.name-revelation h2")).every(n=>n.getBoundingClientRect().bottom <= innerHeight && n.getBoundingClientRect().top >= 0)'),true,'hidden names '+label)
+      }
       await new Promise(r=>setTimeout(r,100))
       const {cssContentSize:size}=await publicPage.c('Page.getLayoutMetrics')
       const {data}=await publicPage.c('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width:size.width,height:size.height,scale:1}})
@@ -157,6 +172,7 @@ try {
   await publicPage.wait('document.querySelector(".name-revelation h2").textContent === "Rayos"')
   await admin.click('SÍ · Aceptar nombre')
   await admin.wait('JSON.parse(localStorage.getItem("ninja-profile-v2:colegio")).teams[0].name === "Rayos"')
+  await capture('accepted')
   await admin.reload();await admin.wait('!!document.querySelector(".command-center")');await module('presentation')
   await phase('name-1')
   await admin.click('Avanzar fase →');await phase('color-2')
@@ -166,6 +182,7 @@ try {
   await admin.click('Avanzar fase →');await phase('name-2')
   await admin.click('NO · Siguiente propuesta');await publicPage.wait('document.querySelector(".name-revelation h2").textContent === "Vientos"')
   await admin.click('NO · Siguiente propuesta');await admin.wait('!!document.querySelector(".ceremony-controls form")')
+  await publicPage.wait('!!document.querySelector(".empty-scroll")');await capture('exhausted')
   await admin.e('const input=document.querySelector(".ceremony-controls form input");input.value="Tormentas";input.dispatchEvent(new Event("input",{bubbles:true}))')
   await admin.click('Confirmar nombre manual')
   await admin.wait('JSON.parse(localStorage.getItem("ninja-profile-v2:colegio")).teams[1].name === "Tormentas"')
@@ -178,6 +195,7 @@ try {
   await admin.click('Continuar al mensaje de Wu →');await publicPage.wait('!!document.querySelector(".encounter")')
   assert((await publicPage.e('document.querySelector("video").getAttribute("src")')).includes('/colegio/'))
   await admin.click('← Anterior');await publicPage.wait('!!document.querySelector(".ceremony-finale")')
+  await admin.e('document.querySelector(".scene-catalogue").open = true')
   await admin.e('const n=document.querySelector(".scene-list input[type=number]");n.value="3";n.dispatchEvent(new Event("input",{bubbles:true}))')
   await admin.click('Mostrar número');await publicPage.wait('!!document.querySelector(".encounter")')
   await admin.e('document.querySelector(".scene-card").click()')
@@ -230,6 +248,23 @@ try {
   assert.equal(await fallback.e('!!document.querySelector(".landscape")'),true)
   await admin.e('document.querySelector(".scene-card").click()');await admin.click('Mostrar esta escena');await fallback.wait('!!document.querySelector(".start-button")')
   assert.equal(await fallback.e('document.querySelector(".public-profile").textContent.includes("Colegio")'),true)
+  // Reset only the synthetic active profile; export first, require explicit acknowledgement, reload.
+  const untouched=await getConfig('urbanizacion')
+  await module('settings');await admin.click('Restablecer perfil a su estado inicial')
+  assert.equal(await admin.e('document.querySelector(".confirm-reset").disabled'),true)
+  await admin.click('Exportar configuración guardada antes de restablecer')
+  assert.deepEqual(JSON.parse(await admin.e('window.exportedConfigText')),saved)
+  await admin.e('document.querySelector(".reset-ack input").click()')
+  await admin.click('Sí, restablecer Colegio')
+  await admin.wait('JSON.parse(localStorage.getItem("ninja-profile-v2:colegio")).participants.length === 0')
+  await fallback.wait('!!document.querySelector(".start-button")')
+  const initial=await getConfig('colegio')
+  assert(initial.teams.every(t=>t.name===null&&t.color===null&&t.captainId===null&&t.memberIds.length===0&&t.suggestedNames.length===3))
+  assert.deepEqual(await getConfig('urbanizacion'),untouched)
+  assert.equal(await admin.e('JSON.parse(localStorage.getItem("ninja-control-v3")).sceneId'),'intro')
+  await admin.reload();await admin.wait('!!document.querySelector(".command-center")')
+  assert.deepEqual(await getConfig('colegio'),initial)
+  assert.equal(await admin.e('localStorage.getItem('+JSON.stringify(oldKey)+')'),oldRaw)
   assert.deepEqual(errors,[]);assert.deepEqual(external,[])
   console.log('PASS profiles and ceremony: captain preparation, START GAME, all ceremony phases, two distinct colors, name yes/no/manual, reload/back recovery, final teams and Wu; isolated configs/drafts/media, JSON, legacy migration, scene catalogue, storage fallback, 4 responsive sizes, no JS exceptions/external requests. Screenshots: .preview.local/ceremony-{arrival,color,name,final}-*.png')
 } finally {

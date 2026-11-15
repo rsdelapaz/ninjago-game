@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { clearInvalidCaptains, newId, type Participant } from './profile'
+import { clearInvalidCaptains, newId, sortParticipants, type Participant } from './profile'
 const props = defineProps<{ config: { participants: Participant[]; teams: { memberIds: string[]; captainId?: string | null }[] } }>()
 const name = ref('')
 function add() {
@@ -25,7 +25,7 @@ function age(id: string, event: Event) {
     <h2 id="participants-title">Participantes <small>{{ config.participants.length }}</small></h2>
     <form class="command-row" @submit.prevent="add"><label>Nombre del nuevo ninja<input v-model="name" required maxlength="120" /></label><button>Añadir participante</button></form>
     <p v-if="!config.participants.length">Añade a los ninjas para preparar los dos equipos.</p>
-    <div v-for="p in config.participants" :key="p.id" class="participant-row">
+    <div v-for="p in sortParticipants(config.participants)" :key="p.id" class="participant-row">
       <label>Nombre<input v-model="p.name" :aria-label="`Nombre de ${p.name}`" maxlength="120" required /></label>
       <label>Edad (opcional)<input type="number" min="0" max="120" step="1" :value="p.age" :aria-label="`Edad de ${p.name}`" @input="age(p.id, $event)" /></label>
       <label>Género (opcional)<input :value="p.gender" maxlength="60" :aria-label="`Género de ${p.name}`" @input="p.gender = ($event.target as HTMLInputElement).value || undefined" /></label>
