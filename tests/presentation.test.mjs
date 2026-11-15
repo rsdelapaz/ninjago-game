@@ -8,6 +8,9 @@ import { readProfile, saveProfile, profileKey } from '../src/profileStorage.ts'
 import { colorOptions } from '../src/ceremony.ts'
 import { useProfileDraft } from '../src/useProfileDraft.ts'
 import { ceremonyKey, readCeremony } from '../src/ceremonyStorage.ts'
+import { applyProfileConfig } from '../src/ceremonyStorage.ts'
+import { newChallenge } from '../src/challenges.ts'
+import { adjacentScene, sceneByNumber } from '../src/scenes.ts'
 
 async function environment(work) {
   const saved = Object.fromEntries(['window','localStorage','navigator','BroadcastChannel'].map(k => [k,Object.getOwnPropertyDescriptor(globalThis,k)]))
@@ -148,5 +151,54 @@ test('reveal controls synchronize and reload without modifying profiles, decisio
     assert.equal(storage.getItem(profileKey('colegio')),before);assert.equal(storage.getItem(ceremonyKey('colegio')),progress);assert.equal(storage.getItem(profileKey('urbanizacion')),other)
     await admin.actCeremony({type:'next'});await admin.actReveal('skip')
     assert.equal(admin.ceremony.value.phase,'color-1')
+  })
+})
+
+test('dynamic challenge navigation and explicit winner announcements synchronize, reload and isolate results',async()=>{
+  await environment(async(storage,mount)=>{
+    const admin=await mount();await admin.selectProfile('colegio');setup(storage,'colegio');setup(storage,'urbanizacion')
+    const c=readProfile(storage,'colegio');c.challenges=Array.from({length:3},()=>newChallenge())
+    applyProfileConfig(storage,c,storage.getItem(profileKey(c.id)),storage.getItem(ceremonyKey(c.id)));admin.refreshProfile()
+    const audience=await mount(), first=sceneByNumber(4,c), second=adjacentScene(first.id,1,c)
+    await admin.select(first.id);assert.equal(audience.activeScene.value.challengeId,c.challenges[0].id)
+    const progress=storage.getItem(ceremonyKey(c.id)), urban=storage.getItem(profileKey('urbanizacion'))
+    assert.equal(admin.results.value[c.challenges[0].id],undefined)
+    assert.equal(await admin.recordResult(c.challenges[0].id,c.teams[0].id),true)
+    assert.equal(audience.results.value[c.challenges[0].id],c.teams[0].id)
+    assert.equal(audience.state.value.announcement,undefined);assert.equal(audience.state.value.sceneId,first.id)
+    await admin.announceResult(c.challenges[0].id,c.teams[0].id)
+    assert.equal(audience.state.value.announcement.winner,c.teams[0].id)
+    const reloaded=await mount();assert.equal(reloaded.state.value.announcement.winner,c.teams[0].id)
+    const stale=admin.resultsVersion.value
+    await admin.recordResult(c.challenges[0].id,c.teams[1].id)
+    assert.equal(await admin.recordResult(c.challenges[0].id,null,stale),false)
+    await admin.select(second.id);assert.equal(audience.state.value.announcement,undefined)
+    await admin.select(adjacentScene(second.id,-1,c).id);assert.equal(audience.state.value.sceneId,first.id)
+    c.challenges[0].visible=false
+    applyProfileConfig(storage,c,storage.getItem(profileKey(c.id)),storage.getItem(ceremonyKey(c.id)))
+    admin.refreshProfile();audience.refreshProfile();assert.equal(audience.state.value.sceneId,'intro')
+    const loaded=await mount();assert.equal(loaded.state.value.sceneId,'intro')
+    assert.equal(storage.getItem(ceremonyKey(c.id)),progress);assert.equal(storage.getItem(profileKey('urbanizacion')),urban)
+    await admin.selectProfile('urbanizacion');assert.deepEqual(admin.results.value,{})
+    assert.equal(await admin.recordResult(c.challenges[0].id,c.teams[0].id,null,'colegio'),false)
+    await admin.selectProfile('colegio');assert.equal(admin.results.value[c.challenges[0].id],c.teams[1].id)
+  })
+})
+
+test('real draft challenge edits save without restarting ceremony and reject deletion after newer results',async()=>{
+  await environment(async(storage,mount)=>{
+    const admin=await mount();await admin.selectProfile('colegio');setup(storage,'colegio');admin.refreshProfile()
+    await admin.select('ceremony');await admin.actCeremony({type:'next'})
+    await admin.actCeremony({type:'color',color:colorOptions(admin.profile.value,admin.ceremony.value)[0].hex})
+    const progress=storage.getItem(ceremonyKey('colegio'))
+    const source=ref(admin.profile.value), {draft,unmount}=mountDraft(source)
+    draft.current.value.config.challenges.push(newChallenge());assert.equal(await draft.save(),true)
+    admin.refreshProfile();assert.equal(storage.getItem(ceremonyKey('colegio')),progress)
+    const id=draft.current.value.config.challenges[0].id
+    await admin.recordResult(id,admin.profile.value.teams[0].id)
+    draft.current.value.config.challenges=[]
+    assert.equal(await draft.save(),false);assert.match(draft.error.value,/resultados cambiaron/)
+    assert.equal(readProfile(storage,'colegio').challenges.length,1)
+    unmount()
   })
 })

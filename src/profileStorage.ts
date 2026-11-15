@@ -1,5 +1,6 @@
 import { createProfile, exportProfile, parseProfile, profileIds, type ProfileConfig, type ProfileId } from './profile.ts'
 import { createCeremony } from './ceremony.ts'
+import { pruneResults } from './challengeResults.ts'
 export const profileKey = (id: ProfileId) => `ninja-profile-v2:${id}`
 export const presentationKey = 'ninja-control-v3'
 export function initializeProfiles(storage: Storage) {
@@ -18,12 +19,18 @@ export function saveProfile(storage: Storage, config: ProfileConfig, previous: s
   if (previous !== null && previous !== json) storage.setItem(`ninja-profile-history:${config.id}:${Date.now()}:${crypto.getRandomValues(new Uint32Array(1))[0]}`, previous)
   // Editing setup invalidates ceremony confirmations, but never clears the confirmed names/colors.
   // Reset before writing config: if storage fails, it is safer to repeat than to skip the ceremony.
-  if (!ceremonyWrite && previous !== json && storage.getItem(`ninja-ceremony-v1:${config.id}`) !== null) {
+  if (!ceremonyWrite && previous !== json && !onlyChallengesChanged(config, previous) && storage.getItem(`ninja-ceremony-v1:${config.id}`) !== null) {
     const reset = createCeremony(config.id); reset.revision = Date.now()
     storage.setItem(`ninja-ceremony-v1:${config.id}`, JSON.stringify(reset))
   }
   storage.setItem(key, json)
+  pruneResults(storage, config)
   return json
+}
+export function onlyChallengesChanged(config: ProfileConfig, previous: string | null) {
+  if (!previous) return false
+  const old = parseProfile(JSON.parse(previous))
+  return JSON.stringify({ ...old, challenges: [] }) === JSON.stringify({ ...parseProfile(config), challenges: [] })
 }
 // All active browser writers share this lock. Never silently degrade to unsafe concurrent writes.
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API

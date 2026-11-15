@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { confirmAction } from './confirmation'
+
 import { computed, ref, watch } from 'vue'
 import { assignProfileMember, assignProfileMembers, sortParticipants, teamMembers, memberCandidateGroups, type ProfileConfig } from './profile'
 const props = defineProps<{ config: ProfileConfig }>()
@@ -8,10 +10,12 @@ const suggestions = ref(props.config.teams.map(t => t.suggestedNames.join('\n'))
 const addingTeam = ref<string | null>(null), selectedMembers = ref<string[]>([])
 watch(() => props.config, c => { suggestions.value = c.teams.map(t => t.suggestedNames.join('\n')); addingTeam.value = null; selectedMembers.value = [] })
 function addNinjas(id: string) { addingTeam.value = id; selectedMembers.value = [] }
-function confirmMembers(id: string) {
+async function confirmMembers(id: string) {
+  const reviewed = props.config, members = [...selectedMembers.value]
   const transfers = props.config.teams.some(t => t.id !== id && t.memberIds.some(member => selectedMembers.value.includes(member)))
-  if (transfers && !window.confirm('¿Trasladar los ninjas seleccionados a este equipo? Si alguno era capitán del equipo anterior, dejará de serlo.')) return
-  assignProfileMembers(props.config, selectedMembers.value, id)
+  if (transfers && !await confirmAction('¿Trasladar los ninjas seleccionados a este equipo? Si alguno era capitán del equipo anterior, dejará de serlo.')) return
+  if (props.config !== reviewed) return
+  assignProfileMembers(props.config, members, id)
   addingTeam.value = null; selectedMembers.value = []
 }
 const membership = (id: string) => props.config.teams.find(t => t.memberIds.includes(id))

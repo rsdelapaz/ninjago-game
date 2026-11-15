@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { confirmations } from './confirmation'
+
 import { computed, ref, watch } from 'vue'
 import type { ProfileConfig } from './profile'
 import { activeTeamIndex, colorOptions, currentProposal, phaseLabels, ceremonyPhases, ceremonyGuidance, ceremonyNextProblem, wuNarration, type CeremonyAction, type CeremonyProgress } from './ceremony'
@@ -15,7 +17,11 @@ const now = useRevealClock(), pages = computed(() => revealPlan(props.config).co
 const frame = computed(() => revealFrame(props.reveal, pages.value, now.value))
 watch(() => [props.config.id, props.progress.phase], () => { manualName.value = '' })
 function restart() {
-  if (window.confirm('¿Repetir la ceremonia desde la presentación de equipos? Se conservan los nombres y colores guardados, pero habrá que confirmarlos otra vez.')) emit('action', { type: 'restart' })
+  const id = props.config.id, revision = props.progress.revision
+  void confirmations.ask({ title: 'Repetir ceremonia', explanation: 'Se conservan los nombres y colores guardados, pero habrá que confirmarlos otra vez.', actionLabel: 'Repetir ceremonia' }, () => {
+    if (props.config.id !== id || props.progress.revision !== revision) throw Error('La ceremonia cambió durante la revisión. Cancela y revisa el estado actual.')
+    emit('action', { type: 'restart' })
+  })
 }
 </script>
 <template>

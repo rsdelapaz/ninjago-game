@@ -1,21 +1,23 @@
-﻿import { computed, onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { ceremonyProblems, isProfileId, profileIds, type GameProgress, type ProfileConfig, type ProfileId } from './profile.ts'
 import { initializeProfiles, profileKey, presentationKey, readProfile, withLocalWrite } from './profileStorage.ts'
 import { applyCeremony, applyProfileReset, ceremonyKey, readCeremony, recoverCeremony, type ProfileResetRequest } from './ceremonyStorage.ts'
 import { ceremonyFinalProblems, type CeremonyAction, type CeremonyProgress } from './ceremony.ts'
 import { orderedScenes, sceneById } from './scenes.ts'
 import { changeReveal, createReveal, revealPlan, validReveal, type RevealState, type RevealAction } from './reveal.ts'
+import { readResults, saveResult, resultsKey, type ChallengeResults } from './challengeResults.ts'
 export type Scene = string
-export type PresentationState = Omit<GameProgress, 'profileId'> & { profileId: ProfileId | null; reveal?: RevealState }
+export type PresentationState = Omit<GameProgress, 'profileId'> & { profileId: ProfileId | null; reveal?: RevealState; announcement?: { challengeId: string; winner: string } }
 const key = presentationKey
 function valid(value: unknown): value is PresentationState {
   if (!value || typeof value !== 'object') return false
   const s = value as PresentationState
-  return isProfileId(s.profileId) && !!sceneById(s.sceneId) && Number.isSafeInteger(s.revision) && s.revision >= 0 && typeof s.token === 'string' && (s.reveal === undefined || validReveal(s.reveal))
+  return isProfileId(s.profileId) && typeof s.sceneId === 'string' && s.sceneId.length <= 160 && Number.isSafeInteger(s.revision) && s.revision >= 0 && typeof s.token === 'string' && (s.reveal === undefined || validReveal(s.reveal))
 }
 export function usePresentation() {
   const state = ref<PresentationState>({ profileId: null, sceneId: orderedScenes[0].id, revision: 0, token: '' })
   const profile = ref<ProfileConfig | null>(null), ceremony = ref<CeremonyProgress | null>(null)
+  const results = ref<ChallengeResults>({}), resultsVersion = ref<string | null>(null)
   const warning = ref(''), busy = ref(false)
   let controlBaseline: string | null = null, configBaseline: string | null = null, ceremonyBaseline: string | null = null
   let disposed = false, channel: BroadcastChannel | undefined
@@ -28,10 +30,10 @@ export function usePresentation() {
       const id = saved.profileId!
       const config = readProfile(localStorage, id), progress = readCeremony(localStorage, id)
       configBaseline = localStorage.getItem(profileKey(id)); ceremonyBaseline = localStorage.getItem(ceremonyKey(id))
-      profile.value = config; ceremony.value = progress; state.value = saved
+      profile.value = config; ceremony.value = progress; state.value = saved; results.value = readResults(localStorage, config); resultsVersion.value = localStorage.getItem(resultsKey(id))
       // An edited/imported setup cannot leave the public display on an unearned final video.
       try { checkScene(saved.sceneId, config, progress) }
-      catch (e) { state.value = { ...saved, sceneId: 'intro' }; report(e) }
+      catch (e) { state.value = { ...saved, sceneId: 'intro', announcement: undefined }; report(e) }
     } catch (e) { report(e) }
   }
   const initialized = withLocalWrite(() => {
@@ -44,14 +46,14 @@ export function usePresentation() {
   catch { /* Same-origin storage events remain available. */ }
   const storage = (event: StorageEvent) => {
     const id = state.value.profileId
-    if (event.key === key || id && [profileKey(id), ceremonyKey(id)].includes(event.key || '')) refreshProfile()
+    if (event.key === key || id && [profileKey(id), ceremonyKey(id), resultsKey(id)].includes(event.key || '')) refreshProfile()
   }
   window.addEventListener('storage', storage)
   function checkCurrent(expected: string | null) {
     if (localStorage.getItem(key) !== expected) throw Error('Otra ventana cambió la presentación. Revisa la fase actual antes de volver a confirmar.')
   }
   function checkScene(sceneId: string, config: ProfileConfig, progress: CeremonyProgress) {
-    if (!sceneById(sceneId)) throw Error('Escena desconocida.')
+    if (!sceneById(sceneId, config)) throw Error('La prueba ya no está visible o disponible. La pantalla ha vuelto a la portada; elige otra escena.')
     if (sceneId === 'ceremony') {
       const errors = ceremonyProblems(config); if (errors.length) throw Error(errors.join(' '))
     }
@@ -63,9 +65,9 @@ export function usePresentation() {
   function nextControl(sceneId: string, id: ProfileId): GameProgress & { reveal: RevealState } {
     return { profileId: id, sceneId, revision: Math.max(Date.now(), state.value.revision + 1), token: Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-'), reveal: sceneId === 'ceremony' && state.value.sceneId === sceneId && state.value.profileId === id && state.value.reveal ? { ...state.value.reveal } : createReveal(Date.now()) }
   }
-  function writeControl(sceneId: string, id: ProfileId, reveal?: RevealState) {
-    const next = nextControl(sceneId, id)
-    if (reveal) next.reveal = reveal
+  function writeControl(sceneId: string, id: ProfileId, reveal?: RevealState, announcement?: PresentationState['announcement']) {
+    const next: PresentationState = nextControl(sceneId, id)
+    if (reveal) next.reveal = reveal; if (announcement) next.announcement = announcement
     localStorage.setItem(key, JSON.stringify(next))
     refreshProfile(); channel?.postMessage(next) // no participant names in channel messages
   }
@@ -107,6 +109,28 @@ export function usePresentation() {
       writeControl('ceremony', id, next)
     })
   }
+  function recordResult(challengeId: string, winner: string | null, reviewed = resultsVersion.value, reviewedProfile = state.value.profileId) {
+    const id = state.value.profileId, expected = controlBaseline, config = configBaseline
+    if (!id || id !== reviewedProfile) return Promise.resolve(false)
+    return run(() => {
+      checkCurrent(expected)
+      if (localStorage.getItem(profileKey(id)) !== config) throw Error('La configuración cambió. Revisa la prueba antes de guardar su resultado.')
+      saveResult(localStorage, readProfile(localStorage, id), challengeId, winner, reviewed)
+      refreshProfile(); channel?.postMessage({ profileId: id })
+    })
+  }
+  function announceResult(challengeId: string, expectedWinner: string) {
+    const id = state.value.profileId, expected = controlBaseline
+    if (!id) return Promise.resolve(false)
+    return run(() => {
+      checkCurrent(expected)
+      const config = readProfile(localStorage, id), winner = readResults(localStorage, config)[challengeId]
+      if (!winner || winner !== expectedWinner) throw Error('El resultado cambió. Revisa antes de anunciarlo.')
+      const sceneId = `challenge:${challengeId}`
+      checkScene(sceneId, config, readCeremony(localStorage, id))
+      writeControl(sceneId, id, undefined, { challengeId, winner })
+    })
+  }
   function resetProfile(request: ProfileResetRequest): Promise<boolean> {
     const expected = request.expectedControl
     return run(() => {
@@ -118,7 +142,7 @@ export function usePresentation() {
     })
   }
   onUnmounted(() => { disposed = true; channel?.close(); window.removeEventListener('storage', storage) })
-  const activeScene = computed(() => sceneById(state.value.sceneId)!)
+  const activeScene = computed(() => sceneById(state.value.sceneId, profile.value) || orderedScenes[0]!)
   const reveal = computed(() => state.value.reveal || createReveal(state.value.revision))
-  return { state, profile, ceremony, reveal, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
+  return { state, profile, ceremony, reveal, results, resultsVersion, recordResult, announceResult, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
 }

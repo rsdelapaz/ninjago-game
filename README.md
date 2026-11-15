@@ -1,6 +1,6 @@
 # El secreto del maestro Wu
 
-> **Guía vigente: Hito 07 — Formación ninja compacta (15/11/2026).** Consulta el apartado final y «Partida completa de demostración» para el arranque con npm recuperado. Las secciones previas son históricas. El director autoriza en este hito commit y push de fuente auditada exclusivamente a `feat/upgrade-prologue-art`, sin publicar medios ni capturas privadas.
+> **Guía vigente: Hito 08 — Pruebas configurables y administración (15/11/2026).** Consulta el apartado final y «Partida completa de demostración» para el arranque con npm recuperado. Las secciones previas son históricas. El director autoriza en este hito commit y push de fuente auditada exclusivamente a `feat/upgrade-prologue-art`, sin publicar medios ni capturas privadas.
 
 Introducción local para una aventura personal de cumpleaños ambientada en NINJAGO. Vue 3 + TypeScript + Vite; ilustración generada para este proyecto, sin imágenes, fuentes ni servicios remotos en ejecución.
 
@@ -419,3 +419,76 @@ Ensayo visual pendiente por entorno, sin capturas nuevas ni afirmación de aprob
 No hay navegador conectado en 9223; no se repite Edge headless bloqueado. La inspección real a esas tres resoluciones, las dos capturas solicitadas y el ensayo en monitor externo quedan pendientes. Las pruebas automatizadas comprueban grupos y control; no sustituyen la medición visual de legibilidad y encaje. No hay lint configurado. Se publica exclusivamente fuente auditada a feat/upgrade-prologue-art, conservando medios locales privados.
 
 Cierre técnico Hito 07: 48/48 pruebas superadas; typecheck, build, sintaxis del smoke y git diff --check con código 0. npm utilizado: C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js, invocado mediante Node con --preserve-symlinks --preserve-symlinks-main y NODE_OPTIONS restaurado al terminar. La ejecución del smoke de navegador y las capturas siguen pendientes por entorno.
+
+## Hito 08 — Pruebas configurables y administración
+
+«Pruebas» prepara el contenido; «Presentación» controla lo que ve el público y adjudica resultados. La cabecera indica perfil activo y cambios sin guardar. En escritorio hay lista ordenada y editor; en móvil se abre una edición dedicada con «Volver a la lista». Nueva prueba, duplicar, subir/bajar, ocultar/mostrar y eliminar no requieren código. Usa «Guardar cambios» para publicar la preparación en este navegador. Editar solo pruebas no reinicia la ceremonia; modificar equipos/participantes/recursos conserva el comportamiento de invalidación anterior.
+
+Cada prueba tiene título (160 caracteres), descripción (4000), imagen opcional local y visibilidad. Nombres de archivo PNG/JPG/WebP, sin rutas/URL, de hasta 120 caracteres. Guarda los archivos físicamente en public/private-media/colegio/ o urbanizacion/. Se reutiliza la misma plantilla en la vista previa y en la pública. Una imagen ausente muestra aviso solo al organizador y un emblema ninja al público. No se cargan ni exportan binarios. Por seguridad se validan como máximo 500 definiciones y 1 MiB de JSON exportado completo, con presupuesto adicional de 750 000 caracteres para pruebas; no existe un límite de diez.
+
+### Datos y recuperación
+
+ProfileConfig v3 añade challenges en orden de presentación, con id estable, title, description, imageFilename y visible. No se usa el número visual como identidad. Importar v2 añade una lista vacía en memoria; el registro anterior no se reescribe hasta guardar explícitamente. La conversión v1 sigue conservando el original, participantes, equipos, propuestas y medios. Las claves ninja-profile-v2 se conservan deliberadamente para no crear copias activas divergentes; su contenido nuevo se exporta como v3. El JSON avanzado incluye las definiciones, sin resultados ni imágenes. Clonar un borrador no cambia identidades; duplicar una prueba crea un ID nuevo y no copia el resultado. Restablecer perfil retira sus pruebas y resultados, sin tocar el otro perfil, archivos físicos, historiales o datos heredados.
+
+Los resultados están en ninja-challenge-results-v1 por perfil, asociados al ID de prueba y al ID del equipo, o null/ausencia para pendiente. En Presentación se muestra el nombre definitivo si existe. Elegir otro ganador o volver a pendiente tras un ganador exige confirmación contextual. Guardar no cambia la escena ni anuncia automáticamente. «Anunciar ganador al público» publica una instantánea explícita del ganador; «Mostrar de nuevo la prueba» vuelve al contenido. Si corriges un resultado ya anunciado, el anuncio anterior sigue hasta que elijas presentar o anunciar otra vez; guardar no sustituye silenciosamente lo anunciado. No se suman puntos ni se generan pistas.
+
+El catálogo se calcula desde el perfil guardado: Portada → Ceremonia → Wu → pruebas visibles. Ocultas conservan datos/resultados y no cuentan en la numeración pública. Anterior/siguiente/número, vista previa y Mostrar usan el mismo catálogo. Las escenas de pruebas usan challenge:ID y sus números visibles se recalculan. Se mantiene apertura síncrona de la ventana pública y handshake antes de dirigirla.
+
+Los escritores usan el mismo Web Lock y comprobación de versiones. Los cambios solo de pruebas utilizan el journal existente de ceremonia y preservan su registro exacto; al eliminar, se retiran los resultados relacionados. Si una prueba activa se oculta/elimina, el mismo journal guarda el retorno a portada y el panel lo explica. Una escritura interrumpida se recupera al cargar. Un borrado se rechaza si otro panel cambió resultados desde la revisión del borrador; exporta/descarta el borrador y vuelve a revisar. No se borra todo localStorage. El historial local conserva configuraciones anteriores, no constituye una copia exportable de resultados. Conserva el navegador y sus datos para el evento.
+
+### Confirmaciones y guía del organizador
+
+Se sustituyen confirmaciones nativas de los flujos activos por ConfirmationDialog y un único servicio: título, explicación, cancelar, acción normal/destructiva, foco inicial en cancelar, Escape, restauración del foco, exclusión de solicitudes duplicadas y bloqueo durante trabajo asíncrono. Un fallo conserva el diálogo para reintentar/cancelar. Repetir ceremonia ejecuta la apertura pública desde el clic de aceptar, sin aplazar window.open tras una espera. Los avisos de guardado siguen siendo mensajes no bloqueantes y los errores de campos aparecen junto al editor. Restablecer conserva su revisión contextual con exportación y aceptación explícita. beforeunload mantiene la protección nativa de cierre/recarga del navegador; no es una confirmación de aplicación sustituible. SessionManager es histórico, no está montado por App; sus confirmaciones legacy no forman parte del Centro de Mando activo.
+
+Fundamento: API nativa showModal y capa modal/inert de MDN (https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/showModal), reactividad/composición de Vue (https://vuejs.org/api/reactivity-core.html). No se añade librería ni dependencia.
+
+### Ensayo reproducible con una persona nueva — pendiente de realizar
+
+Usa un navegador normal y el mismo origen en ambas ventanas. Arranca con el procedimiento npm recuperado de «Partida completa de demostración». Usa exclusivamente participantes ficticios y un perfil de ensayo; exporta antes cualquier configuración real.
+
+1. Seleccionar Colegio y comprobar el nombre en la cabecera.
+2. Abrir Equipos y localizar integrantes/capitanes; guardar si se modifican.
+3. Abrir Pruebas, crear tres títulos ficticios y pulsar Guardar cambios.
+4. Subir la tercera con las flechas; guardar y verificar el orden de la lista.
+5. Ocultar una, revisar el aviso y guardar; verificar que sus datos siguen editables.
+6. Seleccionar otra prueba y comprobar vista previa; ensayar una imagen ausente y otra local válida.
+7. Preparar pantalla pública desde la cabecera y moverla al monitor extendido.
+8. Desde la prueba guardada ir a su control, pulsar Mostrar esta escena; comprobar que seleccionar miniaturas no la cambia.
+9. Registrar un equipo ganador: el público debe seguir viendo la prueba. Pulsar Anunciar ganador para mostrarlo. Corregir el resultado con diálogo, cancelar una vez y confirmar después. Mostrar de nuevo la prueba.
+10. Avanzar con Siguiente; leer el aviso «Después». Volver con Anterior, probar Ir a escena por número y recargar ambas ventanas.
+
+El propietario debe observar si la persona completa los pasos sin ayuda, anotar bloqueos y comprobar foco/Escape, nombres largos, descripciones extensas, móvil 390×844 y escritorio 1366×768/1920×1080. Hacer capturas del editor, prueba pública, anuncio y modal, guardándolas fuera del control de versiones. Este guion no equivale a un ensayo con usuario real: no se ha realizado.
+
+### Verificación del Hito 08
+
+Se ejecutan typecheck, build y test con el npm real C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js a través de Node con --preserve-symlinks --preserve-symlinks-main y NODE_OPTIONS temporal; se restaura su valor al terminar. No existe script de lint. git diff --check y controles del índice preceden a la publicación exclusivamente en feat/upgrade-prologue-art.
+
+Las pruebas cubren creación/edición/duplicación/orden/visibilidad/borrado, 0/1/10/73 pruebas, validación de tamaños/medios, v2/v1 y JSON, resultados y aislamiento, navegación dinámica y retirada activa, journal interrumpido, ceremonia exacta, recarga y sincronización simulada con controladores reales. El diálogo real se compila con Vue/TypeScript existentes y se monta en un renderer de prueba para aceptar/cancelar/Escape/foco/doble acción; no comprueba la trampa de foco nativa del navegador. No se instalan dependencias.
+
+No hay navegador conectado en 9223. No se vuelve a lanzar Edge headless bloqueado: smoke real, consola/red, foco nativo, apariencia/legibilidad, cuatro capturas y prueba con organizador novato quedan PENDIENTES POR ENTORNO / ENSAYO MANUAL. Las pruebas de código no se presentan como validación visual aprobada. Medios privados, JSON reales, capturas, builds, dependencias, secretos y temporales permanecen fuera de Git.
+
+Cierre técnico: **64/64 pruebas superadas**, typecheck, build, sintaxis del smoke y git diff --check con **código 0**. La suite incluye la plantilla pública real compilada (texto completo, fallo de imagen, aviso solo en previa, anuncio y regreso al contenido), además del diálogo real. El smoke visual y la sesión con una persona nueva siguen pendientes, no superados.
+
+Archivos nuevos: src/challenges.ts, src/challengeResults.ts, src/ChallengeEditor.vue, src/ChallengeStage.vue, src/ChallengeControls.vue, src/confirmation.ts, src/ConfirmationDialog.vue; tests/challenges.test.mjs, tests/challenge-stage.test.mjs, tests/confirmation.test.mjs, tests/dialog-component.test.mjs.
+
+Archivos adaptados: src/profile.ts, src/profileStorage.ts, src/ceremonyStorage.ts, src/useProfileDraft.ts, src/scenes.ts, src/usePresentation.ts, src/App.vue, src/OrganizerPanel.vue, src/SceneController.vue, src/CeremonyControls.vue, src/ParticipantEditor.vue, src/ProfileTeams.vue, src/ProfileTransfer.vue, tests/presentation.test.mjs; AGENTS.md, docs/PROJECT.md y este README. Sin cambios en dependencias ni recursos privados.
+
+Comandos de validación reales, desde la raíz en PowerShell:
+
+```powershell
+$npmCli = Join-Path (Split-Path (Get-Command npm.cmd).Source -Parent) 'node_modules\npm\bin\npm-cli.js'
+$previousNodeOptions = $env:NODE_OPTIONS
+try {
+    $env:NODE_OPTIONS = '--preserve-symlinks --preserve-symlinks-main'
+    foreach ($script in @('typecheck', 'build', 'test')) {
+        node --preserve-symlinks --preserve-symlinks-main $npmCli run $script
+        $validationExit = $LASTEXITCODE
+        Write-Output "${script}_EXIT=$validationExit"
+        if ($validationExit -ne 0) { throw "Falló $script ($validationExit)" }
+    }
+    node --preserve-symlinks --preserve-symlinks-main --check tests/command-center.smoke.mjs
+} finally {
+    $env:NODE_OPTIONS = $previousNodeOptions
+}
+git diff --check
+```

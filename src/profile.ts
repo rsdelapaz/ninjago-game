@@ -1,5 +1,6 @@
 import { newId, parseConfig as parseLegacy } from './session.ts'
 import type { Participant } from './session.ts'
+import { parseChallenges, type Challenge } from './challenges.ts'
 export { newId }
 export type { Participant }
 export const profileIds = ['colegio', 'urbanizacion'] as const
@@ -18,14 +19,14 @@ export function sortParticipants<T extends { name: string }>(participants: reado
 }
 export type ProfileTeam = { id: string; suggestedNames: string[]; name: string | null; color: string | null; memberIds: string[]; captainId: string | null }
 export type ProfileConfig = {
-  schemaVersion: 2; id: ProfileId; participants: Participant[]
+  schemaVersion: 3; id: ProfileId; participants: Participant[]; challenges: Challenge[]
   assignmentMode: 'manual' | 'automatic'; teams: [ProfileTeam, ProfileTeam]
   media: { artwork: string; video: string }
 }
 export function isProfileId(value: unknown): value is ProfileId { return profileIds.includes(value as ProfileId) }
 export function createProfile(id: ProfileId): ProfileConfig {
   const team = (names: readonly string[]): ProfileTeam => ({ id: newId(), name: null, color: null, memberIds: [], suggestedNames: [...names], captainId: null })
-  return { schemaVersion: 2, id, participants: [], assignmentMode: 'manual', teams: [team(initialSuggestedNames[0]), team(initialSuggestedNames[1])], media: { artwork: 'ninjago-key-art.png', video: 'master-wu.mp4' } }
+  return { schemaVersion: 3, id, participants: [], challenges: [], assignmentMode: 'manual', teams: [team(initialSuggestedNames[0]), team(initialSuggestedNames[1])], media: { artwork: 'ninjago-key-art.png', video: 'master-wu.mp4' } }
 }
 function obj(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('Se esperaba un objeto JSON.')
@@ -44,8 +45,8 @@ function array(v: unknown, max = 500): unknown[] {
 }
 function unique(ids: string[]) { if (new Set(ids).size !== ids.length) throw Error('Hay identificadores o miembros duplicados.') }
 export function parseProfile(value: unknown): ProfileConfig {
-  const o = obj(value); exact(o, ['schemaVersion', 'id', 'participants', 'assignmentMode', 'teams', 'media'])
-  if (o.schemaVersion !== 2 || !isProfileId(o.id)) throw Error('Perfil o versión de esquema no compatible.')
+  const o = obj(value); exact(o, ['schemaVersion', 'id', 'participants', 'assignmentMode', 'teams', 'media', ...(o.schemaVersion === 3 ? ['challenges'] : [])])
+  if (![2,3].includes(o.schemaVersion as number) || !isProfileId(o.id)) throw Error('Perfil o versión de esquema no compatible.')
   if (o.assignmentMode !== 'manual' && o.assignmentMode !== 'automatic') throw Error('Modo de reparto inválido.')
   const participants = array(o.participants).map(value => {
     const p = obj(value); exact(p, ['id', 'name', 'age', 'gender'])
@@ -74,7 +75,11 @@ export function parseProfile(value: unknown): ProfileConfig {
   const m = obj(o.media); exact(m, ['artwork', 'video'])
   const artwork = text(m.artwork, 'archivo de ilustración'), video = text(m.video, 'archivo de vídeo')
   if (!/^[\w-][\w. -]*\.(png|jpe?g|webp)$/i.test(artwork) || !/^[\w-][\w. -]*\.(mp4|webm)$/i.test(video) || [artwork, video].some(v => v.includes('..'))) throw Error('Usa solo nombres de archivo locales, sin rutas, URL ni datos binarios.')
-  return { schemaVersion: 2, id: o.id, participants, assignmentMode: o.assignmentMode, teams: teams as [ProfileTeam, ProfileTeam], media: { artwork, video } }
+  const challenges = o.schemaVersion === 2 ? [] : parseChallenges(o.challenges)
+  unique([...participants.map(p => p.id), ...teams.map(t => t.id), ...challenges.map(c => c.id)])
+  const result: ProfileConfig = { schemaVersion: 3, id: o.id, participants, challenges, assignmentMode: o.assignmentMode, teams: teams as [ProfileTeam, ProfileTeam], media: { artwork, video } }
+  if (new TextEncoder().encode(JSON.stringify(result, null, 2)).byteLength > 1024 * 1024) throw Error('La configuración supera el tamaño seguro de 1 MB.')
+  return result
 }
 export const exportProfile = (c: ProfileConfig) => JSON.stringify(parseProfile(c), null, 2)
 export const cloneProfile = (c: ProfileConfig) => parseProfile(JSON.parse(exportProfile(c)))

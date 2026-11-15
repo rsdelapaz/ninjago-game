@@ -1,7 +1,9 @@
-import { createProfile, exportProfile, parseProfile, type ProfileId, type ProfileConfig, type GameProgress } from './profile.ts'
-import { profileKey, presentationKey, readProfile, saveProfile } from './profileStorage.ts'
+import { newId, createProfile, exportProfile, parseProfile, type ProfileId, type ProfileConfig, type GameProgress } from './profile.ts'
+import { profileKey, presentationKey, readProfile, saveProfile, onlyChallengesChanged } from './profileStorage.ts'
 import { createCeremony, parseCeremony, transitionCeremony, type CeremonyAction, type CeremonyProgress } from './ceremony.ts'
-export type ProfileResetRequest = { profileId: ProfileId; expectedConfig: string | null; expectedProgress: string | null; expectedControl: string | null }
+import { pruneResults, resultsKey } from './challengeResults.ts'
+import { sceneById } from './scenes.ts'
+export type ProfileResetRequest = { profileId: ProfileId; expectedConfig: string | null; expectedProgress: string | null; expectedControl: string | null; expectedResults?: string | null }
 type NavigationWrite = { before: string | null; after: string }
 type PendingWrite = { before: string; after: string; beforeProgress: string | null; afterProgress: string; navigation?: NavigationWrite }
 export const ceremonyKey = (id: ProfileId) => `ninja-ceremony-v1:${id}`
@@ -16,7 +18,7 @@ export function recoverCeremony(storage: Storage, id: ProfileId) {
   const raw = storage.getItem(pendingKey(id)); if (!raw) return
   const record = JSON.parse(raw) as PendingWrite
   if (typeof record.before !== 'string' || typeof record.after !== 'string' || typeof record.afterProgress !== 'string') throw Error('Registro de recuperación no válido. Conserva los datos del navegador.')
-  const config = parseProfile(JSON.parse(record.after)), progress = parseCeremony(JSON.parse(record.afterProgress), id)
+  const config = parseProfile(JSON.parse(record.after)); parseCeremony(JSON.parse(record.afterProgress), id)
   if (config.id !== id) throw Error('La recuperación pertenece a otro perfil.')
   if (record.navigation) {
     const n = record.navigation
@@ -29,7 +31,8 @@ export function recoverCeremony(storage: Storage, id: ProfileId) {
   const current = storage.getItem(profileKey(id)), currentProgress = storage.getItem(ceremonyKey(id))
   if (current !== record.before && current !== record.after || currentProgress !== record.beforeProgress && currentProgress !== record.afterProgress) throw Error('Hay cambios posteriores a la elección interrumpida. No se sobrescribirá el perfil; conserva una exportación para revisarlo.')
   if (current === record.before && record.before !== record.after) saveProfile(storage, config, record.before, true)
-  storage.setItem(ceremonyKey(id), JSON.stringify(progress))
+  pruneResults(storage, config)
+  storage.setItem(ceremonyKey(id), record.afterProgress)
   if (record.navigation) storage.setItem(presentationKey, record.navigation.after)
   storage.removeItem(pendingKey(id))
 }
@@ -43,9 +46,19 @@ function checkExpected(storage: Storage, id: ProfileId, expectedConfig: string, 
   if (storage.getItem(pendingKey(id))) throw Error('Recarga para recuperar la elección anterior antes de continuar.')
   if (storage.getItem(profileKey(id)) !== expectedConfig || storage.getItem(ceremonyKey(id)) !== expectedProgress) throw Error('Otra ventana ha cambiado el perfil o la ceremonia. Revisa el estado actualizado antes de confirmar otra vez.')
 }
+export function applyProfileConfig(storage: Storage, config: ProfileConfig, before: string, beforeProgress: string | null) {
+  checkExpected(storage, config.id, before, beforeProgress)
+  const raw = storage.getItem(presentationKey), control = JSON.parse(raw || 'null') as GameProgress | null
+  const navigation = control?.profileId === config.id && !sceneById(control.sceneId, config)
+    ? { before: raw, after: JSON.stringify({ ...control, sceneId: 'intro', revision: Math.max(Date.now(), control.revision + 1), token: newId(), announcement: undefined }) } : undefined
+  const preserve = onlyChallengesChanged(config, before), progress = preserve ? readCeremony(storage, config.id) : createCeremony(config.id)
+  if (!preserve) progress.revision = Date.now()
+  writeProfileProgress(storage, config.id, before, beforeProgress, { config, progress }, navigation, preserve)
+  return exportProfile(config)
+}
 // Shared journal and existing saveProfile for both ceremony choices and a complete profile reset.
-function writeProfileProgress(storage: Storage, id: ProfileId, expectedConfig: string, expectedProgress: string | null, result: { config: ProfileConfig; progress: CeremonyProgress }, navigation?: NavigationWrite) {
-  const after = exportProfile(result.config), afterProgress = JSON.stringify(result.progress)
+function writeProfileProgress(storage: Storage, id: ProfileId, expectedConfig: string, expectedProgress: string | null, result: { config: ProfileConfig; progress: CeremonyProgress }, navigation?: NavigationWrite, preserveProgress = false) {
+  const after = exportProfile(result.config), afterProgress = preserveProgress && expectedProgress !== null ? expectedProgress : JSON.stringify(result.progress)
   storage.setItem(pendingKey(id), JSON.stringify({ before: expectedConfig, after, beforeProgress: expectedProgress, afterProgress, navigation }))
   if (after !== expectedConfig) saveProfile(storage, result.config, expectedConfig, true)
   storage.setItem(ceremonyKey(id), afterProgress)
@@ -57,6 +70,7 @@ export function applyProfileReset(storage: Storage, request: ProfileResetRequest
   const { profileId: id, expectedConfig, expectedProgress, expectedControl } = request
   if (!expectedConfig) throw Error('No se puede restablecer un perfil sin una configuración guardada válida.')
   checkExpected(storage, id, expectedConfig, expectedProgress)
+  if (request.expectedResults !== undefined && storage.getItem(resultsKey(id)) !== request.expectedResults) throw Error('Los resultados cambiaron después de revisar el restablecimiento. Revisa otra vez antes de continuar.')
   const active = JSON.parse(storage.getItem(presentationKey) || 'null') as GameProgress | null
   if (storage.getItem(presentationKey) !== expectedControl || active?.profileId !== id || next.profileId !== id || next.sceneId !== 'intro') throw Error('El perfil activo o la presentación han cambiado. Revisa antes de restablecer.')
   const old = readProfile(storage, id), config = createProfile(id), progress = createCeremony(id)

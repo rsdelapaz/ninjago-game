@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { confirmAction } from './confirmation'
+
 import { ref } from 'vue'
 import { clearInvalidCaptains, newId, sortParticipants, type Participant } from './profile'
 const props = defineProps<{ config: { participants: Participant[]; teams: { memberIds: string[]; captainId?: string | null }[] } }>()
@@ -7,8 +9,10 @@ function add() {
   if (!name.value.trim() || props.config.participants.length >= 500) return
   props.config.participants.push({ id: newId(), name: name.value.trim() }); name.value = ''
 }
-function remove(id: string) {
-  if (!window.confirm('¿Quitar este participante y sus asignaciones del borrador?')) return
+async function remove(id: string) {
+  const reviewed = props.config
+  if (!await confirmAction('¿Quitar este participante y sus asignaciones del borrador?', 'Quitar participante', true)) return
+  if (props.config !== reviewed) return
   props.config.participants = props.config.participants.filter(p => p.id !== id)
   props.config.teams.forEach(t => { t.memberIds = t.memberIds.filter(member => member !== id) })
   clearInvalidCaptains(props.config)

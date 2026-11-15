@@ -11,10 +11,12 @@ import CeremonyStage from './CeremonyStage.vue'
 import { browserScreenTransport, createPublicScreen } from './publicScreen'
 import type { CeremonyAction } from './ceremony'
 import type { RevealAction } from './reveal'
+import ConfirmationDialog from './ConfirmationDialog.vue'
+import ChallengeStage from './ChallengeStage.vue'
 
 // Explicit reactive state: https://vuejs.org/api/sfc-script-setup.html#reactivity
 const isAdmin = new URLSearchParams(location.search).get('screen') === 'admin'
-const { state, profile, ceremony, reveal, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized } = usePresentation()
+const { state, profile, ceremony, reveal, busy, activeScene, select, selectProfile, actCeremony, actReveal, results, resultsVersion, recordResult, announceResult, resetProfile, refreshProfile, warning, initialized } = usePresentation()
 const publicUrl = new URL(import.meta.env.BASE_URL, location.origin).href
 const screenTransport = browserScreenTransport()
 function openPublicWindow() {
@@ -44,6 +46,7 @@ function withPublicScreen(action: () => Promise<unknown> | undefined) {
 const showScene = (id: string) => withPublicScreen(() => select(id))
 const commandCeremony = (action: CeremonyAction) => withPublicScreen(() => actCeremony(action))
 const commandReveal = (action: RevealAction) => withPublicScreen(() => actReveal(action))
+const commandAnnouncement = (id: string, winner: string) => withPublicScreen(() => announceResult(id, winner))
 const scene = computed(() => state.value.sceneId)
 watch(state, async () => { await nextTick(); if (!isAdmin) heading.value?.focus() })
 const heading = ref<HTMLHeadingElement | null>(null)
@@ -68,8 +71,10 @@ async function goTo(target: string) {
 </script>
 
 <template>
+  <ConfirmationDialog v-if="isAdmin" />
   <ProfileChooser v-if="!profile" :warning="warning" @choose="selectProfile" />
-  <OrganizerPanel v-else-if="isAdmin" :profile="profile" :scene="activeScene" :ceremony="ceremony!" :reveal="reveal" :busy="operatorBusy" :reset-profile="resetProfile" :public-ready="publicReady" :public-waiting="publicWaiting" :public-message="publicMessage" :public-url="publicUrl" :warning="requestWarning || warning" @select="showScene" @activate="selectProfile" @ceremony="commandCeremony" @reveal="commandReveal" @open-public="publicScreen.ensure()" @saved="refreshProfile" />
+  <OrganizerPanel v-else-if="isAdmin" :profile="profile" :scene="activeScene" :ceremony="ceremony!" :reveal="reveal" :busy="operatorBusy" :reset-profile="resetProfile" :results="results" :results-version="resultsVersion" :record-result="recordResult" @announce="commandAnnouncement" :public-ready="publicReady" :public-waiting="publicWaiting" :public-message="publicMessage" :public-url="publicUrl" :warning="requestWarning || warning" @select="showScene" @activate="selectProfile" @ceremony="commandCeremony" @reveal="commandReveal" @open-public="publicScreen.ensure()" @saved="refreshProfile" />
+  <ChallengeStage v-else-if="activeScene.type === 'challenge' && profile.challenges.find(c => c.id === activeScene.challengeId)" :key="`${profile.id}:${activeScene.id}`" :challenge="profile.challenges.find(c => c.id === activeScene.challengeId)!" :config="profile" :number="activeScene.challengeNumber!" :winner="state.announcement?.challengeId === activeScene.challengeId ? state.announcement?.winner : undefined" />
   <CeremonyStage v-else-if="activeScene.type === 'ceremony' && ceremony" :config="profile" :progress="ceremony" :reveal="reveal" />
   <main v-else class="adventure" :class="{ 'video-scene': activeScene.type === 'video', 'is-transitioning': transitioning }" :aria-busy="transitioning">
     <MonasteryBackdrop />
