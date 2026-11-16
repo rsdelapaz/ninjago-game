@@ -9,6 +9,8 @@ const props = defineProps<{ config: ProfileConfig; results: ChallengeResults; di
 const emit = defineEmits<{ present: [id: string] }>()
 const selectedId = ref(''), editing = ref(false), titleInput = ref<HTMLInputElement | null>(null)
 const selected = computed(() => props.config.challenges.find(c => c.id === selectedId.value))
+const inclusionPending = ref(false)
+const lengthyCopy = computed(() => selected.value && (selected.value.title.length > 60 || selected.value.publicInstruction.length > 80 || selected.value.keyRule.length > 60))
 const visibleNumber = computed(() => Math.max(1, props.config.challenges.filter(c => c.visible).findIndex(c => c.id === selectedId.value) + 1))
 watch(() => props.config.challenges, list => { if (!list.some(c => c.id === selectedId.value)) selectedId.value = list[0]?.id || '' }, { immediate: true, deep: true })
 async function choose(id: string) { selectedId.value = id; editing.value = true; await nextTick(); titleInput.value?.focus() }
@@ -20,11 +22,17 @@ async function remove() {
   const index = props.config.challenges.findIndex(item => item.id === c.id)
   if (props.config === reviewed && index >= 0) props.config.challenges.splice(index, 1)
 }
-async function visibility() {
-  const c = selected.value
+async function inclusion(event: Event) {
+  const input = event.target as HTMLInputElement, c = selected.value, reviewed = props.config
   if (!c) return
-  if (c.visible && !await confirmAction('La prueba saldrá del recorrido al guardar. Sus datos y resultado se conservan. Si está en pantalla, el público volverá a la portada.', 'Ocultar esta prueba')) return
-  c.visible = !c.visible
+  const next = input.checked, previous = c.visible
+  input.checked = previous
+  if (inclusionPending.value || next === previous) return
+  inclusionPending.value = true
+  try {
+    if (!next && !await confirmAction('La prueba saldrá del recorrido al guardar. Sus datos y resultado se conservan. Si está en pantalla, el público volverá a la portada.', 'Retirar del recorrido')) return
+    if (props.config === reviewed && selected.value === c && c.visible === previous) c.visible = next
+  } finally { inclusionPending.value = false }
 }
 const resultLabel = computed(() => props.config.teams.find(t => t.id === props.results[selectedId.value])?.name || (props.results[selectedId.value] ? `Equipo ${props.config.teams.findIndex(t => t.id === props.results[selectedId.value]) + 1}` : 'Pendiente'))
 const imageError = computed(() => {
@@ -46,7 +54,7 @@ const imageError = computed(() => {
           <li v-for="(c,i) in config.challenges" :key="c.id">
             <button :aria-current="selectedId === c.id ? 'true' : undefined" @click="choose(c.id)">
               <strong>{{ i + 1 }} · {{ c.title || 'Sin título' }}</strong>
-              <small>{{ c.visible ? 'Visible' : 'Oculta' }}{{ !c.publicInstruction.trim() ? ' · Falta instrucción pública' : '' }}</small>
+              <small>{{ c.visible ? 'Incluida' : 'Fuera del recorrido' }}{{ !c.publicInstruction.trim() ? ' · Falta instrucción pública' : '' }}</small>
             </button>
             <div class="order-controls">
               <button :disabled="i === 0" :aria-label="`Subir ${c.title}`" @click="moveChallenge(config.challenges,c.id,-1)">↑</button>
@@ -57,7 +65,10 @@ const imageError = computed(() => {
       </section>
       <section v-if="selected" class="panel challenge-edit" aria-label="Editar prueba">
         <button class="mobile-list" @click="editing = false">← Volver a la lista</button>
-        <h2>{{ selected.title || 'Nueva prueba' }}</h2>
+        <header class="challenge-edit-header">
+          <div><p class="hint">{{ selected.visible ? `Prueba ${visibleNumber} · Incluida` : 'Fuera del recorrido · sin número público' }}</p><h2>{{ selected.title || 'Nueva prueba' }}</h2></div>
+          <label class="challenge-inclusion"><input type="checkbox" :checked="selected.visible" :disabled="inclusionPending" @change="inclusion" />Incluir en el recorrido</label>
+        </header>
         <p class="hint">Prepara → revisa → guarda → presenta. Seleccionar o editar una prueba no cambia la pantalla pública.</p>
         <fieldset class="challenge-fields">
           <legend>Lo que verán los niños</legend>
@@ -67,6 +78,7 @@ const imageError = computed(() => {
           <p id="public-instruction-help" class="hint">Una frase breve: qué deben hacer. Máximo 120 caracteres.</p>
           <p v-if="!selected.publicInstruction.trim()" class="preparation-notice" role="status">Pendiente de preparar: añade la instrucción pública. Puedes guardar el borrador; en pantalla se indicará que escuchen al organizador. Las instrucciones completas se conservan abajo.</p>
           <label>Regla importante · opcional<input v-model="selected.keyRule" maxlength="100" placeholder="La condición que no pueden olvidar" /></label>
+          <p v-if="lengthyCopy" class="preparation-notice" role="status">Hay bastante texto para leer desde lejos. Prueba un título corto, una acción y una regla; deja el desarrollo y el criterio de victoria en las instrucciones del organizador. No se recorta tu contenido.</p>
           <label>Imagen de la prueba · opcional<input v-model="selected.imageFilename" maxlength="120" placeholder="reto-del-dragon.png" :aria-invalid="!!imageError" aria-describedby="challenge-image-help" /></label>
           <p v-if="imageError" class="field-error" role="alert">{{ imageError }}</p>
           <p id="challenge-image-help" class="hint">Nombre de una imagen local PNG, JPG o WebP preparada en Recursos para este perfil. El JSON guarda la referencia, no el archivo.</p>
@@ -82,15 +94,13 @@ const imageError = computed(() => {
           <button :disabled="dirty || !selected.visible" @click="emit('present', selected.id)">Ir al control de presentación →</button>
           <p class="hint">{{ dirty ? 'Primero guarda los cambios con el botón de la cabecera.' : !selected.visible ? 'Vuelve a mostrar la prueba para incluirla en el recorrido.' : 'En Presentación eliges cuándo mostrarla y anunciar al ganador.' }}</p>
         </div>
-        <details class="challenge-secondary">
-          <summary>Organizar esta prueba · {{ selected.visible ? 'visible en el recorrido' : 'oculta' }}</summary>
+        <div class="challenge-secondary">
           <div class="command-row">
-            <button @click="visibility">{{ selected.visible ? 'Ocultar del recorrido…' : 'Mostrar en el recorrido' }}</button>
             <button :disabled="config.challenges.length >= MAX_CHALLENGES" @click="duplicate">Duplicar</button>
             <button @click="remove">Eliminar…</button>
           </div>
           <p>Resultado guardado: <strong>{{ resultLabel }}</strong>. Se registra y anuncia desde Presentación.</p>
-        </details>
+        </div>
       </section>
     </div>
   </section>
@@ -101,6 +111,10 @@ const imageError = computed(() => {
 .preparation-notice { padding: .75rem; border-left: 3px solid #e8bf67; background: #e8bf6712; }
 .challenge-present-action { margin-top: 1rem; padding-block: 1rem; border-bottom: 1px solid #dfc98a33; }
 .challenge-secondary .command-row { margin-top: 1rem; }
+.challenge-edit-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+.challenge-edit-header > div { min-width: 0; flex: 1 1 15rem; overflow-wrap: anywhere; }
+.challenge-edit .challenge-inclusion { display: flex; align-items: center; gap: .75rem; padding: .75rem; border: 1px solid #afdfd4; border-radius: .4rem; cursor: pointer; font-weight: 700; }
+.challenge-edit .challenge-inclusion input { width: 1.25rem; min-height: 1.25rem; height: 1.25rem; padding: 0; flex: none; accent-color: #90e3d0; }
 .challenge-editor-layout { display: grid; grid-template-columns: minmax(14rem, .7fr) minmax(0,2fr); gap: 1rem; margin-top: 1rem; }.challenge-editor-layout > * { min-width: 0; }.challenge-index ol { padding: 0; list-style: none; max-height: 65svh; overflow: auto; }.challenge-index li { display: grid; grid-template-columns: 1fr auto; gap: .5rem; border-bottom: 1px solid #dfc98a33; padding: .5rem 0; }.challenge-index li > button { text-align: left; min-width: 0; overflow-wrap: anywhere; }.challenge-index small { display: block; color: #d3c59e; margin-top: .3rem; }.challenge-index button[aria-current=true] { border-color: #f1d08b; background: #315064; }.order-controls { display: flex; gap: .25rem; align-self: center; }.order-controls button { min-width: 2.5rem; padding: .5rem; }.challenge-edit label { display: grid; gap: .5rem; margin: 1rem 0 .5rem; }.challenge-edit textarea { width: 100%; resize: vertical; }.challenge-edit details { margin-top: 1rem; }.mobile-list { display: none; }.field-error { color: #ffb6aa; }
 @media(max-width:767px) { .challenge-editor-layout { grid-template-columns: minmax(0,1fr); }.editing .challenge-index { display: none; }.challenges-module:not(.editing) .challenge-edit { display: none; }.mobile-list { display: inline-block; }.challenge-index ol { max-height: none; } }
 </style>
