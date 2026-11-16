@@ -44,7 +44,7 @@ test('actual catalogue markup highlights active separately from preview and neve
   const Component=(await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'))).default
   const config=createProfile('colegio');config.challenges=[newChallenge()]
   const scene=scenesFor(config)[0], requestedPreview=scenesFor(config)[3].id
-  const base={scene,config,ceremony:createCeremony(config.id),reveal:createReveal(0),disabled:false,results:{},resultsVersion:null,saveResult:async()=>true,requestedPreview}
+  const base={scene,config,ceremony:createCeremony(config.id),reveal:createReveal(0),disabled:false,results:{},resultsVersion:null,saveResult:async()=>true,requestedPreview,imageExpanded:false,showingWinner:false}
   for(const publicReady of [false,true]){
     const html=await renderToString(createSSRApp({render:()=>h(Component,{...base,publicReady})}))
     const cards=[...html.matchAll(/<button[^>]*class="scene-card[^>]*>[\s\S]*?<\/button>/g)].map(m=>m[0])

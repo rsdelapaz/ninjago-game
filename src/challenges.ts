@@ -1,19 +1,25 @@
 import { newId } from './session.ts'
-export type Challenge = { id: string; title: string; description: string; imageFilename: string; visible: boolean }
+export type Challenge = { id: string; title: string; publicInstruction: string; keyRule: string; description: string; imageFilename: string; visible: boolean }
 export const MAX_CHALLENGES = 500
-export function parseChallenges(value: unknown): Challenge[] {
+export const MAX_PUBLIC_INSTRUCTION = 120
+export const MAX_KEY_RULE = 100
+export function parseChallenges(value: unknown, legacy = false): Challenge[] {
   if (!Array.isArray(value) || value.length > MAX_CHALLENGES) throw Error('La lista de pruebas supera el tamaño seguro (500).')
   const result = value.map(v => {
-    if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).some(k => !['id','title','description','imageFilename','visible'].includes(k))) throw Error('Prueba no válida.')
+    const fields = ['id','title','description','imageFilename','visible', ...(legacy ? [] : ['publicInstruction','keyRule'])]
+    if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).some(k => !fields.includes(k))) throw Error('Prueba no válida.')
     const c = v as Challenge
     if (typeof c.id !== 'string' || !/^[\w-]{1,120}$/.test(c.id) || Object.hasOwn(Object.prototype, c.id) || typeof c.title !== 'string' || !c.title.trim() || c.title.length > 160 || typeof c.description !== 'string' || c.description.length > 4000 || typeof c.visible !== 'boolean' || typeof c.imageFilename !== 'string' || c.imageFilename.length > 120 || c.imageFilename && (!/^[\w-][\w. -]*\.(png|jpe?g|webp)$/i.test(c.imageFilename) || c.imageFilename.includes('..'))) throw Error('Revisa el título (160), descripción (4000) e imagen local de la prueba.')
-    return { id: c.id, title: c.title, description: c.description, imageFilename: c.imageFilename, visible: c.visible }
+    // Old descriptions remain complete and private to the organizer. Never infer public copy.
+    const publicInstruction = legacy ? '' : c.publicInstruction, keyRule = legacy ? '' : c.keyRule
+    if (typeof publicInstruction !== 'string' || publicInstruction.length > MAX_PUBLIC_INSTRUCTION || typeof keyRule !== 'string' || keyRule.length > MAX_KEY_RULE) throw Error('Revisa la instrucción para los niños (120) y la regla importante (100).')
+    return { id: c.id, title: c.title, publicInstruction, keyRule, description: c.description, imageFilename: c.imageFilename, visible: c.visible }
   })
   if (new Set(result.map(c => c.id)).size !== result.length) throw Error('Hay pruebas duplicadas.')
   if (JSON.stringify(result).length > 750000) throw Error('Las pruebas superan el tamaño seguro de configuración.')
   return result
 }
-export function newChallenge(): Challenge { return { id: newId(), title: 'Nueva prueba', description: '', imageFilename: '', visible: true } }
+export function newChallenge(): Challenge { return { id: newId(), title: 'Nueva prueba', publicInstruction: '', keyRule: '', description: '', imageFilename: '', visible: true } }
 export function duplicateChallenge(list: Challenge[], id: string) {
   const index = list.findIndex(c => c.id === id)
   if (index < 0 || list.length >= MAX_CHALLENGES) throw Error('No se puede duplicar esta prueba.')

@@ -10,6 +10,8 @@ import { useProfileDraft } from '../src/useProfileDraft.ts'
 import { ceremonyKey, readCeremony } from '../src/ceremonyStorage.ts'
 import { applyProfileConfig } from '../src/ceremonyStorage.ts'
 import { newChallenge } from '../src/challenges.ts'
+import { createHoopChallenge } from '../src/hoopChallenge.ts'
+import { resultsKey } from '../src/challengeResults.ts'
 import { adjacentScene, sceneByNumber } from '../src/scenes.ts'
 
 async function environment(work) {
@@ -200,5 +202,73 @@ test('real draft challenge edits save without restarting ceremony and reject del
     assert.equal(await draft.save(),false);assert.match(draft.error.value,/resultados cambiaron/)
     assert.equal(readProfile(storage,'colegio').challenges.length,1)
     unmount()
+  })
+})
+
+test('expanded image is synchronized within the current scene, reloads and never changes config or results',async()=>{
+  await environment(async(storage,mount)=>{
+    const admin=await mount();await admin.selectProfile('colegio');setup(storage,'colegio')
+    const c=readProfile(storage,'colegio');c.challenges=[newChallenge(),newChallenge()];c.challenges[0].imageFilename='acertijo-vertical.png'
+    applyProfileConfig(storage,c,storage.getItem(profileKey(c.id)),storage.getItem(ceremonyKey(c.id)));admin.refreshProfile()
+    const id=c.challenges[0].id,scene=`challenge:${id}`,publicView=await mount()
+    await admin.select(scene)
+    const config=storage.getItem(profileKey(c.id)), progress=storage.getItem(ceremonyKey(c.id)), other=storage.getItem(profileKey('urbanizacion'))
+    assert.equal(admin.imageExpanded.value,false)
+    assert.equal(await admin.setImageExpanded(id,true),true);assert.equal(publicView.imageExpanded.value,true)
+    assert.equal(publicView.state.value.sceneId,scene);assert.equal(publicView.state.value.announcement,undefined)
+    const reload=await mount();assert.equal(reload.imageExpanded.value,true)
+    const competing=await mount()
+    const writes=await Promise.all([admin.setImageExpanded(id,false),competing.setImageExpanded(id,true)])
+    assert.deepEqual(writes,[true,false]);assert.match(competing.warning.value,/Otra ventana/)
+    assert.equal(publicView.imageExpanded.value,false)
+    await admin.setImageExpanded(id,true)
+    await admin.recordResult(id,c.teams[0].id);assert.equal(publicView.imageExpanded.value,true);assert.equal(publicView.state.value.announcement,undefined)
+    await admin.announceResult(id,c.teams[0].id);assert.equal(publicView.imageExpanded.value,false)
+    assert.equal(await admin.setImageExpanded(id,true),false)
+    await admin.select(scene);assert.equal(publicView.imageExpanded.value,false)
+    await admin.setImageExpanded(id,true);await admin.select(`challenge:${c.challenges[1].id}`);assert.equal(publicView.imageExpanded.value,false)
+    assert.equal(await admin.setImageExpanded(id,true),false)
+    assert.equal(await admin.setImageExpanded(c.challenges[1].id,true),false);assert.match(admin.warning.value,/imagen/)
+    await admin.selectProfile('urbanizacion');assert.equal(admin.imageExpanded.value,false)
+    assert.equal(storage.getItem(profileKey(c.id)),config);assert.equal(storage.getItem(ceremonyKey(c.id)),progress);assert.equal(storage.getItem(profileKey('urbanizacion')),other)
+    await admin.selectProfile('colegio');assert.equal(admin.results.value[id],c.teams[0].id)
+  })
+})
+
+test('hoop flow creates an editable draft, saves, presents, synchronizes, reloads and explicitly announces its winner',async()=>{
+  await environment(async(storage,mount)=>{
+    const admin=await mount();await admin.selectProfile('colegio')
+    setup(storage,'colegio');admin.refreshProfile()
+    const other=storage.getItem(profileKey('urbanizacion')), source=ref(admin.profile.value)
+    const {draft,unmount}=mountDraft(source)
+    try {
+      const hoop=createHoopChallenge();draft.current.value.config.challenges.push(hoop)
+      assert.equal(readProfile(storage,'colegio').challenges.length,0)
+      assert.equal(draft.dirty.value,true);assert.equal(await draft.save(),true)
+      admin.refreshProfile()
+      const saved=storage.getItem(profileKey('colegio')), progress=storage.getItem(ceremonyKey('colegio'))
+      const audience=await mount()
+      assert.equal(audience.state.value.sceneId,'intro')
+      const target=sceneByNumber(4,admin.profile.value)
+      assert.equal(target.challengeId,hoop.id);assert.equal(target.challengeNumber,1)
+      assert.equal(await admin.select(target.id),true)
+      assert.equal(audience.state.value.sceneId,target.id)
+      assert.equal(audience.profile.value.challenges[0].title,hoop.title)
+      assert.equal(audience.profile.value.challenges[0].imageFilename,'aro-del-dragon-unido.png')
+      assert.equal(audience.state.value.announcement,undefined)
+      assert.equal(await admin.setImageExpanded(hoop.id,true),true);assert.equal(audience.imageExpanded.value,true)
+      const reloaded=await mount();assert.equal(reloaded.imageExpanded.value,true)
+      assert.equal(await admin.setImageExpanded(hoop.id,false),true);assert.equal(audience.imageExpanded.value,false)
+      assert.equal(storage.getItem(resultsKey('colegio')),null)
+      const winner=admin.profile.value.teams[0].id
+      assert.equal(await admin.recordResult(hoop.id,winner),true)
+      assert.equal(audience.results.value[hoop.id],winner);assert.equal(audience.state.value.announcement,undefined)
+      assert.equal(await admin.announceResult(hoop.id,winner),true)
+      assert.equal(audience.state.value.announcement.winner,winner)
+      assert.equal(await admin.select(target.id),true);assert.equal(audience.state.value.announcement,undefined)
+      assert.equal(storage.getItem(profileKey('colegio')),saved)
+      assert.equal(storage.getItem(ceremonyKey('colegio')),progress)
+      assert.equal(storage.getItem(profileKey('urbanizacion')),other)
+    } finally {unmount()}
   })
 })

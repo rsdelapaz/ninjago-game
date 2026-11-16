@@ -29,7 +29,10 @@ export function recoverCeremony(storage: Storage, id: ProfileId) {
     if (currentControl !== n.before && currentControl !== n.after) throw Error('La presentación cambió después del restablecimiento interrumpido. No se sobrescribirá.')
   }
   const current = storage.getItem(profileKey(id)), currentProgress = storage.getItem(ceremonyKey(id))
-  if (current !== record.before && current !== record.after || currentProgress !== record.beforeProgress && currentProgress !== record.afterProgress) throw Error('Hay cambios posteriores a la elección interrumpida. No se sobrescribirá el perfil; conserva una exportación para revisarlo.')
+  // Replaying an older journal writes its validated current-schema representation.
+  // A second interruption must recognize those exact bytes without accepting later edits.
+  const normalizedAfter = exportProfile(config)
+  if (current !== record.before && current !== record.after && current !== normalizedAfter || currentProgress !== record.beforeProgress && currentProgress !== record.afterProgress) throw Error('Hay cambios posteriores a la elección interrumpida. No se sobrescribirá el perfil; conserva una exportación para revisarlo.')
   if (current === record.before && record.before !== record.after) saveProfile(storage, config, record.before, true)
   pruneResults(storage, config)
   storage.setItem(ceremonyKey(id), record.afterProgress)

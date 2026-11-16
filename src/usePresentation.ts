@@ -7,12 +7,12 @@ import { orderedScenes, sceneById } from './scenes.ts'
 import { changeReveal, createReveal, revealPlan, validReveal, type RevealState, type RevealAction } from './reveal.ts'
 import { readResults, saveResult, resultsKey, type ChallengeResults } from './challengeResults.ts'
 export type Scene = string
-export type PresentationState = Omit<GameProgress, 'profileId'> & { profileId: ProfileId | null; reveal?: RevealState; announcement?: { challengeId: string; winner: string } }
+export type PresentationState = Omit<GameProgress, 'profileId'> & { profileId: ProfileId | null; reveal?: RevealState; announcement?: { challengeId: string; winner: string }; imageView?: { challengeId: string; expanded: boolean } }
 const key = presentationKey
 function valid(value: unknown): value is PresentationState {
   if (!value || typeof value !== 'object') return false
   const s = value as PresentationState
-  return isProfileId(s.profileId) && typeof s.sceneId === 'string' && s.sceneId.length <= 160 && Number.isSafeInteger(s.revision) && s.revision >= 0 && typeof s.token === 'string' && (s.reveal === undefined || validReveal(s.reveal))
+  return isProfileId(s.profileId) && typeof s.sceneId === 'string' && s.sceneId.length <= 160 && Number.isSafeInteger(s.revision) && s.revision >= 0 && typeof s.token === 'string' && (s.reveal === undefined || validReveal(s.reveal)) && (s.imageView === undefined || !!s.imageView && typeof s.imageView.challengeId === 'string' && s.imageView.challengeId.length <= 120 && typeof s.imageView.expanded === 'boolean')
 }
 export function usePresentation() {
   const state = ref<PresentationState>({ profileId: null, sceneId: orderedScenes[0].id, revision: 0, token: '' })
@@ -65,9 +65,10 @@ export function usePresentation() {
   function nextControl(sceneId: string, id: ProfileId): GameProgress & { reveal: RevealState } {
     return { profileId: id, sceneId, revision: Math.max(Date.now(), state.value.revision + 1), token: Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-'), reveal: sceneId === 'ceremony' && state.value.sceneId === sceneId && state.value.profileId === id && state.value.reveal ? { ...state.value.reveal } : createReveal(Date.now()) }
   }
-  function writeControl(sceneId: string, id: ProfileId, reveal?: RevealState, announcement?: PresentationState['announcement']) {
+  function writeControl(sceneId: string, id: ProfileId, reveal?: RevealState, announcement?: PresentationState['announcement'], imageView?: PresentationState['imageView']) {
     const next: PresentationState = nextControl(sceneId, id)
     if (reveal) next.reveal = reveal; if (announcement) next.announcement = announcement
+    if (imageView) next.imageView = imageView
     localStorage.setItem(key, JSON.stringify(next))
     refreshProfile(); channel?.postMessage(next) // no participant names in channel messages
   }
@@ -119,6 +120,17 @@ export function usePresentation() {
       refreshProfile(); channel?.postMessage({ profileId: id })
     })
   }
+  function setImageExpanded(challengeId: string, expanded: boolean) {
+    const id = state.value.profileId, expected = controlBaseline
+    if (!id || state.value.sceneId !== `challenge:${challengeId}` || state.value.announcement) return Promise.resolve(false)
+    return run(() => {
+      checkCurrent(expected)
+      const config = readProfile(localStorage, id), sceneId = `challenge:${challengeId}`
+      checkScene(sceneId, config, readCeremony(localStorage, id))
+      if (expanded && !config.challenges.find(c => c.id === challengeId)?.imageFilename) throw Error('Configura una imagen para ampliar esta prueba.')
+      writeControl(sceneId, id, undefined, undefined, { challengeId, expanded })
+    })
+  }
   function announceResult(challengeId: string, expectedWinner: string) {
     const id = state.value.profileId, expected = controlBaseline
     if (!id) return Promise.resolve(false)
@@ -144,5 +156,6 @@ export function usePresentation() {
   onUnmounted(() => { disposed = true; channel?.close(); window.removeEventListener('storage', storage) })
   const activeScene = computed(() => sceneById(state.value.sceneId, profile.value) || orderedScenes[0]!)
   const reveal = computed(() => state.value.reveal || createReveal(state.value.revision))
-  return { state, profile, ceremony, reveal, results, resultsVersion, recordResult, announceResult, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
+  const imageExpanded = computed(() => state.value.imageView?.challengeId === activeScene.value.challengeId && state.value.imageView?.expanded === true && !state.value.announcement)
+  return { state, profile, ceremony, reveal, results, resultsVersion, recordResult, announceResult, imageExpanded, setImageExpanded, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
 }
