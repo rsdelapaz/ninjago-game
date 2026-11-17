@@ -1,5 +1,13 @@
 # Desarrollo y validación local
 
+## Ensayo del enigma independiente
+
+Mantener Vite y abrir /?screen=enigma#palabra=AMISTAD. El script tests/enigma.smoke.mjs usa Chrome normal ya abierto con DevTools loopback en 9224, perfil de ensayo separado y sin desactivar su sandbox. Crea y elimina únicamente su propio contexto limpio; no altera perfiles del propietario. Ejecutar `node --preserve-symlinks --preserve-symlinks-main tests/enigma.smoke.mjs`. Variables opcionales: SMOKE_URL (por defecto http://localhost:5173) y ENIGMA_CDP_PORT (9224).
+
+Para habilitar esa conexión, iniciar Chrome con --remote-debugging-address=127.0.0.1 --remote-debugging-port=9224 y --user-data-dir apuntando a una carpeta de ensayo dentro de .preview.local; no al perfil personal. No usar --no-sandbox ni administrador. El ensayo bloquea HTTP externo, prueba teclado, reintento/revelación, reinicio durante repetición, ciclos repetidos, movimiento reducido, audio y respaldo de imagen; guarda capturas privadas y secuencias reales en .preview.local/enigma-10-1. animation-review.html reproduce los fotogramas de derrota y victoria con sus tiempos originales; motion.json conserva esos tiempos. No equivale a desconectar físicamente internet ni certificar altavoces o monitor extendido.
+
+La suite npm test incluye pruebas puras, composable con reloj controlado, Web Audio simulado, componente compilado y selección real de raíz. El smoke real es un comando separado y requiere conexión CDP disponible. Pantalla completa nativa solo se ensaya automáticamente con ENIGMA_TEST_FULLSCREEN=1: el entorno CDP ha impedido confirmar su salida, por lo que queda pendiente ensayo manual. Las restricciones históricas de Edge no implican que Chrome esté indisponible.
+
 Volver a [README](../README.md) · [Arquitectura](PROJECT.md) · [Evidencia actual](VALIDATION.md).
 
 ## Contenido

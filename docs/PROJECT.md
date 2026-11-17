@@ -15,6 +15,18 @@ Estado vigente: 17/11/2026. Este documento describe el producto y el código act
 
 ## Visión y alcance
 
+### Enigma independiente — Hitos 10, 10.1 y 10.2
+
+Implementado /?screen=enigma#palabra=AMISTAD. main.ts elige la raíz antes de importar App mediante carga dinámica. EnigmaStage.vue, useEnigma.ts, enigma.ts, enigmaAudio.ts y enigma.css contienen presentación, estado local, validación y audio opcional; no importan perfiles, almacenamiento ni sincronización. Las rutas habituales conservan su aplicación y no cambia ningún esquema.
+
+Expresión española hasta 48 caracteres normalizados, sin distinguir caso/tildes vocálicas, preservando Ñ. Solución visible solo tras acertar. Secuencia finita: carga, despertar, letras escalonadas, celebración de rayos/fragmentos y victoria estable; fallo con reintentos y victoria repetible. Hash y desmontaje cancelan temporizadores. Movimiento reducido muestra el resultado estable; errores de audio no bloquean la secuencia.
+
+10.1 diferencia estructuralmente los resultados: victoria expansiva y luminosa con cinco fuegos escalonados, tres oleadas de fragmentos/estrellas y estelas; derrota con fases explícitas collapsing → extinguishing → falling → failure, anillos fracturados y contraídos, grietas, sombra, propuesta disuelta y ceniza descendente. Efectos ópticos CSS sobre el mismo recurso inalterado; sin animación costosa permanente ni parpadeos repetidos. La derrota termina en silencio y permite recuperar la escena inicial. Reiniciar tras ganar cancela sonidos/temporizadores, elimina efectos, limpia la propuesta, oculta solución y devuelve el foco; mantiene URL, secreto y preferencia de sonido. Se puede cancelar una repetición; las llamadas repetidas no superponen secuencias. No usa almacenamiento del juego.
+
+10.2 refina únicamente la presentación: reposo de victoria con halo localizado dorado/turquesa, trazos del sello y letras realzados sin animación residual; REINICIAR ENIGMA principal y primero, Repetir revelación secundario, en fila adaptable. Derrota conserva su composición con el mensaje «¡Un ninja nunca se rinde! Reunid vuestras ideas y volved a intentarlo.». Sin cambios de validación, URL, estado, audio ni recursos.
+
+Santuario nuevo privado en public/private-media/enigma-sanctuary.png, con respaldo original src/assets/enigma-sanctuary.svg. Sin modificar imágenes anteriores, dependencias ni red externa. El hash es visible al inspeccionar la URL; no aporta seguridad. Esta experiencia no incorpora pistas ni desenlace a los perfiles.
+
 Aventura cinematográfica privada, personal y no comercial, para un cumpleaños de niños de aproximadamente ocho años. El Maestro Wu guía a dos clanes en el monasterio. El ordenador acompaña actividades dirigidas por un adulto y un monitor extendido muestra la aventura; no mide el mundo físico ni decide ganadores.
 
 El juego completo aprobado prevé exactamente dos equipos que compiten en pruebas físicas, intelectuales, digitales y manuales, reciben fragmentos complementarios y resuelven juntos un acertijo final. Ningún equipo debe poder resolverlo solo. Mensaje final: **«UN NINJA EN SOLITARIO ES MUY FUERTE, PERO JUNTOS SON INVENCIBLES»**.

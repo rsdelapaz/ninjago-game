@@ -6,6 +6,18 @@ La aplicación Vue funciona desde un servidor local, sin internet durante el eve
 
 ## Contenido
 
+## El despertar del enigma
+
+Acceso independiente: http://localhost:5173/?screen=enigma#palabra=AMISTAD o http://localhost:5173/?screen=enigma#palabra=PODER%20NINJA. No requiere perfiles ni administración ni altera el juego. Sustituye el valor por una expresión codificada para URL: letras españolas y espacios, hasta 48 caracteres normalizados. Ignora caso, espacios sobrantes y tildes vocálicas; Ñ y N son distintas. Una URL inválida muestra un aviso sin iniciar el reto.
+
+Escribe y pulsa Enter o DESVELAR EL ENIGMA. El acierto ilumina el templo, revela la expresión y celebra en varias oleadas; el fallo contrae y fractura el sello, apaga la escena y disuelve la propuesta antes de ofrecer VOLVER A INTENTARLO. No revela la respuesta correcta.
+
+Tras acertar, el santuario conserva un resplandor dorado y turquesa estable. REINICIAR ENIGMA es la acción principal; Repetir revelación queda como acción secundaria y conserva el resultado mientras reproduce la victoria. REINICIAR ENIGMA vuelve al principio, oculta la solución, limpia el campo y devuelve el foco sin recargar ni cambiar la palabra de la URL. También permite cancelar una repetición en curso. Se puede repetir el ciclo sin límite. Sonido inicialmente desactivado y pantalla completa voluntaria; movimiento reducido muestra estados finales estáticos diferenciados. El fragmento no se envía al servidor, pero es visible en dirección, historial e inspección: no es un secreto cifrado.
+
+El fondo nuevo opcional public/private-media/enigma-sanctuary.png permanece privado; si falta, se usa un santuario SVG local. No cambia imágenes anteriores. Este enigma aislado no implementa las pistas ni el desenlace integrado del juego.
+
+## Índice
+
 - [Instalar y arrancar](#instalar-y-arrancar)
 - [Preparar y presentar](#preparar-y-presentar)
 - [Crear pruebas](#crear-pruebas)
@@ -111,4 +123,4 @@ El propietario ha aprobado el diseño público vertical del Hito 09.3. La acepta
 | [AGENTS.md](AGENTS.md) | Reglas permanentes de trabajo para Codex |
 | [Histórico](docs/history/INDEX.md) | Decisiones, prompts y resultados anteriores; no instrucciones vigentes |
 
-La operación actual no autoriza commit, push, merge, reset, clean ni cambios de main.
+El checkpoint previo de Hito 10 ya fue confirmado y enviado con autorización. El desarrollo del enigma queda local para revisión: sin segundo commit ni push, merge, reset, clean o cambios de main.

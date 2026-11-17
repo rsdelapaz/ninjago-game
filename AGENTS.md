@@ -33,7 +33,7 @@ Lee [docs/PROJECT.md](docs/PROJECT.md) antes de cambiar código y [README.md](RE
 ## Procedimiento
 
 1. Revisa rama, status, cambios nuevos/rastreados y documentación; conserva todo trabajo previo. Resume diagnóstico y plan breve antes de editar; trabaja por incrementos verificables y sin infraestructura especulativa o subagentes innecesarios.
-2. Modifica lo mínimo autorizado. La operación actual permite contenido de Prueba 02 y documentación, no cambios al diseño, modelos, sincronización, administración, ceremonia o resultados.
+2. Modifica lo mínimo autorizado. Hitos 10/10.1 permiten un enigma independiente, diferenciación cinematográfica de resultados, reinicio sin cambiar el secreto y documentación. Conservar el santuario y sus recursos originales. Seleccionar su raíz antes de importar App, sin perfiles, almacenamiento ni BroadcastChannel. Preservar el juego existente, sus modelos, sincronización, administración, ceremonia y resultados.
 3. En tareas de interfaz/medios, reutiliza o arranca npm run dev en una terminal persistente, preferentemente VS Code si es controlable. Comprueba HTTP y comunica URL/puerto reales; no afirmar integración con VS Code si solo se dispone de terminal de ejecución.
 4. Intenta navegador normal cuando esté disponible. No repetir Edge headless bloqueado por Mojo ni desactivar seguridad. HTTP 200 o abrir una URL NO acreditan inspección visual, sincronización física u offline real. Perfiles/capturas de ensayo en .preview.local, excluido del watcher.
 5. Ejecuta scripts pertinentes: npm test, npm run typecheck, npm run build y git diff --check. No hay lint configurado. En Windows usa npm-cli.js detectado con Node y preserve-symlinks si falla EPERM; restaura NODE_OPTIONS. Procedimiento en docs/DEVELOPMENT.md.
@@ -43,4 +43,4 @@ Lee [docs/PROJECT.md](docs/PROJECT.md) antes de cambiar código y [README.md](RE
 
 ## Git y permisos
 
-Trabajar en feat/upgrade-prologue-art. Sin commit, push, merge, reset, clean, force push, publicación o cambios de main en esta operación. Un permiso histórico o un checkpoint anterior no concede otro. Las ediciones locales autorizadas no requieren confirmación adicional; operaciones destructivas, secretos y escrituras remotas requieren autorización expresa vigente.
+Trabajar en feat/upgrade-prologue-art. El checkpoint previo autorizado de Hito 10, 23bf6da7bcd97cdf82dbb08c3e295a10aa36cfb3, ya fue confirmado y enviado. El desarrollo posterior queda local: NO realizar un segundo commit ni push antes de revisión del propietario. Sin merge, reset, clean, force push, publicación o cambios de main. Las ediciones locales autorizadas no requieren confirmación adicional; operaciones destructivas, secretos y escrituras remotas requieren autorización expresa vigente.
