@@ -13,12 +13,7 @@ function focusHeading() { if (!props.preview) heading.value?.focus() }
 onMounted(focusHeading)
 watch([() => props.winner, () => props.expanded], async () => { await nextTick(); focusHeading() })
 const image = computed(() => props.challenge.imageFilename ? challengeImageUrl(props.config.id, props.challenge.imageFilename, import.meta.env.BASE_URL) : '')
-const portrait = ref(false)
-watch(image, () => { failed.value = false; portrait.value = false })
-function imageLoaded(event: Event) {
-  const img = event.target as HTMLImageElement
-  portrait.value = img.naturalWidth > 0 && img.naturalWidth / img.naturalHeight <= 1.15
-}
+watch(image, () => { failed.value = false })
 const winningTeam = computed(() => props.config.teams.find(t => t.id === props.winner))
 const teamIndex = computed(() => props.config.teams.findIndex(t => t.id === props.winner))
 const denseCopy = computed(() => props.challenge.title.length > 80 || props.challenge.publicInstruction.length + props.challenge.keyRule.length > 150)
@@ -32,7 +27,7 @@ const denseCopy = computed(() => props.challenge.title.length > 80 || props.chal
     <div v-if="backdropFailed" class="sky-cloud cloud-left" aria-hidden="true"></div><div v-if="backdropFailed" class="sky-cloud cloud-right" aria-hidden="true"></div>
     <div v-if="backdropFailed" class="sky-sparks" aria-hidden="true"><i v-for="n in 12" :key="n" :style="{ '--spark': n }"></i></div>
     <header class="sky-chapter">EL SECRETO DEL MAESTRO WU <span>LA LLAMADA DEL CIELO</span></header>
-    <div :key="`${challenge.id}:${winner || 'mission'}`" class="sky-projection" :class="{ 'projection-victory': !!winningTeam, 'projection-dense': denseCopy && !winningTeam, 'projection-portrait': portrait, 'projection-emblem': !image || failed }">
+    <div :key="`${challenge.id}:${winner || 'mission'}`" class="sky-projection" :class="{ 'projection-victory': !!winningTeam, 'projection-dense': denseCopy && !winningTeam }">
       <div class="projection-orbit" aria-hidden="true"></div><div class="projection-orbit orbit-inner" aria-hidden="true"></div>
       <template v-if="winningTeam">
         <p class="mission-number">PRUEBA {{ String(number).padStart(2,'0') }} · EL CIELO CELEBRA VUESTRO VALOR</p>
@@ -44,7 +39,7 @@ const denseCopy = computed(() => props.challenge.title.length > 80 || props.chal
       <template v-else>
         <p class="mission-number">PRUEBA {{ String(number).padStart(2,'0') }} · MISIÓN DE EQUIPO</p>
         <h1 ref="heading" tabindex="-1" class="mission-title" :class="{ 'long-mission-title': challenge.title.length > 80 }">{{ challenge.title }}</h1>
-        <figure class="projected-image"><img v-if="image && !failed" :src="image" :alt="challenge.title" @load="imageLoaded" @error="failed = true" /><svg v-else viewBox="0 0 320 240" role="img" aria-label="Emblema de misión ninja"><path d="m160 15 110 60v100l-110 55L50 175V75Z"/><path d="m160 45-18 55-65-20 40 58-20 60 63-35 63 35-20-60 40-58-65 20Z"/><path d="m167 83-30 48h26l-8 36 34-51h-26Z"/></svg></figure>
+        <figure class="projected-image"><img v-if="image && !failed" :src="image" :alt="challenge.title" @error="failed = true" /><svg v-else viewBox="0 0 320 240" role="img" aria-label="Emblema de misión ninja"><path d="m160 15 110 60v100l-110 55L50 175V75Z"/><path d="m160 45-18 55-65-20 40 58-20 60 63-35 63 35-20-60 40-58-65 20Z"/><path d="m167 83-30 48h26l-8 36 34-51h-26Z"/></svg></figure>
         <div class="mission-copy"><p class="mission-instruction">{{ challenge.publicInstruction.trim() || 'Escuchad al organizador para descubrir vuestra misión.' }}</p><p v-if="challenge.keyRule.trim()" class="mission-rule">{{ challenge.keyRule }}</p></div>
       </template>
     </div>
