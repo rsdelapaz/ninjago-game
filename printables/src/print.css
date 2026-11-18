@@ -1,0 +1,27 @@
+@page { size: A4 portrait; margin: 12mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { color: #392b24; background: white; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.sheet { width: 186mm; height: 273mm; position: relative; isolation: isolate; padding: 10mm 14mm 7mm; display: flex; flex-direction: column; }
+.paper-art { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.identity { display: flex; align-items: start; justify-content: space-between; gap: 5mm; }
+.brand { font: 700 8pt/1.6 'Trebuchet MS', sans-serif; letter-spacing: .2em; color: #101827; }
+.brand span { display: block; font-size: 10pt; letter-spacing: .09em; }
+.sample-tag { font: 700 7pt/1.6 'Trebuchet MS', sans-serif; letter-spacing: .13em; text-align: right; color: #774137; border-top: .5mm solid #a87552; padding-top: 1.5mm; }
+.sample-tag span { display: block; font-size: 6pt; letter-spacing: .08em; }
+.ceremonial-heading { text-align: center; margin-top: 6mm; }
+.seal { display: block; width: 32mm; height: 32mm; margin: 0 auto 5mm; color: #91713e; }
+.identification { font: 700 9pt/1.5 'Trebuchet MS', sans-serif; letter-spacing: .15em; margin: 0 0 4mm; white-space: pre-wrap; }
+h1 { font: 700 32pt/1.08 Georgia, serif; color: #101827; letter-spacing: -.025em; max-width: 142mm; margin: 0 auto; text-wrap: balance; overflow-wrap: break-word; white-space: pre-wrap; }
+.divider { display: flex; align-items: center; justify-content: center; gap: 4mm; margin: 7mm auto 0; }
+.divider span { display: block; height: .25mm; width: 26mm; background: #b49157; }
+.divider i { display: block; width: 2mm; height: 2mm; transform: rotate(45deg); background: #91713e; }
+.narrative { width: 143mm; margin: 7mm auto 0; font: 15pt/1.55 'Trebuchet MS', sans-serif; }
+.narrative p { margin: 0 0 4mm; white-space: pre-wrap; overflow-wrap: break-word; orphans: 3; widows: 3; }
+.reserved { margin-top: auto; padding-top: 5mm; break-inside: avoid; }
+.reserved-caption { font: 700 7pt/1.4 'Trebuchet MS', sans-serif; color: #715938; text-align: center; letter-spacing: .15em; margin: 0 0 3mm; }
+.cartouche { position: relative; padding: 4mm; background: #c9a66b; clip-path: polygon(0 5mm,5mm 0,calc(100% - 5mm) 0,100% 5mm,100% calc(100% - 5mm),calc(100% - 5mm) 100%,5mm 100%,0 calc(100% - 5mm)); }
+.cartouche::before { content: ''; position: absolute; inset: .35mm; background: #f7edd7; clip-path: inherit; }
+.usable-space { position: relative; width: 100%; height: var(--reserved-height); }
+footer { font: 700 6.5pt/1.5 'Trebuchet MS', sans-serif; color: #715938; letter-spacing: .13em; text-align: center; margin-top: 5mm; min-height: 3mm; }
+@media screen { body { padding: 24px; background: #e5e0d5; }.sheet { margin: auto; box-shadow: 0 4px 24px #392b2420; } }

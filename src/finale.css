@@ -1,0 +1,283 @@
+/* Exclusive to the integrated finale. Existing approved scenes have no matching selectors. */
+.finale-stage, .finale-stage *, .finale-stage *::before, .finale-stage *::after { box-sizing: border-box; }
+.finale-stage { --finale-gold: #e9c98a; --finale-ivory: #fff3d2; position: relative; isolation: isolate; display: grid; grid-template-rows: auto 1fr auto; gap: 1.25rem; min-height: 100svh; padding: clamp(1rem,2.5vw,3rem); overflow: hidden; background: #07111c; color: var(--finale-ivory); text-align: center; font-family: 'Trebuchet MS',Arial,sans-serif; }
+.finale-sanctuary, .finale-fallback-temple, .finale-atmosphere, .finale-cinematic-shade, .finale-ignition, .finale-particles { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.finale-sanctuary { z-index: -5; object-fit: cover; }
+.finale-fallback-temple { z-index: -6; background: radial-gradient(ellipse at 50% 42%,#185362,#07111c 65%); perspective: 800px; }
+.finale-fallback-temple > i { position: absolute; top: 0; bottom: 0; width: 12%; background: repeating-linear-gradient(90deg,#122a32 0 18%,#29424a 20% 23%,#0c212d 25% 38%); border-inline: 2px solid #c9a66b66; }
+.finale-fallback-temple > i:first-child { left: 8%; transform: skewY(-5deg); }.finale-fallback-temple > i:nth-child(2) { right: 8%; transform: skewY(5deg); }
+.finale-fallback-portal { position: absolute; inset: 12% 24% 7%; border: 2px solid #b79c5a60; border-radius: 48% 48% 0 0; box-shadow: 0 0 0 20px #a3b9ad0a,inset 0 0 90px #0008; }
+.finale-atmosphere { z-index: -4; background: linear-gradient(#030e1977,transparent 32%,#03121b66 64%,#020b15dd),radial-gradient(ellipse at center,#06253220,#020b1777 75%); }
+.finale-cinematic-shade { z-index: -3; background: #030b18; opacity: .2; }
+.finale-header { z-index: 4; display: flex; justify-content: space-between; align-items: center; gap: 1rem; text-align: left; }
+.finale-header > p { margin: 0; font-size: .65rem; font-weight: 700; letter-spacing: .2em; color: #d5c398; line-height: 1.7; }.finale-header > p > span { display: block; font-size: .9rem; letter-spacing: .09em; color: var(--finale-ivory); }
+.finale-header button { color: #efe5c9; background: #071927dd; border: 1px solid #b6c2ad70; border-radius: .3rem; min-height: 44px; padding: .65rem 1rem; font: 700 .8rem/1.4 'Trebuchet MS',Arial,sans-serif; cursor: pointer; }
+.finale-header button:hover { background: #173442; border-color: var(--finale-gold); }
+.finale-stage :is(button,video,audio):focus-visible { outline: 3px solid #fff0ab; outline-offset: 5px; }.finale-stage h1:focus { outline: none; }
+.finale-preview-label { font-size: .65rem; letter-spacing: .12em; color: #e5d3ab; }
+.finale-story { position: relative; z-index: 3; width: min(100%,78rem); margin: auto; padding: 1rem 0; }
+.finale-kicker { color: #b8e7df; letter-spacing: .26em; font-size: .8rem; font-weight: 700; margin: 0 0 1.25rem; text-shadow: 0 2px 6px #001119; }
+.finale-story h1 { color: #ffedbd; margin: 0 auto; max-width: 70rem; font: 900 clamp(2.2rem,5.4vw,5.7rem)/1.05 Impact,'Arial Black',sans-serif; letter-spacing: .035em; text-wrap: balance; text-shadow: 0 2px #8b6a3d,0 6px #252824,0 10px 28px #000b; }
+.finale-caption { color: #e3e9d9; max-width: 48rem; margin: 1.5rem auto 0; font-size: clamp(1rem,1.5vw,1.45rem); line-height: 1.6; text-wrap: balance; text-shadow: 0 2px 6px #000; }
+.finale-seal-space { height: clamp(10rem,24vh,16rem); display: grid; place-items: center; }
+.finale-seal-space > span { color: #dbcb914d; font-size: 3rem; text-shadow: 0 0 30px #7debdc66; }
+.finale-sigil { position: absolute; z-index: -1; left: calc(50% - min(43vw,380px)); top: calc(49% - min(43vw,380px)); width: min(86vw,760px); aspect-ratio: 1; pointer-events: none; transform-origin: center center; }
+.finale-sigil svg { width: 100%; height: 100%; overflow: visible; fill: none; stroke: #c9b77c; stroke-width: 1; }
+.finale-seal-traces { opacity: .44; }.finale-seal-traces circle:last-of-type { stroke: #9cd6ce; stroke-dasharray: 4 10; }.finale-rune { opacity: .24; stroke: #e5d49f; stroke-width: 2; stroke-linecap: round; }.finale-crack { opacity: 0; stroke: #dbaaa3; stroke-width: 2; }
+.finale-ignition { z-index: 0; opacity: 0; background: radial-gradient(ellipse 27% 34% at 50% 49%,#fff0bc99,#6be7d63b 45%,transparent 76%); transform-origin: 50% 49%; }
+.finale-door-light { position: absolute; pointer-events: none; z-index: -1; inset: 11% 31% 21%; border-radius: 50%; background: radial-gradient(ellipse at center,#fff7cae6 0%,#f5dc938c 17%,#77e9d450 38%,#092a3e94 62%,transparent 73%); box-shadow: inset 0 0 60px #99f4dc33; transform: scaleX(.015); opacity: 0; transform-origin: center; }
+.finale-revealed .finale-door-light { transform: scaleX(1); opacity: .65; }
+.finale-wave { position: absolute; pointer-events: none; z-index: 1; left: calc(50% - 20vw); top: calc(49% - 20vw); width: 40vw; aspect-ratio: 1; border: 2px solid #fff2b2; border-radius: 50%; opacity: 0; box-shadow: 0 0 30px #afffe56b,inset 0 0 30px #d6ce8044; }
+.finale-clan-stream { position: absolute; width: 43%; height: 43%; top: 27%; z-index: 0; pointer-events: none; opacity: .57; transform-origin: center; }
+.finale-stream-left { left: -4%; color: var(--finale-clan-a); }.finale-stream-right { right: -4%; color: var(--finale-clan-b); }
+.finale-clan-stream > span { position: absolute; inset: 15% 0; border-top: 2px solid currentColor; border-bottom: 1px solid currentColor; border-radius: 50%; box-shadow: 0 -8px 35px -18px currentColor,inset 0 5px 20px -17px currentColor; transform: rotate(-25deg); }
+.finale-clan-stream > span + span { inset: 25% 8%; opacity: .5; transform: rotate(20deg); }.finale-stream-right > span { transform: rotate(25deg); }.finale-stream-right > span + span { transform: rotate(-20deg); }
+.finale-phase-ready .finale-clan-stream { animation: finale-breathe 9s ease-in-out infinite alternate; }.finale-phase-ready .finale-stream-right { animation-delay: -4.5s; }
+.finale-particles { z-index: 2; }
+.finale-footer { z-index: 3; color: #c7d3c6; font-size: .7rem; line-height: 1.6; letter-spacing: .16em; text-shadow: 0 2px 6px #000; }
+.finale-answer { display: flex; flex-wrap: wrap; justify-content: center; gap: .3em .6em; margin: 2.5rem auto; max-width: 70rem; font: 800 clamp(1.35rem,3.25vw,3.4rem)/1.25 'Trebuchet MS',Arial,sans-serif; color: #fff1bc; text-shadow: 0 2px #7c5a28,0 5px 20px #000,0 0 22px #e9c27433; }
+.finale-answer-word { display: inline-flex; flex-wrap: wrap; justify-content: center; max-width: 100%; }.finale-glyph { display: inline-block; }.finale-answer-long { font-size: clamp(1.1rem,2.5vw,2.6rem); }
+.finale-resolved h1 { font-size: clamp(1.7rem,3.4vw,3.6rem); }.finale-resolved .finale-caption { color: #cfdcbf; font-size: .85rem; letter-spacing: .14em; }
+.finale-secret { max-width: 64rem; margin: 2rem auto; padding: 1.5rem clamp(1rem,4vw,3rem); border-block: 1px solid #c5a76b60; background: #061825db; }
+.finale-secret > p { margin: 0; font: 700 clamp(1.25rem,2.5vw,2.6rem)/1.55 'Trebuchet MS',Arial,sans-serif; color: #fff2ce; white-space: pre-wrap; overflow-wrap: anywhere; text-wrap: pretty; }
+.finale-secret-long > p { font-size: clamp(1.15rem,1.8vw,1.8rem); line-height: 1.55; }
+.finale-revealed .finale-answer { font-size: clamp(1rem,1.6vw,1.6rem); margin: 1.5rem auto; color: #e9d3a0; }.finale-revealed .finale-kicker { margin-bottom: .75rem; }
+.finale-phase-success .finale-sigil, .finale-phase-secret .finale-sigil { opacity: .3; }.finale-phase-success .finale-ignition, .finale-phase-secret .finale-ignition { opacity: .35; }.finale-phase-success .finale-clan-stream { opacity: .65; }
+.finale-video-frame { width: min(100%,42rem); margin: 1.5rem auto; padding: .45rem; border: 1px solid #b9a37380; background: #030e1bee; box-shadow: 0 12px 40px #0006; }.finale-video-frame video { display: block; width: 100%; max-height: 34svh; object-fit: contain; background: #06111b; }.finale-video-frame p { padding: 1rem; line-height: 1.6; }
+.finale-story audio { display: block; width: min(100%,30rem); margin: 1rem auto; }.finale-media-notice { font-size: .9rem; color: #e9d6ae; }
+.finale-failed .finale-sigil { opacity: .5; }.finale-failed .finale-crack { opacity: .8; }.finale-failed .finale-seal-traces { stroke: #bfa5ae; }.finale-failed .finale-clan-stream { opacity: .15; }.finale-failed .finale-caption { color: #f0ded0; }.finale-recovery { max-width: 42rem; padding: 1rem; background: #101c28d9; border-block: 1px solid #b5a38266; }
+.finale-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
+.finale-thumbnail { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 0; container-type: inline-size; background: #07111c; margin: 1rem 0 1.5rem; color: #fff3d2; }
+.finale-thumbnail > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.finale-thumbnail-copy { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqw; padding: 5%; text-align: center; background: #030e194d; }
+.finale-thumbnail-copy > span { font: 700 2cqw/1.3 'Trebuchet MS',sans-serif; letter-spacing: .18em; }
+.finale-thumbnail-copy > strong { font: 900 6cqw/1.05 Impact,'Arial Black',sans-serif; color: #ffedbd; text-shadow: 0 2px 5px #000; }
+.finale-thumbnail-copy > p { font: 400 2.7cqw/1.5 'Trebuchet MS',sans-serif; margin: 0; text-shadow: 0 2px 4px #000; }
+.finale-thumbnail-copy > small { font: 700 1.7cqw/1.4 'Trebuchet MS',sans-serif; letter-spacing: .12em; }
+.finale-response { display: grid; gap: .8rem; width: min(100%,46rem); margin: 0 auto 1rem; padding: 1rem 1.5rem; background: #071927e8; border-block: 1px solid #c5a76b80; }
+.finale-response label { font-size: clamp(1rem,1.6vw,1.4rem); color: #fff1c9; font-weight: 700; }
+.finale-response textarea { display: block; width: 100%; min-width: 0; resize: vertical; color: #fff8df; background: #06131fe6; border: 1px solid #9eb8aa; border-radius: .3rem; padding: .7rem 1rem; font: 400 clamp(1rem,1.5vw,1.3rem)/1.4 'Trebuchet MS',sans-serif; text-align: center; }
+.finale-response textarea::placeholder { color: #b8ccc6; }
+.finale-response button, .finale-recovery button { justify-self: center; min-height: 48px; padding: .8rem 1.5rem; border: 1px solid #f0d291; border-bottom: 3px solid #8d6936; border-radius: .35rem; color: #201a12; background: linear-gradient(#fbe7ad,#d5ae63); font: 800 1rem/1.3 'Trebuchet MS',sans-serif; letter-spacing: .06em; cursor: pointer; }
+.finale-stage button:disabled, .finale-response textarea:disabled { opacity: .65; cursor: default; }
+.finale-stage textarea:focus-visible { outline: 3px solid #fff0ab; outline-offset: 4px; }
+.finale-phase-ready .finale-seal-space { height: clamp(5rem,13vh,9rem); }
+.finale-recovery { margin: 1.25rem auto; color: #f0ded0; font-size: clamp(1rem,1.6vw,1.45rem); line-height: 1.6; }
+.finale-recovery > p { margin: 0 0 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.finale-resolved .finale-caption { font-size: clamp(1rem,1.4vw,1.35rem); letter-spacing: normal; }
+.presentation-grid > .panel { min-width: 0; }
+@media(max-width:600px) { .finale-response { padding: 1rem; }.finale-response button { width: 100%; font-size: .85rem; }.finale-recovery { font-size: 1rem; }.finale-phase-ready .finale-seal-space { height: 5rem; } }
+@keyframes finale-breathe { from { transform: translateY(-6px) rotate(-1deg); } to { transform: translateY(6px) rotate(1deg); } }
+@media (min-width:900px) and (max-height:800px) { .finale-stage { padding: 1.25rem 2rem; gap: .75rem; }.finale-story { padding: .5rem 0; }.finale-seal-space { height: 10rem; }.finale-kicker { margin-bottom: .8rem; }.finale-caption { margin-top: 1rem; }.finale-answer { margin: 1.5rem auto; }.finale-secret { margin: 1rem auto; padding: 1rem 1.5rem; }.finale-video-frame video { max-height: 28svh; } }
+@media (max-width:600px) { .finale-header { flex-wrap: wrap; justify-content: center; text-align: center; }.finale-story { padding: 2rem 0; }.finale-kicker { font-size: .65rem; letter-spacing: .17em; }.finale-sigil { left: -15vw; top: calc(49% - 65vw); width: 130vw; }.finale-clan-stream { width: 60%; height: 35%; top: 30%; }.finale-stream-left { left: -14%; }.finale-stream-right { right: -14%; }.finale-caption { font-size: 1rem; }.finale-seal-space { height: 10rem; }.finale-footer { font-size: .6rem; letter-spacing: .1em; }.finale-answer { gap: .25em .4em; }.finale-secret { padding: 1rem; }.finale-resolved .finale-caption { font-size: .7rem; }.finale-video-frame video { max-height: 32svh; } }
+.finale-reduced *, .finale-reduced *::before, .finale-reduced *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion:reduce) { .finale-stage *, .finale-stage *::before, .finale-stage *::after { animation: none !important; transition: none !important; } }
+/* Hito 11.3: the ceremony occupies the sanctuary; the parchment is the final focal point. */
+.finale-stage{grid-template-rows:auto 1fr auto;min-height:100svh;padding:clamp(1rem,2.1vw,2.5rem);gap:1rem;background:#06151b;}
+.finale-story{width:min(100%,96rem);display:grid;grid-template-columns:minmax(12rem,.7fr) minmax(0,1.5fr);align-items:center;gap:clamp(1.5rem,4vw,5rem);padding:0;margin:auto;min-width:0;}
+.finale-story h1{font-size:clamp(2rem,4vw,4.6rem);max-width:100%;overflow-wrap:anywhere;}
+.finale-header-mark{font-size:.65rem;letter-spacing:.22em;color:#d4c29a;}
+.finale-wu{position:relative;align-self:stretch;min-height:30rem;overflow:hidden;isolation:isolate;mask-image:linear-gradient(transparent,#000 6%,#000 80%,transparent);}
+.finale-wu:before{content:'';position:absolute;inset:20% 0 0;background:radial-gradient(ellipse,#b9d4b72b,transparent 65%);z-index:2;pointer-events:none;}
+.finale-wu>img{position:absolute;height:100%;width:auto;max-width:none;right:-13%;bottom:0;filter:drop-shadow(0 10px 28px #0008);mask-image:linear-gradient(90deg,transparent 0%,#000 57%,#000 100%);}
+.finale-wu-name{position:absolute;z-index:3;bottom:9%;left:0;right:0;color:#ffe7a9;font-size:clamp(1.15rem,2vw,1.8rem);font-weight:800;letter-spacing:.14em;text-shadow:0 3px 10px #000;}
+.finale-wu-name small{display:block;font:600 .6rem/2 'Trebuchet MS',sans-serif;letter-spacing:.21em;color:#cfe0d3;}
+.finale-wu-fallback{padding:40% 1rem 1rem;line-height:1.7;color:#ffe3a4;}.finale-wu-fallback span{display:block;}
+.finale-dialogue{position:relative;min-width:0;padding:clamp(.5rem,1vw,1rem) 0;animation:finale-dialogue-arrive .6s ease both;}
+.finale-dialogue:before{content:'';position:absolute;inset:-1rem -2rem;z-index:-1;background:radial-gradient(ellipse,#06151aeb 15%,#06151ab0 58%,transparent 76%);pointer-events:none;}
+.finale-kicker{font-size:clamp(.65rem,.9vw,.82rem);margin-bottom:1rem;letter-spacing:.23em;color:#bde0d8;}
+.finale-dialogue-lines{margin:1.25rem auto;max-width:49rem;color:#f0eedc;font-size:clamp(1rem,1.45vw,1.4rem);line-height:1.6;text-shadow:0 2px 9px #000;}
+.finale-dialogue-lines>p{margin:.8rem 0;animation:finale-dialogue-arrive .65s ease both;animation-delay:calc(var(--line)*.16s);}
+.finale-custom-message{font-size:1rem;line-height:1.6;color:#e5d0a1;white-space:pre-wrap;overflow-wrap:anywhere;margin:1rem auto;max-width:46rem;}
+.finale-clan{margin:1rem auto 1.4rem;max-width:52rem;min-width:0;}
+.finale-clan-heading{display:flex;align-items:center;justify-content:center;gap:.7rem;color:var(--finale-active-color);font-weight:800;font-size:clamp(1.1rem,1.6vw,1.7rem);text-shadow:0 2px 5px #000;overflow-wrap:anywhere;}
+.finale-emblem{width:3rem;height:3rem;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;}.finale-emblem path+path{fill:currentColor;stroke:none;}
+.finale-roster{list-style:none;padding:.5rem .25rem;margin:.6rem 0;display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;max-height:20svh;overflow-y:auto;scrollbar-color:var(--finale-active-color) #0b2630;}
+.finale-roster li{padding:.45rem .8rem;border-bottom:1px solid color-mix(in srgb,var(--finale-active-color) 65%,transparent);background:#08212b90;max-width:100%;overflow-wrap:anywhere;font:500 clamp(.85rem,1.1vw,1.05rem)/1.4 'Trebuchet MS',sans-serif;color:#edf4df;}
+.finale-roster .finale-captain{border:1px solid #e4c77e;color:#ffedbd;background:#2e3023c9;font-weight:800;}
+.finale-captain small{display:block;color:#e1c780;font-size:.58rem;letter-spacing:.15em;}
+.finale-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem;margin:1rem auto;max-width:50rem;}
+.finale-stage :is(.finale-actions,.finale-response) button{min-height:48px;border:1px solid #e8cd8c;border-bottom:3px solid #926d2e;border-radius:3px;padding:.85rem 1.5rem;font:800 clamp(.8rem,1vw,1rem)/1.35 'Trebuchet MS',sans-serif;letter-spacing:.06em;background:linear-gradient(#f7e2a2,#c8a25b);color:#1d241e;cursor:pointer;box-shadow:0 6px 18px #0004;}
+.finale-stage .finale-actions .finale-secondary{background:#09232ded;color:#e8e1c9;border-color:#8fa99f;}
+.finale-clues-question{flex-basis:100%;margin:0;color:#f8edcf;line-height:1.6;}
+.finale-response{background:none;border:0;max-width:45rem;width:100%;padding:0;margin:1.5rem auto;gap:.8rem;}
+.finale-response label{color:#eedda9;font-size:1.05rem;}
+.finale-response textarea{border:1px solid #c6b17c;border-bottom:3px solid #cfb475;background:#061b24df;box-shadow:inset 0 3px 16px #0006;min-height:5rem;max-height:16rem;color:#fff2cf;}
+.finale-transport{display:flex;justify-content:center;flex-wrap:wrap;gap:.6rem;margin:.8rem 0 0;}
+.finale-transport button{font:600 .65rem/1.4 'Trebuchet MS',sans-serif;letter-spacing:.06em;padding:.65rem .8rem;min-height:44px;border:1px solid #9eb7a55e;background:#071c26c4;border-radius:3px;color:#e7d7af;cursor:pointer;}
+.finale-footer{position:relative;font-size:.65rem;letter-spacing:.17em;line-height:1.6;}
+.finale-footer>span{display:block;}
+.finale-stage :is(button,textarea,.finale-secret-copy):focus-visible{outline:3px solid #ffe3a3;outline-offset:4px;}
+.finale-chamber{position:absolute;inset:9% 23% 14%;z-index:-2;opacity:0;background:radial-gradient(ellipse,#ecdf9e85,#1d777555 37%,#06191fea 65%);box-shadow:inset 0 0 90px #00121c;border-radius:48% 48% 4% 4%;pointer-events:none;}
+.finale-seal-left,.finale-seal-right{position:absolute;z-index:-1;left:calc(50% - min(30vw,400px));top:calc(48% - min(30vw,400px));width:min(60vw,800px);aspect-ratio:1;border:2px solid #b7a77550;border-radius:50%;background:radial-gradient(circle,#6c807b15,transparent 58%,#c3b17b30 59%,#0d2c3433 62%,transparent 65%);transform-origin:center;pointer-events:none;}
+.finale-seal-left{clip-path:polygon(0 0,50% 0,50% 100%,0 100%);}.finale-seal-right{clip-path:polygon(50% 0,100% 0,100% 100%,50% 100%);}
+.finale-wave-outer{border-color:#83e7d5;box-shadow:0 0 45px #8ce8cc88;}
+.finale-sector-a-dark:not(.finale-revealed) .finale-stream-left{opacity:.08;animation:none;}.finale-sector-b-dark:not(.finale-revealed) .finale-stream-right{opacity:.08;animation:none;}
+.finale-sector-a-dark .finale-fracture-left,.finale-sector-b-dark .finale-fracture-right{opacity:.65;stroke:var(--finale-active-color);}
+.finale-story-truth .finale-clan-stream{opacity:.4;}.finale-story-truth .finale-ignition{opacity:.14;}
+.finale-revealed .finale-story{grid-template-columns:minmax(7rem,.3fr) minmax(0,1.7fr);gap:clamp(.5rem,3vw,3rem);width:min(100%,96rem);}
+.finale-revealed .finale-wu{min-height:26rem;opacity:.85;}
+.finale-revealed .finale-dialogue>h1,.finale-revealed .finale-dialogue>.finale-kicker{display:none;}
+.finale-parchment{width:min(100%,66rem);margin:1rem auto;filter:drop-shadow(0 16px 30px #0009);color:#332715;transform-origin:50% 0;isolation:isolate;}
+.finale-parchment-paper{position:relative;padding:clamp(1rem,2vw,2rem) clamp(1.2rem,4vw,4rem) 1rem;background:radial-gradient(ellipse at 20% 10%,#fff6d695,transparent 40%),radial-gradient(ellipse at 90% 70%,#ae792b30,transparent 50%),repeating-linear-gradient(93deg,#a6742908 0 1px,transparent 1px 5px),linear-gradient(90deg,#bd914f,#e8ce96 3%,#f7e8bf 13%,#f1dfad 85%,#d6b174 98%,#ad7f3f);box-shadow:inset 0 0 40px #855c2933;clip-path:polygon(.7% 0,98.8% 0,99.6% 6%,99% 17%,99.7% 32%,99.2% 49%,99.7% 67%,99.1% 84%,99.6% 100%,.6% 100%,1% 84%,.3% 69%,.8% 52%,.2% 37%,.8% 21%,.3% 7%);}
+.finale-parchment-paper:before{content:'';position:absolute;inset:.65rem 1rem;border:1px solid #9b71396b;box-shadow:0 0 0 4px #fff0c01c,inset 0 0 0 3px #b9955d33;pointer-events:none;z-index:-1;}
+.finale-parchment header p{font:700 clamp(.65rem,1.1vw,.9rem)/1.5 Georgia,serif;letter-spacing:.18em;margin:0 0 .7rem;color:#725026;}
+.finale-parchment h2{font:800 clamp(1.25rem,2.2vw,2.1rem)/1.25 Georgia,'Times New Roman',serif;letter-spacing:.025em;margin:0;color:#4a351b;text-wrap:balance;}
+.finale-parchment header>span{display:block;margin:.7rem 0 .4rem;color:#94713b;font-size:.75rem;letter-spacing:.16em;}
+.finale-secret-copy{max-height:42svh;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:#9b733c #ecdaad;padding:.8rem .8rem 1rem;}
+.finale-secret-copy>p{font:600 clamp(1.2rem,2.45vw,2.4rem)/1.65 Georgia,'Times New Roman',serif;color:#352b1c;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;text-wrap:pretty;}
+.finale-parchment-roll{position:relative;width:102%;left:-1%;height:clamp(1rem,1.8vw,1.5rem);border-radius:50%/35%;background:linear-gradient(#97703b,#f3dda9 20%,#d6b174 55%,#8e642e 90%,#5d482a);box-shadow:0 4px 10px #30210e80,inset 0 2px 3px #fff5cd;z-index:2;}
+.finale-parchment-roll:last-child{transform:rotate(180deg);}
+.finale-wax-seal{height:3.2rem;margin:.4rem auto 0;opacity:.95;}.finale-wax-seal svg{height:100%;fill:#b99038;stroke:#876324;stroke-width:1;filter:drop-shadow(0 2px 2px #55380e60);}.finale-wax-seal path+path{fill:#f2db91;stroke:none;}
+.finale-wu-closing{max-width:52rem;font:500 clamp(.9rem,1.2vw,1.15rem)/1.6 Georgia,serif;color:#f1e5c2;margin:.8rem auto;text-shadow:0 2px 7px #000;}
+.finale-optional-media{max-width:42rem;margin:.6rem auto;color:#ddd1b0;font-size:.9rem;}.finale-optional-media summary{cursor:pointer;padding:.7rem;}.finale-optional-media audio{width:100%;}
+@keyframes finale-dialogue-arrive{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:900px) and (max-height:800px){.finale-wu{min-height:25rem;}.finale-story h1{font-size:clamp(2rem,3.7vw,3.4rem);}.finale-dialogue-lines{font-size:1.05rem;line-height:1.45;margin:.8rem auto;}.finale-dialogue-lines>p{margin:.5rem 0;}.finale-roster{max-height:18svh;}.finale-clan{margin:.5rem auto;}.finale-parchment{margin:.4rem auto;}.finale-secret-copy{max-height:35svh;}.finale-wu-closing{font-size:.9rem;}.finale-stage{padding:1rem 1.5rem;}}
+@media(max-width:700px){.finale-story{grid-template-columns:1fr;gap:0;}.finale-wu{min-height:12rem;width:11rem;margin:auto;mask-image:linear-gradient(transparent,#000 5%,#000 75%,transparent);}.finale-wu>img{height:150%;right:-25%;bottom:-20%;}.finale-wu-name{bottom:10%;font-size:1rem;}.finale-wu-name small{font-size:.5rem;}.finale-dialogue{padding:0;}.finale-story h1{font-size:clamp(2rem,8.5vw,3rem);}.finale-dialogue-lines{font-size:1rem;line-height:1.55;}.finale-roster{max-height:24svh;}.finale-actions{gap:.65rem;}.finale-actions button{width:100%;}.finale-response{margin:1rem auto;}.finale-revealed .finale-story{grid-template-columns:1fr;gap:0;}.finale-revealed .finale-wu{min-height:7rem;width:8rem;}.finale-revealed .finale-wu-name{font-size:.8rem;}.finale-revealed .finale-wu-name small{display:none;}.finale-secret-copy{max-height:43svh;padding:.6rem .4rem;}.finale-parchment-paper{padding:1.2rem 1.2rem .8rem;}.finale-parchment h2{font-size:1.25rem;}.finale-parchment header p{font-size:.6rem;}.finale-wax-seal{height:2.4rem;}.finale-transport{gap:.4rem;}.finale-transport button{font-size:.6rem;}.finale-footer{font-size:.6rem;}.finale-header-mark{display:none;}.finale-seal-left,.finale-seal-right{width:110vw;left:-5vw;top:20%;}}
+@media(prefers-reduced-motion:reduce){.finale-dialogue,.finale-dialogue-lines>p{animation:none;}}
+.finale-stage h1:focus-visible{outline:none;}
+.finale-wu>img{right:23%;mask-image:radial-gradient(ellipse 18% 61% at 87% 56%,#000 42%,#000b 72%,transparent 100%);}
+@media(max-width:700px){.finale-wu>img{right:-10%;mask-image:radial-gradient(ellipse 18% 55% at 87% 50%,#000 40%,#000b 70%,transparent 100%);}}
+.finale-wu>img{mask-image:radial-gradient(ellipse 18% 43% at 87% 56%,#000 60%,#000b 78%,transparent 100%);}
+.finale-revealed .finale-crack{opacity:0;}
+.finale-wu{mask-image:radial-gradient(ellipse 53% 64% at 50% 51%,#000 68%,transparent 100%);}
+/* Both extinguished currents connect only once Wu has revealed the truth. */
+.finale-story-truth.finale-sector-a-dark:not(.finale-revealed) .finale-stream-left,.finale-story-truth.finale-sector-b-dark:not(.finale-revealed) .finale-stream-right{opacity:.4;}
+.finale-story-truth .finale-stream-left{left:8%;}.finale-story-truth .finale-stream-right{right:8%;}
+.finale-story-truth .finale-wu>img{filter:brightness(1.1) drop-shadow(0 0 24px #f3d98d55);}
+.finale-sector-a-dark .finale-fracture-left{stroke:var(--finale-clan-a);}.finale-sector-b-dark .finale-fracture-right{stroke:var(--finale-clan-b);}
+/* Failure atmosphere only: cold residual light, worn surfaces and an extinguished foreground. */
+.finale-stage.finale-failed{background:#080d0f;--finale-gold:#a79f89;--finale-ivory:#d8d7cd;}
+.finale-failed .finale-sanctuary{filter:grayscale(.86) saturate(.22) brightness(.61) contrast(1.22);}
+.finale-failed .finale-atmosphere{background:radial-gradient(ellipse 8% 12% at 9% 22%,#050b0df2,transparent),radial-gradient(ellipse 8% 12% at 91% 22%,#050b0df2,transparent),radial-gradient(ellipse 27% 58% at 34% 46%,#77929313,transparent 74%),linear-gradient(105deg,#030809eb 0%,transparent 29%,#0a161722 43%,#03090bd9 100%);}
+.finale-failed .finale-cinematic-shade{background:radial-gradient(ellipse at 43% 46%,transparent 26%,#030709 92%);}
+.finale-ruin-wear,.finale-ruin-air{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.finale-ruin-wear{z-index:-2;}
+.finale-ruin-fractures{stroke:#050b0b;stroke-width:3;filter:drop-shadow(1px 1px 0 #9ca29b66);opacity:.85;}
+.finale-ruin-roots{stroke:#222923;stroke-width:3;filter:drop-shadow(0 1px 0 #78776335);}
+.finale-ruin-dust{opacity:.26;animation:finale-settling-dust 12s ease-out 1 both;}
+.finale-ruin-air{z-index:1;background:radial-gradient(ellipse 50% 6% at 42% 84%,#a2b2af16,transparent 75%),radial-gradient(ellipse 30% 4% at 73% 89%,#71898717,transparent 80%),linear-gradient(0deg,#04090999,transparent 30%);animation:finale-ground-hush 10s ease-out 1 both;}
+.finale-failed .finale-sigil{opacity:.23;filter:grayscale(.9);}
+.finale-failed .finale-rune{opacity:.08;stroke:#8f9691;}
+.finale-failed .finale-seal-traces{stroke:#6e7772;opacity:.28;}
+.finale-failed .finale-crack{stroke:#9a8f7c;opacity:.32;filter:drop-shadow(0 1px 2px #000);}
+.finale-stage.finale-failed .finale-clan-stream{opacity:.035;animation:none;filter:grayscale(1);}
+.finale-failed .finale-door-light,.finale-failed .finale-chamber{visibility:hidden;}
+.finale-failed .finale-ignition{background:radial-gradient(ellipse 23% 28% at 50% 49%,#bfc5b233,transparent 75%);}
+.finale-failed .finale-wu>img{filter:saturate(.12) brightness(.69) contrast(1.14) drop-shadow(-7px 0 15px #899e9b20);}
+.finale-failed .finale-wu:before{background:radial-gradient(ellipse at 31% 40%,#839b9612,transparent 65%);}
+.finale-failed .finale-wu-name{color:#b7b7a7;text-shadow:0 2px 8px #000;}
+.finale-failed .finale-wu-name small{color:#9eaea8;}
+.finale-failed .finale-dialogue:before{background:radial-gradient(ellipse,#071012c9 10%,#07101280 53%,transparent 76%);}
+.finale-failed .finale-story h1{color:#dfdfd2;text-shadow:0 2px #454b47,0 5px #090e10,0 8px 24px #000; -webkit-text-stroke:0;}
+.finale-failed .finale-kicker,.finale-failed .finale-header>p,.finale-failed .finale-header-mark{color:#a9b7b0;}
+.finale-failed .finale-header>p>span{color:#c6cdc2;}
+.finale-failed .finale-dialogue-lines{color:#e1e4d8;text-shadow:0 2px 6px #000;}
+.finale-failed .finale-clan-heading{color:color-mix(in srgb,var(--finale-active-color) 24%,#a9b4aa);}
+.finale-failed .finale-roster{scrollbar-color:#7d8981 #101a1b;}
+.finale-failed .finale-roster li{background:#0b1719b0;border-color:#7d898159;color:#cbd5c9;}
+.finale-failed .finale-roster .finale-captain{background:#1d2523;border-color:#91917a;color:#dfdfc9;}
+.finale-failed .finale-captain small{color:#b5b69d;}
+.finale-failed .finale-actions button{background:linear-gradient(#c9c8ad,#9b9e8c);color:#101b1c;border-color:#b0b29a;border-bottom-color:#545e56;box-shadow:0 3px 15px #0008;}
+.finale-failed .finale-transport button{background:#0b171bf2;border-color:#798b8273;color:#d1d4bf;}
+.finale-failed .finale-footer{color:#9ba99f;}
+@keyframes finale-settling-dust{from{transform:translate(0,-4px);opacity:0}20%{opacity:.26}to{transform:translate(10px,9px);opacity:.16}}
+@keyframes finale-ground-hush{from{transform:translateX(-1.5%);opacity:0}35%{opacity:1}to{transform:translateX(0);opacity:.8}}
+@media(prefers-reduced-motion:reduce){.finale-ruin-dust,.finale-ruin-air{animation:none;}}
+.finale-reduced .finale-ruin-dust,.finale-reduced .finale-ruin-air{animation:none;}
+.finale-ruin-fractures{stroke-width:1.5;filter:drop-shadow(.5px .6px 0 #9ca29b44);opacity:.72;}
+.finale-ruin-roots{stroke-width:2;opacity:.4;}
+.finale-ruin-banners{opacity:.65;}
+.finale-failed .finale-sigil{opacity:.13;}
+.finale-failed .finale-seal-left,.finale-failed .finale-seal-right{opacity:.08;filter:grayscale(1);}
+.finale-failed .finale-wu>img{filter:saturate(.12) brightness(.55) contrast(1.05) drop-shadow(-5px 0 12px #899e9b12);}
+.finale-failed .finale-particles{filter:saturate(.12);opacity:.55;}
+/* Cinematic sanctuary: centre the common dialogue on the real portal axis (50% of the artwork). */
+.finale-stage:not(.finale-revealed) .finale-story{display:grid;grid-template-columns:minmax(0,1fr);width:min(62vw,75svh,52rem);min-height:min(60svh,42rem);align-items:center;gap:0;}
+.finale-stage:not(.finale-revealed) .finale-dialogue{width:100%;min-width:0;margin:auto;padding:.5rem 0;}
+.finale-stage:not(.finale-revealed) .finale-wu{position:absolute;right:calc(100% + 3vw);top:50%;transform:translateY(-50%);width:clamp(10rem,17vw,20rem);height:min(61svh,40rem);min-height:0;margin:0;}
+.finale-stage:not(.finale-revealed) .finale-story h1{font-size:clamp(1.8rem,3.15vw,3.7rem);line-height:1.08;letter-spacing:.025em;max-width:100%;text-wrap:balance;}
+.finale-story-intro:not(.finale-revealed) .finale-story h1{max-width:12ch;margin:auto;}
+.finale-stage:not(.finale-revealed) .finale-dialogue-lines{font-size:clamp(1rem,1.2vw,1.3rem);line-height:1.5;margin:1rem auto;}
+.finale-stage:not(.finale-revealed) .finale-dialogue-lines>p{margin:.6rem 0;}
+.finale-stage .finale-clan-heading{color:var(--finale-active-color);font:800 clamp(1.1rem,1.5vw,1.5rem)/1.4 'Trebuchet MS',sans-serif;text-wrap:balance;overflow-wrap:anywhere;text-shadow:0 2px 6px #000,0 0 1px #e3e6d499;}
+.finale-stage .finale-clan{margin:.8rem auto;}.finale-stage .finale-emblem{width:2.6rem;height:2.6rem;}
+.finale-stage:not(.finale-revealed) .finale-roster{max-height:17svh;margin:.5rem 0;gap:.4rem;}
+.finale-rejected-answer{margin:1rem auto 1.25rem;max-width:100%;padding:.8rem 1.3rem 1rem;border-block:1px solid #9b4a5b90;background:radial-gradient(ellipse,#3317228c,transparent 80%);}
+.finale-rejected-answer h2,.finale-rejected-answer small{font:700 .7rem/1.5 'Trebuchet MS',sans-serif;letter-spacing:.17em;color:#d4b9bc;}
+.finale-rejected-answer h2{margin:0 0 .6rem;}.finale-rejected-answer blockquote{margin:0;max-height:19svh;overflow-y:auto;scrollbar-color:#ab5468 #111c25;}
+.finale-rejected-answer blockquote p{font:600 clamp(1.1rem,1.65vw,1.8rem)/1.5 Georgia,serif;white-space:pre-wrap;overflow-wrap:anywhere;color:#f1e3d9;margin:.35rem 0 .7rem;}
+.finale-rejected-answer blockquote p:before{content:'«';color:#b97a87;}.finale-rejected-answer blockquote p:after{content:'»';color:#b97a87;}
+.finale-action-status{font-size:.85rem;letter-spacing:.02em;color:#d8e8cd;margin:0 0 .6rem;}
+/* Buttons retain native hit areas and keyboard interaction; ornaments never intercept pointers. */
+.finale-stage :is(.finale-actions,.finale-response) button{position:relative;min-height:54px;padding:.9rem 2.3rem;border:1px solid #cdb16b;border-bottom:4px solid #785923;border-radius:3px 15px 3px 15px;background:linear-gradient(105deg,#a58340,#ead6a0 28%,#d4b772 73%,#a17c3d);color:#17221f;box-shadow:inset 0 0 0 3px #fff4cb35,inset 0 5px 0 #fff0b828,0 5px 15px #0008;transition:transform .15s,filter .15s,border-color .15s;}
+.finale-stage :is(.finale-actions,.finale-response) button:before,.finale-stage :is(.finale-actions,.finale-response) button:after{content:'';position:absolute;top:calc(50% - 3px);width:6px;height:6px;border:1px solid currentColor;transform:rotate(45deg);opacity:.55;pointer-events:none;}
+.finale-stage :is(.finale-actions,.finale-response) button:before{left:13px;}.finale-stage :is(.finale-actions,.finale-response) button:after{right:13px;}
+.finale-stage :is(.finale-actions,.finale-response,.finale-transport) button:hover:not(:disabled){filter:brightness(1.14);transform:translateY(-2px);}
+.finale-stage :is(.finale-actions,.finale-response,.finale-transport) button:active:not(:disabled){transform:translateY(2px);filter:brightness(.92);}
+.finale-stage :is(.finale-actions,.finale-response,.finale-transport) button:focus-visible{outline:3px solid #f5e5b9;outline-offset:5px;}
+.finale-stage :is(.finale-actions,.finale-response) .finale-secondary{background:linear-gradient(125deg,#13212a,#26363a);border-color:#84968b;border-bottom-color:#071317;color:#e6e5d0;}
+.finale-stage:is(.finale-story-call1,.finale-story-call2,.finale-story-clues1,.finale-story-clues2,.finale-story-answer1,.finale-story-answer2):not(.finale-failed) :is(.finale-actions,.finale-response) button:not(.finale-secondary){background:linear-gradient(110deg,#10222b,color-mix(in srgb,var(--finale-active-color) 27%,#16232a),#14262b);color:#fff1d4;border-color:var(--finale-active-color);border-bottom-color:#06131a;}
+.finale-stage .finale-transport button{border-radius:2px 9px 2px 9px;background:linear-gradient(110deg,#0c1a22,#213035);border-color:#78877c7a;border-bottom:3px solid #071317;box-shadow:inset 0 0 0 2px #bec4a70c;color:#d3d7c4;font-size:.7rem;min-height:44px;transition:transform .15s,filter .15s;}
+/* Spectral danger is an environmental colour; the clan badge always keeps its assigned colour. */
+.finale-stage.finale-failed{--spectral-red:#ba3658;background:#07151d;}
+.finale-failed .finale-sanctuary{filter:saturate(.56) brightness(.52) contrast(1.2);}
+.finale-failed .finale-atmosphere{background:radial-gradient(ellipse 26% 37% at 50% 49%,#851e3b23,transparent 78%),radial-gradient(ellipse 14% 30% at 64% 54%,#62418716,transparent 80%),radial-gradient(ellipse 8% 12% at 9% 22%,#050b0df2,transparent),radial-gradient(ellipse 8% 12% at 91% 22%,#050b0df2,transparent),linear-gradient(105deg,#020a13eb,transparent 35%,#06142144 55%,#030a14e0);}
+.finale-stage.finale-failed .finale-crack{stroke:var(--spectral-red);opacity:.74;filter:drop-shadow(0 0 5px #d13a665e);}
+.finale-failed .finale-rune{stroke:#b53b59;opacity:.28;}.finale-failed .finale-rune:nth-of-type(3n){stroke:#8067ad;opacity:.25;}
+.finale-failed .finale-seal-traces{stroke:#81798c;opacity:.25;}
+.finale-stage.finale-failed .finale-clan-stream{color:#b33154;opacity:.16;filter:none;animation:none;}
+.finale-stage.finale-failed .finale-stream-right{color:#66518f;}
+.finale-failed .finale-clan-stream>span{border-bottom:0;border-top:1px dashed currentColor;box-shadow:0 -3px 18px -8px currentColor;}
+.finale-failed .finale-wu>img{filter:saturate(.68) brightness(.6) contrast(1.05) drop-shadow(-5px 0 12px #507f9c22);}
+.finale-failed .finale-wu:before{background:linear-gradient(100deg,#50799416,transparent 55%,#a4355216);}
+.finale-failed .finale-particles{filter:saturate(.65);opacity:.5;}
+.finale-stage.finale-failed .finale-actions button{background:linear-gradient(110deg,#351627,#61233e 40%,#35192f);color:#fae4e4;border-color:#bb4d6e;border-bottom-color:#1c0f20;box-shadow:inset 0 0 0 3px #cf6b871a,inset 0 3px 0 #d892ab17,0 0 16px #98325821,0 5px 16px #0009;}
+.sanctuary-confirmation{border:1px solid #ad9970;border-radius:3px 16px 3px 16px;background:radial-gradient(ellipse at top,#263b42,#0b1d28 75%);box-shadow:inset 0 0 0 5px #b59d6322,0 30px 90px #000b;color:#f0e4c7;}
+.sanctuary-confirmation>.kicker{display:none;}.sanctuary-confirmation h2{font:700 1.5rem/1.3 Georgia,serif;color:#f0d59c;}
+.sanctuary-confirmation button{min-height:48px;border-radius:3px 10px 3px 10px;border:1px solid #a79d75;background:#172b34;color:#efe4cb;}.sanctuary-confirmation button.primary{background:#d7bc7a;color:#19251f;}
+@media(max-width:700px){.finale-stage:not(.finale-revealed) .finale-story{width:100%;min-height:0;gap:.5rem;}.finale-stage:not(.finale-revealed) .finale-wu{position:relative;top:auto;right:auto;transform:none;width:10rem;height:11rem;margin:0 auto;}.finale-stage:not(.finale-revealed) .finale-story h1{font-size:clamp(1.8rem,8vw,2.5rem);}.finale-stage:not(.finale-revealed) .finale-roster{max-height:24svh;}.finale-stage:not(.finale-revealed) .finale-dialogue-lines{font-size:1rem;}.finale-rejected-answer{padding:.7rem .5rem;}.finale-rejected-answer blockquote{max-height:25svh;}}
+.finale-failed .finale-sigil{opacity:.65;filter:none;}
+.finale-stage:not(.finale-revealed) .finale-dialogue-lines{font-size:clamp(1.05rem,1.35vw,1.35rem);}
+.finale-stage.finale-failed:not(.finale-sector-b-dark):not(.finale-story-jointFail) .finale-fracture-right{opacity:0;}
+/* El corazón del sello: only the revealed outcome changes its composition. */
+.finale-revealed .finale-story{display:block;position:relative;width:min(64vw,80svh,58rem);margin:auto;min-height:0;padding:0;}
+.finale-revealed .finale-dialogue{padding:0;min-width:0;}
+.finale-revealed .finale-wu{position:absolute;right:calc(100% + 2vw);top:50%;transform:translateY(-50%);width:clamp(10rem,19vw,23rem);height:min(65svh,43rem);min-height:0;overflow:visible;mask-image:none;opacity:1;}
+.finale-revealed .finale-wu>img{height:100%;right:23%;}
+.finale-revealed .finale-wu-name{left:-1rem;right:-1rem;bottom:6%;font-size:clamp(1.05rem,1.65vw,1.8rem);letter-spacing:.1em;white-space:nowrap;}
+.finale-revealed .finale-wu-name small{display:block;font-size:clamp(.55rem,.65vw,.75rem);letter-spacing:.16em;}
+.finale-revealed .finale-parchment{position:relative;width:100%;margin:0 auto;filter:drop-shadow(0 20px 18px #000b);transform-origin:50% 50%;}
+.finale-revealed .finale-parchment-roll,.finale-revealed .finale-wax-seal,.finale-revealed .finale-parchment header>span{display:none;}
+.finale-revealed .finale-parchment-paper{isolation:isolate;padding:clamp(1.5rem,3svh,2.5rem) clamp(1.5rem,3vw,3rem);background:none;box-shadow:none;clip-path:none;}
+/* The original sanctuary supplies real stone grain. No alternate background or media copy. */
+.finale-revealed .finale-parchment-paper:before{inset:0;z-index:-1;border:0;clip-path:polygon(10% 0,90% 0,100% 22%,100% 78%,90% 100%,10% 100%,0 78%,0 22%);background:linear-gradient(#102326c9,#061519e0),var(--finale-stone) 50% 48%/400% auto;box-shadow:inset 0 2px 0 #e8c57c,inset 0 -5px 0 #6e4d29,inset 0 0 50px #020a10;}
+.finale-revealed .finale-parchment-paper:after{content:'';position:absolute;inset:.45rem;z-index:-1;pointer-events:none;clip-path:polygon(10% 0,90% 0,100% 22%,100% 78%,90% 100%,10% 100%,0 78%,0 22%);border-block:1px solid #c9a45c88;background:radial-gradient(ellipse,#c7973820,transparent 68%);}
+.finale-revealed .finale-parchment header p{font:600 clamp(.65rem,.85vw,.85rem)/1.5 Georgia,serif;letter-spacing:.22em;color:#c6bc9f;margin:0 0 .65rem;}
+.finale-revealed .finale-parchment h2{font:600 clamp(1rem,1.35vw,1.6rem)/1.35 Georgia,serif;letter-spacing:.09em;color:#e7dab8;margin:0;text-wrap:balance;}
+.finale-revealed .finale-secret-copy{max-height:32svh;overflow:auto;scrollbar-color:#c99e52 #0a1b20;padding:clamp(1.5rem,3svh,2.5rem) .5rem 1rem;margin:0;}
+.finale-revealed .finale-secret-copy>p{font:700 clamp(1.25rem,2.2vw,2.6rem)/1.45 Georgia,'Times New Roman',serif;letter-spacing:.035em;color:#ffe4a1;text-shadow:0 1px 0 #ffffd3,0 3px 0 #755021,0 6px 8px #000,0 0 24px #dc9a343b;margin:0;}
+.finale-revealed [data-inscription-size="monumental"] .finale-secret-copy>p{font-size:clamp(3rem,5.7vw,7rem);line-height:1.18;letter-spacing:.065em;}
+.finale-revealed [data-inscription-size="ceremonial"] .finale-secret-copy>p{font-size:clamp(1.75rem,2.6vw,3.5rem);line-height:1.25;}
+.finale-revealed .finale-secret-copy:focus-visible{outline:none;box-shadow:inset 2px 0 #e0bd73;}
+.finale-revealed .finale-wu-closing{font:500 clamp(.95rem,1.15vw,1.35rem)/1.6 Georgia,serif;color:#e9dcc0;max-width:40rem;text-wrap:balance;margin:1.5rem auto 0;}
+.finale-revealed .finale-sigil{opacity:.85;filter:drop-shadow(0 0 5px #e0ac5755);}
+.finale-revealed .finale-seal-traces{opacity:.8;stroke:#d3ab60;}
+.finale-revealed .finale-rune{opacity:.8;stroke:#f4d58c;}
+.finale-revealed .finale-ignition{opacity:.35;background:radial-gradient(ellipse 29% 40% at 50% 49%,#ffd99155,#bf86301c 55%,transparent 78%);}
+.finale-revealed .finale-door-light{opacity:.22;background:radial-gradient(ellipse,#ffda873b,transparent 70%);box-shadow:none;}
+.finale-revealed .finale-clan-stream{opacity:.3;}
+.finale-revealed .finale-transport{gap:1rem;align-items:center;}
+.finale-revealed .finale-transport button{min-height:48px;padding:.85rem 1.5rem;font-size:clamp(.7rem,.85vw,.9rem);letter-spacing:.08em;}
+.finale-revealed .finale-transport [data-action="replay"]{color:#fff0be;background:linear-gradient(110deg,#584023,#8b642d 48%,#503a23);border-color:#e1bd72;box-shadow:inset 0 2px #ffe9a366,inset 0 -4px #201b17,0 4px 14px #0008;}
+.finale-revealed .finale-transport [data-action="replay"]:hover:not(:disabled){background:linear-gradient(110deg,#76532a,#a57b38 48%,#674b27);box-shadow:inset 0 2px #ffe9a388,inset 0 -4px #201b17,0 0 20px #d3a34933;}
+.finale-revealed .finale-transport [data-action="replay"]:active:not(:disabled){transform:translateY(2px);box-shadow:inset 0 3px 8px #21180e;}
+.finale-revealed .finale-transport [data-action="home"]{border-color:#7f9593;}
+@media(min-width:900px) and (max-height:800px){.finale-revealed .finale-secret-copy{max-height:29svh;padding-top:1.25rem;}.finale-revealed .finale-wu-closing{margin-top:1rem;}.finale-revealed .finale-parchment-paper{padding:1.4rem 2rem;}.finale-revealed .finale-transport button{padding:.65rem 1rem;}.finale-revealed .finale-wu-name{font-size:1.1rem;}}
+@media(max-width:700px){.finale-revealed .finale-story{width:100%;}.finale-revealed .finale-wu{position:relative;top:auto;right:auto;transform:none;width:11rem;height:12rem;margin:0 auto 1rem;}.finale-revealed .finale-wu>img{height:150%;right:-10%;bottom:-20%;}.finale-revealed .finale-wu-name{bottom:0;}.finale-revealed .finale-parchment-paper{padding:1.5rem 1rem;}.finale-revealed .finale-secret-copy{max-height:35svh;}.finale-revealed [data-inscription-size="monumental"] .finale-secret-copy>p{font-size:clamp(2rem,10vw,3.5rem);}.finale-revealed [data-inscription-size="ceremonial"] .finale-secret-copy>p{font-size:clamp(1.6rem,7vw,2.6rem);}.finale-revealed .finale-transport{flex-wrap:wrap;gap:.65rem;}.finale-revealed .finale-transport button{font-size:.65rem;padding:.75rem;}.finale-revealed .finale-wu-closing{font-size:1rem;}}
+.finale-revealed .finale-parchment>header{margin:0 auto 1.25rem;}
+.finale-revealed .finale-parchment-paper{padding-block:1rem;}
+.finale-revealed .finale-secret-copy{padding-block:1.2rem;}
+.finale-revealed .finale-sigil{width:min(78svh,76vw);left:calc(50% - min(39svh,38vw));top:calc(49% - min(39svh,38vw));}
+@supports(background-clip:text){.finale-revealed .finale-secret-copy>p{color:transparent;background:linear-gradient(#fff4c5 5%,#f7d793 32%,#be8b43 49%,#ffe7ab 53%,#e3b867 80%,#a57537);background-clip:text;-webkit-background-clip:text;text-shadow:none;filter:drop-shadow(0 2px 0 #805d2d) drop-shadow(0 5px 4px #000);}}
+.finale-revealed [data-inscription-size="monumental"] .finale-secret-copy{max-height:40svh;}
