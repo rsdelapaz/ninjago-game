@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.local
+.env
+.env.*
+public/private-media/**
+!public/private-media/.gitkeep
+!public/private-media/colegio/
+!public/private-media/colegio/.gitkeep
+!public/private-media/urbanizacion/
+!public/private-media/urbanizacion/.gitkeep
+
+# Private printable clues and working renders; never part of Vite public/.
+/printables/content/**
+/printables/output/**
+/printables/previews/**

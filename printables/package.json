@@ -1,0 +1,11 @@
+{
+  "name": "wu-printables-local",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node src/generate.mjs"
+  },
+  "devDependencies": {
+    "pdfjs-dist": "6.5.438"
+  }
+}

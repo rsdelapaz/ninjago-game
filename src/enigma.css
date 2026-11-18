@@ -1,0 +1,170 @@
+/* Loaded only by the independent root; no selectors from the existing game. */
+html, body, #app { margin: 0; min-height: 100%; }
+.enigma-stage, .enigma-stage *, .enigma-stage *::before, .enigma-stage *::after { box-sizing: border-box; }
+.enigma-stage {
+  --enigma-gold: #ffdc8b; --enigma-cyan: #99f5e2; --enigma-deep: #04131f;
+  position: relative; isolation: isolate; display: grid; grid-template-rows: auto 1fr auto;
+  gap: 1.5rem; min-height: 100svh; width: 100%; overflow: hidden;
+  padding: clamp(1rem, 2.5vw, 3rem); color: #fff8e4; background: #030e1b;
+  font-family: 'Trebuchet MS', Arial, sans-serif; text-align: center;
+}
+.enigma-sanctuary, .enigma-atmosphere { position: absolute; inset: 0; pointer-events: none; z-index: -3; }
+.enigma-sanctuary { background: url('./assets/enigma-sanctuary.svg') center / cover; transition: opacity .6s; }
+.enigma-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; pointer-events: none; transition: opacity .6s; }
+.enigma-has-art .enigma-sanctuary { visibility: hidden; }
+.enigma-atmosphere { z-index: -2; background: radial-gradient(ellipse at center, #020d1777, #020a1600 60%), linear-gradient(#020b1640, transparent 25%, transparent 65%, #020a16aa); }
+.enigma-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; z-index: 3; }
+.enigma-brand { display: flex; gap: .85rem; align-items: center; text-align: left; font-size: .7rem; letter-spacing: .18em; line-height: 1.6; color: #d6c7a3; }
+.enigma-brand > span:first-child { color: var(--enigma-gold); font-size: 2rem; text-shadow: 0 0 14px #eec97b55; }
+.enigma-brand strong { color: #fff0c3; font-size: .95rem; letter-spacing: .08em; }
+.enigma-tools { display: flex; gap: .65rem; flex-wrap: wrap; }
+.enigma-stage button { font: 700 .9rem/1.3 'Trebuchet MS',Arial,sans-serif; cursor: pointer; color: #d9efe6; border: 1px solid #8caa9c80; background: #071b29cc; border-radius: .35rem; padding: .7rem 1rem; min-height: 44px; }
+.enigma-stage button:hover { border-color: var(--enigma-gold); color: #fff2cc; background: #17333e; }
+.enigma-stage :is(button,input):focus-visible { outline: 3px solid #fff3b0; outline-offset: 5px; }
+.enigma-stage h1:focus { outline: none; }
+.enigma-mission { position: relative; z-index: 2; width: min(100%, 78rem); margin: auto; padding: 1rem 0; }
+.enigma-kicker { color: var(--enigma-cyan); letter-spacing: .25em; font-size: .8rem; font-weight: 800; margin: 0 0 1.1rem; text-shadow: 0 2px 3px #001018; }
+.enigma-stage h1 { max-width: 62rem; margin: 0 auto; font: 900 clamp(2rem,4.3vw,4.75rem)/1.05 Impact,'Arial Black',sans-serif; color: #ffedba; letter-spacing: .035em; text-wrap: balance; text-shadow: 0 2px 0 #b48a4d,0 5px 0 #423626,0 8px 20px #000; }
+.enigma-introduction { margin: 1.2rem auto 0; color: #e7f1df; font-size: clamp(.9rem,1.2vw,1.25rem); font-weight: 700; letter-spacing: .12em; text-wrap: balance; text-shadow: 0 2px 6px #000; }
+/* Static, dimensional nested seal. Only an explicit phase animates it. */
+.enigma-core { position: absolute; left: 50%; top: 50%; width: min(74vw, 760px); aspect-ratio: 1; transform: translate(-50%,-50%); z-index: -1; pointer-events: none; }
+.enigma-core-aura { position: absolute; inset: -15%; border-radius: 50%; background: radial-gradient(ellipse,#62ddc910,transparent 66%); transition: opacity .4s; }
+.enigma-ring { position: absolute; inset: 5%; border-radius: 50%; border: 2px solid #8adbc641; box-shadow: 0 0 22px #76e5ca18,inset 0 0 25px #79d8d112; }
+.enigma-ring::after { content: ''; position: absolute; inset: 8px; border-radius: 50%; border: 8px double #c5a76b33; }
+.enigma-ring-inner { inset: 15%; border: 1px dashed #e0c58540; transform: rotate(24deg); }
+.enigma-seal { position: absolute; inset: 0; width: 100%; height: 100%; fill: #113c4618; stroke: #a8c5a34d; stroke-width: 1; }
+.enigma-seal path:nth-of-type(2) { stroke: #c2a16555; }
+.enigma-question { position: absolute; top: 26%; left: 0; width: 100%; font: 900 clamp(10rem,24vw,23rem)/1 Impact,sans-serif; color: #80e3d00b; -webkit-text-stroke: 2px #6de5cf25; text-shadow: 0 0 32px #75eed323; transition: opacity .4s; }
+.enigma-wave { position: absolute; inset: 15%; border: 4px solid #a1f3d5; border-radius: 50%; opacity: 0; }
+.enigma-seal-tray { --seal-size: clamp(1.6rem,4.2vw,4.1rem); display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .65em; min-height: 7.5rem; margin: 2rem auto 1.6rem; max-width: 100%; perspective: 900px; }
+.enigma-word { display: flex; flex-wrap: wrap; justify-content: center; gap: .12em; max-width: 100%; font-size: var(--seal-size); }
+.enigma-letter { display: inline-grid; place-items: center; min-width: 0; width: 1.04em; height: 1.25em; border: 1px solid #9ed8c77d; border-top-color: #e5d294; border-radius: .12em; font: 900 1em/1 'Trebuchet MS',sans-serif; color: #ddf6ec; background: linear-gradient(150deg,#254954ee,#081b2fee 65%); box-shadow: inset 0 2px 1px #e7e5bc33,0 4px 0 #03101b,0 7px 14px #0008; text-shadow: 0 2px 2px #000; }
+.enigma-long { --seal-size: clamp(1.25rem,2.8vw,2.8rem); gap: .5em; }
+.enigma-waiting-seal { display: grid; place-items: center; width: 5.5rem; height: 5.5rem; border: 1px solid #abc5a780; transform: rotate(45deg); border-radius: .5rem; font-size: 2.2rem; color: #b2e7d3; background: #103a4380; box-shadow: 0 0 35px #7ed9cc20,inset 0 0 20px #adc8a321; }
+.enigma-form { width: min(100%, 43rem); margin: auto; }
+.enigma-form label { display: block; color: #ffe2a7; font-size: .8rem; font-weight: 800; letter-spacing: .18em; margin-bottom: .6rem; }
+.enigma-form input { width: 100%; border: 1px solid #76c9b27d; border-bottom: 3px solid #c9b57a; border-radius: .4rem .4rem 0 0; color: white; padding: .8rem 1rem; background: #031723dc; font: 700 clamp(1.1rem,2vw,1.6rem)/1.35 'Trebuchet MS',sans-serif; text-align: center; text-transform: uppercase; box-shadow: inset 0 1px 12px #0005,0 12px 30px #0002; }
+.enigma-form input::placeholder { color: #b5c9c6; text-transform: none; font-size: .9em; }
+.enigma-help { color: #bcd2cd; font-size: .8rem; margin: .75rem 0 1.3rem; line-height: 1.5; }
+.enigma-stage .enigma-reveal-button { display: inline-flex; justify-content: center; align-items: center; gap: 1rem; position: relative; min-height: 3.9rem; max-width: 100%; padding: 1.1rem clamp(1rem,3vw,3rem); border: 1px solid #fff2bd; border-bottom: 4px solid #875525; border-radius: .5rem; color: #251b12; background: linear-gradient(#fff0b7,#e8b950 49%,#dca13e 50%,#f3d17a); font-size: clamp(1rem,1.5vw,1.3rem); letter-spacing: .07em; text-shadow: 0 1px #fff3ba; box-shadow: inset 0 2px 0 #fffce4,0 5px 0 #302518,0 12px 35px #e8c66a22; }
+.enigma-stage .enigma-reveal-button:hover { color: #24180d; background: linear-gradient(#fff6d4,#f6cf74 49%,#ecbc52 50%,#ffe9a1); transform: translateY(-1px); }
+.enigma-stage .enigma-reveal-button:active { transform: translateY(2px); }
+.enigma-reveal-button span { font-size: .8em; }
+.enigma-notice { color: #ffdfbd; font-size: 1rem; line-height: 1.6; background: #1c1b24d9; border-left: 3px solid #e9b476; padding: 1rem; margin: 1rem auto; max-width: 42rem; }
+.enigma-charging-caption { min-height: 4rem; display: flex; align-items: center; justify-content: center; gap: 1rem; font-weight: 800; letter-spacing: .15em; color: #d7ead2; font-size: clamp(.75rem,1vw,1rem); }
+.enigma-charging-caption span { display: block; width: min(10vw,5rem); height: 1px; background: #9cdbbe; box-shadow: 0 0 8px #9cdbbe; }
+.enigma-footer { position: relative; z-index: 3; color: #b4c6be; font-size: .75rem; letter-spacing: .12em; line-height: 1.5; }
+.enigma-footer p { margin: .5rem 0 0; }
+.enigma-footer p[role] { color: #ffe0a6; letter-spacing: normal; }
+.enigma-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* A: single gathering movement, not a perpetual idle particle loop. */
+.enigma-charging .enigma-sanctuary, .enigma-charging .enigma-art { opacity: .55; }
+.enigma-charging .enigma-core-aura { background: radial-gradient(ellipse,#a0f6db66,#7fffe719 35%,transparent 68%); animation: enigma-gather .7s ease-in both; }
+.enigma-charging .enigma-ring-outer { animation: enigma-turn .7s ease-in both; }
+.enigma-charging .enigma-letter { animation: enigma-prepare .7s both; }
+/* B: unlock, then C: a spatially staggered letter reveal. */
+.enigma-awakening .enigma-core-aura, .enigma-celebrating .enigma-core-aura { background: radial-gradient(ellipse,#e8deb450,#53dcb52b 40%,transparent 70%); }
+.enigma-awakening .enigma-wave { animation: enigma-shockwave .85s ease-out both; }
+.enigma-awakening .enigma-ring-outer { animation: enigma-unlock .85s ease-out both; }
+.enigma-awakening .enigma-ring-inner { animation: enigma-unlock .85s ease-out reverse both; }
+.enigma-revealing .enigma-question, .enigma-celebrating .enigma-question, .enigma-success .enigma-question { opacity: 0; }
+.enigma-answer { --seal-size: clamp(2rem,5.9vw,6rem); min-height: 9rem; margin-top: 2.3rem; margin-bottom: 2.3rem; }
+.enigma-answer.enigma-long { --seal-size: clamp(1.4rem,3vw,3.1rem); }
+.enigma-answer .enigma-letter { color: #fff1bc; border-color: #f7de9b; border-bottom: 3px solid #a6803e; background: linear-gradient(135deg,#5b5335f2,#132c35f5 58%,#1c5146e6); text-shadow: 0 2px 0 #916b35,0 0 16px #ffdf8055; box-shadow: inset 0 2px 0 #fff1ad80,0 5px 0 #25291d,0 10px 32px #7ee9c32b; }
+.enigma-revealing .enigma-letter { animation: enigma-letter-awaken .55s calc(var(--letter) * .045s) cubic-bezier(.16,.8,.3,1) both; }
+/* D: three staged radial fireworks and 36 cut-gold shards, removed after 1.7s. */
+.enigma-festival { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.enigma-firework { position: absolute; top: 22%; left: 16%; width: 0; height: 0; }
+.enigma-firework:nth-child(2) { left: 84%; top: 32%; }
+.enigma-firework:nth-child(3) { left: 50%; top: 12%; }
+.enigma-firework:nth-child(4) { left: 10%; top: 62%; }
+.enigma-firework:nth-child(5) { left: 90%; top: 65%; }
+.enigma-firework i { position: absolute; width: 3px; height: clamp(1rem,3vw,3rem); border-radius: 50%; background: linear-gradient(transparent,#ffdf85,#caffeb); transform-origin: center center; --angle: calc(var(--ray) * 30deg); animation: enigma-firework-ray 1s calc((var(--burst) - 1) * .48s) ease-out both; }
+.enigma-shard { position: absolute; top: 85%; left: var(--x); width: .45rem; height: 1rem; background: linear-gradient(135deg,#fff2bf,#d6aa4f); box-shadow: 0 0 8px #d2ffd155; clip-path: polygon(50% 0,100% 50%,50% 100%,0 50%); animation: enigma-shard-flight 1.15s var(--delay) ease-out both; }
+.enigma-shard:nth-child(3n) { width: .8rem; height: .8rem; background: #a2f4db; clip-path: polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%); }
+.enigma-celebrating .enigma-wave { animation: enigma-shockwave 1.4s ease-out both; }
+/* E: stable victory; no automatic restart or perpetual animation. */
+.enigma-success .enigma-core-aura { background: radial-gradient(ellipse,#f4d58b40 12%,#63ddc632 38%,transparent 68%); }
+.enigma-success .enigma-ring, .enigma-celebrating .enigma-ring { border-color: #d8d28e99; box-shadow: 0 0 25px #8eebc933,inset 0 0 20px #c7d48422; }
+.enigma-success .enigma-ring { border-color: #f3d88cce; box-shadow: 0 0 18px #f0cb7655,0 0 48px #69e7cf38,inset 0 0 32px #8de5cf33; }
+.enigma-success .enigma-ring::after { border-color: #e8cd8877; }
+.enigma-success .enigma-ring-inner { border-color: #a5f2dcaa; }
+.enigma-success .enigma-seal { stroke: #bdebd28c; }
+.enigma-success .enigma-seal path:nth-of-type(2) { stroke: #f3d58caa; }
+.enigma-success .enigma-letter { color: #fff3c9; text-shadow: 0 2px 0 #916b35,0 0 18px #ffdf8070; box-shadow: inset 0 2px 0 #fff1ad99,0 5px 0 #25291d,0 10px 32px #7ee9c33b,0 0 18px #e8c36b22; }
+.enigma-success h1, .enigma-celebrating h1 { font-size: clamp(1.75rem,3.3vw,3.7rem); }
+.enigma-victory-actions > p { font-size: .9rem; color: #d3e7cb; letter-spacing: .15em; margin: 0 0 1.5rem; }
+.enigma-victory-controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .75rem 1rem; }
+.enigma-stage .enigma-victory-controls .enigma-restart-button { margin: 0; padding: 1rem 1.5rem; font-size: .9rem; color: #fff0c4; border-color: #e7ce8e; border-bottom: 3px solid #9c7b40; background: linear-gradient(#29433f,#112a2e); box-shadow: inset 0 1px 0 #fff0b533,0 4px 0 #04121b; }
+.enigma-stage .enigma-victory-controls .enigma-restart-button:hover { background: #304f48; border-color: #fff0bb; }
+.enigma-stage .enigma-replay-button { color: #cbded7; border-color: #8caa9c66; background: #071b2999; font-size: .8rem; }
+/* The same untouched artwork reacts through runtime light and optical layers. */
+.enigma-world-light { position: absolute; inset: 0; z-index: -2; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 50% 42%,#e9fff738,transparent 65%),linear-gradient(110deg,#6de9df20,transparent 35%,#f6d58320); }
+.enigma-awakening .enigma-world-light { animation: enigma-temple-wake .85s ease-out both; }
+.enigma-awakening :is(.enigma-art,.enigma-sanctuary) { animation: enigma-camera-lift .85s ease-out both; }
+.enigma-revealing .enigma-world-light, .enigma-celebrating .enigma-world-light, .enigma-success .enigma-world-light { opacity: 1; }
+.enigma-success .enigma-world-light { background: radial-gradient(ellipse 42% 50% at 50% 46%,#f5ce7a38, #75dfcc18 55%,transparent 85%); }
+.enigma-success :is(.enigma-art,.enigma-sanctuary), .enigma-celebrating :is(.enigma-art,.enigma-sanctuary) { filter: brightness(1.16) saturate(1.12); }
+.enigma-victory-trail { position: absolute; left: -12%; top: calc(10% + var(--trail) * 11%); width: clamp(4rem,16vw,16rem); height: 2px; background: linear-gradient(90deg,transparent,#b0fff0,#fff4b6); box-shadow: 0 0 14px #76e7d9; transform: rotate(-18deg); animation: enigma-trail 1s calc((var(--trail) - 1) * .37s) ease-out both; }
+.enigma-shard:nth-child(4n) { width: 1.5rem; height: 1.5rem; clip-path: polygon(50% 0,58% 33%,100% 20%,67% 50%,100% 80%,58% 67%,50% 100%,42% 67%,0 80%,33% 50%,0 20%,42% 33%); }
+.enigma-stage .enigma-restart-button { margin: 1rem .5rem 0; border-color: #a4c5c38c; color: #d9e9e5; background: #051621dd; font-size: .8rem; letter-spacing: .08em; }
+.enigma-defeated { --enigma-cyan: #d6b2c9; --enigma-gold: #dec3c0; }
+.enigma-defeated :is(.enigma-art,.enigma-sanctuary) { filter: grayscale(.85) brightness(.29) saturate(.4); transition: filter .7s ease-out; }
+.enigma-defeated .enigma-atmosphere { background: radial-gradient(ellipse at 50% 44%,#4e122e8c,transparent 65%),linear-gradient(#040718a8,#10091980 45%,#02050de6); }
+.enigma-defeated .enigma-world-light { opacity: 1; background: radial-gradient(ellipse at 50% 60%,#68172b30,transparent 50%); }
+.enigma-defeated .enigma-core { transform: translate(-50%,-50%) scale(.76); }
+.enigma-defeated .enigma-core-aura { background: radial-gradient(ellipse,#8d1e3c22,transparent 55%); }
+.enigma-defeated .enigma-ring { border: 3px dashed #aa4b5d70; box-shadow: none; border-radius: 44% 51% 46% 49%; clip-path: polygon(0 0,39% 0,46% 27%,48% 0,100% 0,100% 58%,70% 63%,100% 69%,100% 100%,55% 100%,48% 79%,41% 100%,0 100%,0 35%,26% 30%,0 23%); }
+.enigma-defeated .enigma-ring::after { border: 1px dashed #672439; box-shadow: none; }
+.enigma-defeated .enigma-ring-inner { transform: rotate(-17deg) scale(.82); }
+.enigma-defeated .enigma-seal { fill: transparent; stroke: #b4476060; stroke-dasharray: 17 13 4 29; }
+.enigma-defeated .enigma-seal path:nth-of-type(2) { stroke: #93334f60; }
+.enigma-defeated .enigma-question, .enigma-defeated .enigma-wave { display: none; }
+.enigma-fractures { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: #e77583; stroke-width: 1.8; stroke-linejoin: bevel; opacity: .38; }
+.enigma-defeated h1 { font-size: clamp(1.75rem,3.3vw,3.7rem); color: #f4d4d5; text-shadow: 0 3px 0 #3d192a,0 7px 18px #000; letter-spacing: .02em; }
+.enigma-defeated .enigma-kicker { color: #c6a9b9; }
+.enigma-defeated .enigma-introduction { color: #e4b3c5; font-weight: 800; }
+.enigma-defeated .enigma-letter { color: #cda7b0; background: #251522; border-color: #7f4055; box-shadow: none; text-shadow: none; }
+.enigma-defeated .enigma-charging-caption { color: #d0adbe; }
+.enigma-defeated .enigma-charging-caption span { background: #80364c; box-shadow: none; }
+.enigma-collapsing .enigma-core { animation: enigma-core-collapse .6s ease-in both; }
+.enigma-collapsing .enigma-mission { animation: enigma-doubt .45s ease-out both; }
+.enigma-collapsing :is(.enigma-art,.enigma-sanctuary) { animation: enigma-camera-fall .5s ease-out both; }
+.enigma-collapsing .enigma-fractures { animation: enigma-crack .6s ease-out both; }
+.enigma-extinguishing .enigma-world-light { background: radial-gradient(ellipse,#02030af0 10%,#110a1ce8 40%,transparent 70%); animation: enigma-shadow .65s ease-out both; }
+.enigma-extinguishing .enigma-seal-tray { animation: enigma-answer-extinguish .65s ease-in both; }
+.enigma-recovery { margin: 1.5rem auto 0; }
+.enigma-recovery p { color: #c9bbc6; font-size: .95rem; line-height: 1.5; max-width: 38rem; text-wrap: balance; margin: 1rem auto 1.5rem; }
+.enigma-broken-mark { width: 4rem; height: 4rem; margin: 1rem auto; border: 2px dashed #c66f8270; transform: rotate(23deg); clip-path: polygon(0 0,44% 0,52% 37%,62% 0,100% 0,100% 100%,54% 100%,43% 61%,32% 100%,0 100%); }
+.enigma-stage .enigma-retry-button { padding: 1rem 2rem; border: 1px solid #d3a3b7; border-bottom: 3px solid #8d586d; color: #f7e4ed; background: linear-gradient(#34273c,#171521); box-shadow: 0 4px 0 #040711; letter-spacing: .08em; }
+.enigma-stage .enigma-retry-button:hover { color: #fff; background: #493549; border-color: #f4cedd; }
+.enigma-fallout { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.enigma-fallout i { position: absolute; left: var(--ash-x); top: 25%; width: 3px; height: 7px; background: #b47485; clip-path: polygon(0 0,100% 30%,60% 100%,15% 60%); animation: enigma-ash 1.2s calc(.35s + var(--ash-delay)) ease-in both; }
+.enigma-fallout i:nth-child(3n) { width: 2px; height: 2px; background: #a99da9; }
+.enigma-smoke { position: absolute; inset: 30% 10% 5%; background: radial-gradient(ellipse at 30% 80%,#15101f99,transparent 55%),radial-gradient(ellipse at 70% 60%,#25152688,transparent 45%); animation: enigma-smoke-out 2s .2s ease-out both; }
+@keyframes enigma-temple-wake { from { opacity: 0; transform: scale(.65); } 65% { opacity: .85; } to { opacity: 1; transform: scale(1); } }
+@keyframes enigma-camera-lift { 50% { transform: scale(1.018) translateY(2px); } to { transform: scale(1); } }
+@keyframes enigma-camera-fall { 25% { transform: translate(-4px,2px); } 55% { transform: translate(3px,-1px); } to { transform: none; } }
+@keyframes enigma-core-collapse { from { transform: translate(-50%,-50%) scale(1.02) rotate(0); } 45% { transform: translate(-50%,-50%) scale(.92) rotate(-9deg); } to { transform: translate(-50%,-50%) scale(.76) rotate(0); } }
+@keyframes enigma-crack { from { stroke-dasharray: 0 600; opacity: .9; } to { stroke-dasharray: 600 0; opacity: .38; } }
+@keyframes enigma-shadow { from { transform: scale(.2); opacity: 0; } to { transform: scale(2); opacity: 1; } }
+@keyframes enigma-answer-extinguish { to { opacity: 0; transform: translateY(18px) scale(.8); filter: blur(5px); } }
+@keyframes enigma-ash { from { opacity: 0; transform: translate(0,0) rotate(0); } 20% { opacity: .7; } to { opacity: 0; transform: translate(var(--ash-drift),50vh) rotate(100deg); } }
+@keyframes enigma-smoke-out { from { opacity: 0; transform: translateY(30px) scale(.8); } 40% { opacity: .6; } to { opacity: 0; transform: translateY(-30px) scale(1.2); } }
+@keyframes enigma-trail { from { opacity: 0; transform: translateX(0) rotate(-18deg); } 20% { opacity: .8; } to { opacity: 0; transform: translateX(115vw) rotate(-18deg); } }
+.enigma-invalid .enigma-core { opacity: .35; }
+@keyframes enigma-gather { from { transform: scale(1.4); opacity: .25; } to { transform: scale(.85); opacity: 1; } }
+@keyframes enigma-turn { from { transform: rotate(0); } to { transform: rotate(45deg); } }
+@keyframes enigma-prepare { 50% { transform: translateY(-5px); border-color: #e9dcb4; } }
+@keyframes enigma-unlock { from { transform: rotate(0) scale(.9); } to { transform: rotate(95deg) scale(1.12); border-color: #e6d890; } }
+@keyframes enigma-shockwave { 0% { transform: scale(.5); opacity: 0; } 25% { opacity: .5; } 100% { transform: scale(2.3); opacity: 0; } }
+@keyframes enigma-letter-awaken { from { opacity: 0; transform: translateY(35px) rotateX(-70deg) scale(.75); } to { opacity: 1; transform: translateY(0) rotateX(0) scale(1); } }
+@keyframes enigma-firework-ray { from { opacity: 0; transform: rotate(var(--angle)) translateY(0) scaleY(.2); } 20% { opacity: .9; } to { opacity: 0; transform: rotate(var(--angle)) translateY(clamp(4rem,11vw,11rem)) scaleY(.5); } }
+@keyframes enigma-shard-flight { from { opacity: 0; transform: translate(0,0) rotate(0); } 15% { opacity: .9; } to { opacity: 0; transform: translate(var(--dx),var(--dy)) rotate(var(--turn)); } }
+@keyframes enigma-refuse { 0% { transform: scale(1.08); } 50% { transform: scale(.85); } 100% { transform: scale(1); } }
+@keyframes enigma-doubt { 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+@media (min-width: 900px) and (max-height: 800px) { .enigma-stage { gap: .75rem; padding: 1rem 2rem; }.enigma-mission { padding: .5rem 0; }.enigma-kicker { margin-bottom: .6rem; }.enigma-seal-tray { margin: 1.3rem auto; min-height: 6rem; }.enigma-stage h1 { font-size: 3rem; }.enigma-answer { --seal-size: 4.4rem; }.enigma-answer.enigma-long { --seal-size: 2.5rem; }.enigma-help { margin: .5rem 0 1rem; } }
+@media (max-width: 600px) { .enigma-stage { padding: 1rem; gap: 1rem; }.enigma-header { justify-content: center; }.enigma-brand { font-size: .6rem; }.enigma-brand strong { font-size: .8rem; }.enigma-tools { justify-content: center; }.enigma-tools button { padding: .55rem .75rem; font-size: .75rem; }.enigma-kicker { font-size: .65rem; letter-spacing: .15em; }.enigma-introduction { font-size: .85rem; line-height: 1.6; }.enigma-core { width: 130vw; }.enigma-mission { padding: 1rem 0; }.enigma-seal-tray { margin: 1.5rem auto; min-height: 5rem; }.enigma-letter { height: 1.3em; }.enigma-answer { --seal-size: 2.5rem; }.enigma-answer.enigma-long { --seal-size: 1.5rem; }.enigma-form input { font-size: 1.1rem; }.enigma-stage .enigma-reveal-button { font-size: .85rem; gap: .5rem; padding: 1rem .8rem; }.enigma-footer { font-size: .65rem; }.enigma-victory-actions > p { font-size: .75rem; line-height: 1.5; } }
+.enigma-reduced *, .enigma-reduced *::before, .enigma-reduced *::after { animation: none !important; transition: none !important; }
+.enigma-reduced .enigma-festival { display: none; }
+@media (prefers-reduced-motion: reduce) { .enigma-stage *, .enigma-stage *::before, .enigma-stage *::after { animation: none !important; transition: none !important; }.enigma-festival { display: none; } }

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">LET'S GO</title>
+  <rect x="5" y="5" width="150" height="150" rx="19" fill="#ec292d" stroke="#101318" stroke-width="10"/>
+  <path d="M22 17h110" stroke="#ff6b58" stroke-width="4" stroke-linecap="round"/>
+  <!-- Original outlined letterforms: no fonts or third-party logo assets. -->
+  <defs>
+    <path id="letters" d="M27 34h10v29h14v10H27Z M56 34h23v9H66v6h12v9H66v6h14v9H56Z M83 34h27v10h-8v29H91V44h-8Z M114 32h8l-3 13h-6Z M145 36l-4 9q-12-7-12-1 0 3 8 5 11 4 7 15-4 14-25 7l3-10q13 6 13 0 0-3-8-5-10-4-7-14 3-13 25-6Z M75 89l-6 13q-19-9-23 6-5 17 11 17l2-8h-9l3-11h23l-7 29q-35 10-40-15-3-19 10-30 14-10 36-1Z M111 85q26 0 20 29-6 25-29 25-25 0-20-27 5-27 29-27Z M109 100q-9 0-12 15-2 10 6 10 9 0 12-14 2-11-6-11Z" fill-rule="evenodd"/>
+  </defs>
+  <g transform="translate(-5 0) skewX(-5) rotate(-4 80 80)" stroke-linejoin="round">
+    <use href="#letters" fill="#fff" stroke="#ffd64b" stroke-width="10"/>
+    <use href="#letters" fill="#fff" stroke="#101318" stroke-width="6"/>
+    <use href="#letters" fill="#fff"/>
+  </g>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1080" gradientUnits="userSpaceOnUse"><stop stop-color="#030e1b"/><stop offset=".55" stop-color="#103849"/><stop offset="1" stop-color="#020e18"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#40d1ca" stop-opacity=".28"/><stop offset=".45" stop-color="#1f9caa" stop-opacity=".12"/><stop offset="1" stop-color="#092d40" stop-opacity="0"/></radialGradient>
+    <linearGradient id="stone" x2="1" y2="0"><stop stop-color="#020d17"/><stop offset=".32" stop-color="#153a47"/><stop offset=".55" stop-color="#2d5256"/><stop offset=".7" stop-color="#0e2b39"/><stop offset="1" stop-color="#010a13"/></linearGradient>
+    <linearGradient id="gold" x2="1" y2="0"><stop stop-color="#563b20"/><stop offset=".3" stop-color="#bd9756"/><stop offset=".53" stop-color="#f8da91"/><stop offset=".7" stop-color="#8c6736"/><stop offset="1" stop-color="#352716"/></linearGradient>
+    <linearGradient id="floor" x2="0" y2="1080" gradientUnits="userSpaceOnUse"><stop offset=".6" stop-color="#173d46"/><stop offset="1" stop-color="#030d19"/></linearGradient>
+    <radialGradient id="flame"><stop stop-color="#fff6c1"/><stop offset=".3" stop-color="#ffd675"/><stop offset="1" stop-color="#d58a3c" stop-opacity="0"/></radialGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1920v1080H0z"/>
+  <ellipse cx="960" cy="480" rx="820" ry="700" fill="url(#aura)"/>
+  <!-- Deep vault and original interlocking stone arches. -->
+  <path d="M390 860V445C390 70 1530 70 1530 445v415" stroke="#020b15" stroke-width="170"/>
+  <path d="M390 860V445C390 70 1530 70 1530 445v415" stroke="#36545a" stroke-width="5"/>
+  <path d="M442 860V450C442 135 1478 135 1478 450v410" stroke="#a0824c" stroke-opacity=".5" stroke-width="9"/>
+  <path d="M475 860V450C475 180 1445 180 1445 450v410" stroke="#051624" stroke-width="42"/>
+  <path d="M500 860V450C500 205 1420 205 1420 450v410" stroke="#6ca6a1" stroke-opacity=".25" stroke-width="2"/>
+  <path d="m420 165 540-135 540 135-62 32-478-81-478 81z" fill="#0c2735" stroke="#897249" stroke-width="3"/>
+  <path d="m512 125 448-96 448 96-448-54z" fill="url(#gold)" opacity=".5"/>
+  <!-- Receding wall panels and ceiling shafts, without writing or borrowed emblems. -->
+  <path d="M255 298h150v390H255zm1260 0h150v390h-150z" fill="#061522" stroke="#355259" stroke-width="3"/>
+  <path d="m286 360 44-34 44 34v245l-44 38-44-38zm1260 0 44-34 44 34v245l-44 38-44-38z" stroke="#b1965b" stroke-opacity=".35" stroke-width="5"/>
+  <path d="m285 400 45 65 45-65m-90 130 45-65 45 65m1170-130 45 65 45-65m-90 130 45-65 45 65" stroke="#56b9b1" stroke-opacity=".22" stroke-width="6"/>
+  <path d="M780 0 590 800h190L925 0zm360 0 190 800h-190L995 0z" fill="#83e6d7" opacity=".025"/>
+  <!-- Continuous stone floor and converging seams. -->
+  <path d="m0 770 535-65h850l535 65v310H0z" fill="url(#floor)"/>
+  <path d="M0 836h1920M0 917h1920M0 1035h1920M960 720v360M770 720l-400 360M1150 720l400 360M560 720 0 980m1360-260 560 260" stroke="#56827d" stroke-opacity=".23" stroke-width="2"/>
+  <path d="m545 855 415-72 415 72-415 130z" fill="#0c2633" stroke="#3d6567" stroke-width="3"/>
+  <path d="m630 855 330-50 330 50-330 97z" stroke="#ac945d" stroke-opacity=".3" stroke-width="3"/>
+  <!-- Massive foreground columns, metallic collars and cut-stone bases. -->
+  <g fill="url(#stone)" stroke="#203b48" stroke-width="2">
+    <path d="M112 0h135v819H112zm1561 0h135v819h-135z"/>
+    <path d="M74 805h215v87H74zm1557 0h215v87h-215z"/>
+    <path d="M47 889h270v54H47zm1556 0h270v54h-270z"/>
+  </g>
+  <g fill="url(#gold)"><path d="M96 160h166v29H96zm0 546h166v30H96zM1658 160h166v29h-166zm0 546h166v30h-166z"/><path d="M88 12h180v45H88zm1564 0h180v45h-180z"/></g>
+  <g stroke="#99c9bc" stroke-opacity=".18" stroke-width="3"><path d="m180 257-36 50 36 50 36-50zm0 130-36 50 36 50 36-50zm1560-130-36 50 36 50 36-50zm0 130-36 50 36 50 36-50z"/></g>
+  <!-- Warm lanterns balance the cool energy core. -->
+  <ellipse cx="318" cy="600" rx="85" ry="140" fill="url(#flame)" opacity=".24"/><ellipse cx="1602" cy="600" rx="85" ry="140" fill="url(#flame)" opacity=".24"/>
+  <g fill="#102333" stroke="#b69a61" stroke-width="3"><path d="m282 541 36-26 36 26-10 9v111h-52V550zm1284 0 36-26 36 26-10 9v111h-52V550z"/></g>
+  <g fill="#efc877"><path d="M302 561h31v78h-31zm1284 0h31v78h-31z"/></g>
+  <g stroke="#755a33" stroke-width="5"><path d="M318 553v90m-24-53h48m-48 29h48m1260-66v90m-24-53h48m-48 29h48"/></g>
+  <path d="M0 0h65v1080H0zm1855 0h65v1080h-65z" fill="#020b14" fill-opacity=".75"/>
+</svg>
