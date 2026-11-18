@@ -1,8 +1,6 @@
 # Pergaminos imprimibles del Maestro Wu
 
-Generación local independiente del juego. **Colección de cuatro pistas rediseñadas a partir de los originales** localizados por indicación del propietario en `public/private-media/colegio/pistas/`. Los cuatro PDF individuales coinciden, página a página, con el documento conjunto; permanecen intactos. La página maestra de demostración previa se conserva separada como muestra.
-
-Los originales son imágenes dentro de PDF y no contienen texto extraíble. Se renderizaron, abrieron y transcribieron visualmente; las salidas nuevas permiten seleccionar y extraer el texto. Se conservan identificación literal, orden, contenido y pie romano. No se asignan rutas a equipos/perfiles reales. El marco reservado original mide aproximadamente 148 × 28 mm según el raster; la nueva área útil, sin contar marco, es de 150 × 48 mm, por lo que se amplía.
+Generador local de pistas A4 para preparar y repartir en papel. Los originales rasterizados están en public/private-media/colegio/pistas/. El JSON transcribe su contenido y fija la huella del original. Las salidas permiten seleccionar el texto.
 
 ## Archivos
 
@@ -29,9 +27,9 @@ Los originales son imágenes dentro de PDF y no contienen texto extraíble. Se r
 
 Los originales aportados por el propietario sí están bajo `public/private-media/`; Vite los copia a los builds privados como el resto de medios. Se conserva esa ubicación sin moverlos ni sobrescribirlos. Los nuevos diseños permanecen exclusivamente bajo `printables/`.
 
-## Regenerar desde la terminal de VS Code
+## Regenerar
 
-Requisitos: Node 24, Chrome instalado, fuentes locales **Georgia** y **Trebuchet MS** (Windows). El equipo actual dispone de ambas; no se descargan ni redistribuyen sus archivos. Chrome incrusta subconjuntos para lectura/impresión. Para otra plataforma deben revisarse disponibilidad, licencia y métricas antes de aprobar el resultado.
+Requisitos: Node 24, Chrome instalado, fuentes locales **Georgia** y **Trebuchet MS** (Windows). Usa fuentes locales con licencia para el equipo de impresión. Chrome incrusta subconjuntos para lectura/impresión. Para otra plataforma deben revisarse disponibilidad, licencia y métricas antes de aprobar el resultado.
 
 Desde la raíz del proyecto, instalar una vez las herramientas de impresión (requiere internet; sin cambios en el package.json ni el lock del juego):
 
@@ -68,7 +66,6 @@ Si npm encuentra el EPERM de esta instalación de Windows, aplicar [el procedimi
 node --preserve-symlinks --preserve-symlinks-main printables/src/generate.mjs
 ```
 
-Desde esta terminal de ejecución se verificó el comando; no se afirma haber controlado una terminal integrada de VS Code.
 
 ## Datos y fidelidad
 
@@ -82,14 +79,6 @@ node --preserve-symlinks --preserve-symlinks-main printables/src/generate.mjs pr
 
 El generador comprueba texto exacto del HTML, texto extraído del PDF, una página A4, fuentes incrustadas, desbordamientos y separación de bloques. Si no cabe, falla: no trunca, resume ni reduce automáticamente las letras. Un original que requiera más páginas o una composición no textual necesita revisión, no adaptación silenciosa a esta muestra.
 
-## Impresión y calidad comprobada
+## Impresión y revisión
 
-Formato CSS A4 vertical; medida PDF observada en Chrome: **209,889 × 297,011 mm**, redondeo del motor dentro de 0,3 mm. Márgenes blancos de 12 mm, tinta azul noche/marrón, oro envejecido y papel marfil; sin grandes masas oscuras, marcas de corte ni doble marco rectangular continuo. Texto de lectura 15 pt, título Georgia Bold 32 pt, identificación Trebuchet MS. El cartucho deja libre un rectángulo útil de aproximadamente 150 × 48 mm.
-
-Se inspeccionaron las cuatro páginas PNG procedentes de los PDF reales: colección coherente, título protagonista, lectura limpia, cartucho utilizable y ornamentos geométricos relacionados con la arquitectura del templo. No se han generado ilustraciones ni modificado recursos existentes. La textura de fibras y la ornamentación son SVG; texto seleccionable, no páginas aplanadas.
-
-Dos regeneraciones consecutivas en el mismo Chrome y con las mismas fuentes produjeron **PDF y PNG idénticos por SHA-256**. Los campos de fecha del PDF se neutralizan a 2000-01-01 sin cambiar longitudes ni offsets; no indican fecha real de producción. La identidad binaria no se garantiza entre distintas versiones de Chrome, sistemas o fuentes.
-
-La inspección no sustituye una impresión física: imprimir al **100 % / tamaño real**, sin «ajustar a página», revisar color/legibilidad y probar escritura o adhesión en el cartucho. Pendientes la prueba física y la aprobación del propietario; el cotejo visual con los originales sí se ha realizado.
-
-Fuentes técnicas: [exportación PDF de Chrome](https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-printToPDF), [A4 mediante CSS @page](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@page/size) y [lectura/renderizado con PDF.js](https://mozilla.github.io/pdf.js/examples/). Las APIs exactas se contrastaron también con los tipos locales de PDF.js 6.5.438; el recurso de carga se libera mediante `PDFDocumentLoadingTask.destroy()`.
+Usa A4 vertical al 100 % o tamaño real, con márgenes de diseño de 12 mm. Comprueba color y legibilidad y prueba el uso del cartucho de 150 × 48 mm. Antes de repartir las piezas, coteja cada texto con su original rasterizado. El archivo qa.json registra formato, fuentes y huellas. La reproducción binaria depende de Chrome, del sistema y de las fuentes. Las fechas internas se neutralizan para facilitar la comparación de salidas.

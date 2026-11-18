@@ -1,132 +1,66 @@
-# Desarrollo y validación local
+# Desarrollo y mantenimiento
 
-## Ceremonia final — Hito 11.3
+## Entorno
 
-Regresión de calidad del santuario: `node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/sanctuary-quality.smoke.mjs`. Usa el mismo Chrome/Vite y contexto sintético aislado. Verifica clics físicos y Enter en controles públicos y sus confirmaciones, restauración de borrador, portada desde cinco estados, frase rechazada exacta/escapada tras recarga, aislamiento de turnos/perfiles y victoria conservada. Mide alineación al sello, separación de Wu y ausencia de solapamiento en 1920×1080, 1366×768 y 1280×720. Guarda evidencia privada en `.preview.local/sanctuary-quality/`.
+Usa Node.js 24, npm y Git. Instala con npm ci desde la raíz. El lock fija las versiones. Para servir en loopback usa npm run dev. npm run preview sirve el build creado por npm run build y puede usar otro puerto. Conserva el mismo origen en las dos ventanas. Consulta la [guía de uso](../README.md#instalar-y-arrancar).
 
-Contrato, fases, controles, compatibilidad y arte en [FINALE](FINALE.md). Suite normal `npm test`, TypeScript y build con el procedimiento de Windows de este documento. No se añade infraestructura ni dependencias.
-
-Ensayo vigente: `node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/finale-ceremony.smoke.mjs`. El anterior `tests/finale.smoke.mjs` es un alias; se conserva su fuente anterior en la evidencia privada del Hito 11.1. Chrome normal CDP loopback 9224 y Vite deben estar disponibles. Variables `SMOKE_URL`, `FINALE_CDP_PORT`.
-
-El arnés crea y elimina un contexto sintético con administración y pública; no toca almacenamiento del propietario. Comprueba turnos completos, NO/reload/SÍ, todos los nombres y capitán, primer fallo sin giro, segundo fallo y cooperación, capitán del primer equipo, fallo/acierto conjunto, acierto individual honesto, concurrencia, restore/restart/replay/home, perfiles y pergaminos cortos/largos. Revisa 1920×1080, 1366×768 y 390×844, medios ausentes y movimiento reducido. Guarda capturas/fotogramas/registros en `.preview.local/finale-11-3/`; la evidencia anterior se conserva. Espera nuevos documentos al recargar y fases/estado confirmados, no retrasos de sincronización arbitrarios.
-
-CDP emula página activa para que la oclusión de Windows no suspenda el renderizado; no cambia el reloj del juego ni desactiva seguridad. Las capturas estables esperan las animaciones CSS finitas, las de VFX muestrean tiempo real. No equivale a medir FPS del monitor.
-
-`node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/public-window.smoke.mjs` conserva la regresión de ventanas: nombre heredado, destinos separados, repetición, URL antigua, cierre/reapertura y enlace manual. La apertura rechazada se simula con retorno `null` solo en ese contexto, no cambiando políticas de Chrome.
-
-No usar perfiles/JSON reales para ensayar. Un build incluye medios privados presentes y no se publica. Quedan aprobación artística del propietario, prueba física de monitor/altavoces y desconexión real con HTTP loopback activo.
-
-## Imprimibles privados
-
-Preparación, Chrome aislado, esquema de contenido y regeneración de las cuatro piezas en [printables/README.md](../printables/README.md). Herramienta independiente: `node --preserve-symlinks --preserve-symlinks-main printables/src/generate.mjs printables/content/pista-01.json` (repetir 02–04; sin argumento genera la muestra). Instalar previamente con `npm ci --prefix printables --ignore-scripts --omit=optional`; no cambia dependencias ni scripts del juego. Originales rasterizados cotejados visualmente y fijados por SHA-256; no publicar `content/`, `output/` o `previews/`. La CSP restringe cargas al servidor loopback temporal y el renderizado PDF usa intención de impresión para funcionar en una pestaña de fondo.
-
-## Ensayo del enigma independiente
-
-Mantener Vite y abrir /?screen=enigma#palabra=AMISTAD. El script tests/enigma.smoke.mjs usa Chrome normal ya abierto con DevTools loopback en 9224, perfil de ensayo separado y sin desactivar su sandbox. Crea y elimina únicamente su propio contexto limpio; no altera perfiles del propietario. Ejecutar `node --preserve-symlinks --preserve-symlinks-main tests/enigma.smoke.mjs`. Variables opcionales: SMOKE_URL (por defecto http://localhost:5173) y ENIGMA_CDP_PORT (9224).
-
-Para habilitar esa conexión, iniciar Chrome con --remote-debugging-address=127.0.0.1 --remote-debugging-port=9224 y --user-data-dir apuntando a una carpeta de ensayo dentro de .preview.local; no al perfil personal. No usar --no-sandbox ni administrador. El ensayo bloquea HTTP externo, prueba teclado, reintento/revelación, reinicio durante repetición, ciclos repetidos, movimiento reducido, audio y respaldo de imagen; guarda capturas privadas y secuencias reales en .preview.local/enigma-10-1. animation-review.html reproduce los fotogramas de derrota y victoria con sus tiempos originales; motion.json conserva esos tiempos. No equivale a desconectar físicamente internet ni certificar altavoces o monitor extendido.
-
-La suite npm test incluye pruebas puras, composable con reloj controlado, Web Audio simulado, componente compilado y selección real de raíz. El smoke real es un comando separado y requiere conexión CDP disponible. Pantalla completa nativa solo se ensaya automáticamente con ENIGMA_TEST_FULLSCREEN=1: el entorno CDP ha impedido confirmar su salida, por lo que queda pendiente ensayo manual. Las restricciones históricas de Edge no implican que Chrome esté indisponible.
-
-Volver a [README](../README.md) · [Arquitectura](PROJECT.md) · [Evidencia actual](VALIDATION.md).
-
-## Contenido
-
-- [Entorno y scripts](#entorno-y-scripts)
-- [Npm en Windows con EPERM](#npm-en-windows-con-eperm)
-- [Validación en navegador](#validación-en-navegador)
-- [Ensayo de organizador y monitor](#ensayo-de-organizador-y-monitor)
-- [Privacidad y traslado](#privacidad-y-traslado)
-
-## Entorno y scripts
-
-Node usado en la última revisión: 24.19.0. Se recomienda para reproducir el proyecto la rama Node 24 LTS ya documentada; no se actualizan dependencias en esta tarea. El test runner utiliza eliminación nativa de tipos TypeScript. Vite declara Node ^20.19.0 o >=22.12.0, pero cumplir su mínimo no acredita por sí solo ejecutar todos los scripts de tests.
-
-| Comando desde la raíz | Función |
-| --- | --- |
-| npm ci | Instala exactamente el lock; requiere dependencias disponibles/conexión antes del evento |
-| npm run dev | Vite de desarrollo en 127.0.0.1, puerto inicial 5173; dejar terminal activa |
-| npm test | Node --experimental-strip-types --test --test-isolation=none tests/*.test.mjs |
-| npm run typecheck | vue-tsc --noEmit |
-| npm run build | Typecheck seguido de vite build; salida dist, con todos los medios locales de public |
-| npm run preview | Sirve dist por loopback, puerto inicial 4173; no modifica datos de otro origen |
-| npm run test:smoke | Script CDP que requiere navegador aparte con DevTools en 127.0.0.1:9223 |
-| git diff --check | Comprueba errores de espacios del diff local |
-
-No existe npm run lint. La aplicación no requiere internet en runtime, pero npm ci sí puede necesitarlo. No abrir dist con file://. Mantener origen único y no arrancar duplicados del servidor del propietario. Si cambias de puerto/host, la configuración del navegador anterior sigue en su origen, no se traslada automáticamente.
-
-## Npm en Windows con EPERM
-
-El error conocido al iniciar npm es EPERM/lstat AppData en algunas instalaciones/enlaces del entorno. Antes de cambiar nada, identifica Node y npm:
+## Comprobaciones locales
 
 ```powershell
-node --version
-Get-Command node
-Get-Command npm.cmd
-$npmRoot = Split-Path (Get-Command npm.cmd).Source -Parent
-$npmCli = Join-Path $npmRoot 'node_modules\npm\bin\npm-cli.js'
-if (!(Test-Path -LiteralPath $npmCli)) { throw 'npm-cli.js no existe en la instalación detectada. Revisa npm.cmd; no supongas otra ruta de usuario.' }
+npm test
+npm run typecheck
+npm run build
+git diff --check
 ```
 
-Si existe, utiliza el mismo npm mediante Node, preservando los enlaces también en procesos hijos. Por ejemplo, para validar:
+npm test ejecuta tests/*.test.mjs. Usa el ejecutor de Node para pruebas y el soporte nativo para omitir anotaciones de tipos de TypeScript. El build comprueba tipos antes de empaquetar. No hay script de lint. Para aislar una regresión ejecuta node --experimental-strip-types --test tests/ARCHIVO.test.mjs con el nombre correspondiente.
+
+## npm en Windows con EPERM
+
+Si el iniciador npm falla con EPERM al resolver AppData, identifica la instalación activa e invoca su CLI mediante Node. Conserva las opciones solo durante la operación para que las hereden los procesos hijos.
 
 ```powershell
+$npmRoot = Split-Path (Get-Command npm.cmd).Source -Parent
+$npmCli = Join-Path $npmRoot 'node_modules\npm\bin\npm-cli.js'
+if (!(Test-Path -LiteralPath $npmCli)) { throw 'Revisa la ubicación de npm-cli.js en la instalación activa.' }
 $previousNodeOptions = $env:NODE_OPTIONS
 try {
     $env:NODE_OPTIONS = '--preserve-symlinks --preserve-symlinks-main'
-    foreach ($script in @('test', 'typecheck', 'build')) {
-        node --preserve-symlinks --preserve-symlinks-main $npmCli run $script
-        $validationExit = $LASTEXITCODE
-        Write-Output "${script}_EXIT=$validationExit"
-        if ($validationExit -ne 0) { throw "Falló $script ($validationExit)" }
+    foreach ($task in @('test', 'typecheck', 'build')) {
+        node $npmCli run $task
+        if ($LASTEXITCODE -ne 0) { throw "Falló $task ($LASTEXITCODE)" }
     }
 } finally {
     $env:NODE_OPTIONS = $previousNodeOptions
 }
-git diff --check
 ```
 
-Para arrancar Vite en una terminal de PowerShell de VS Code:
-
-```powershell
-$previousNodeOptions = $env:NODE_OPTIONS
-try {
-    $env:NODE_OPTIONS = '--preserve-symlinks --preserve-symlinks-main'
-    node --preserve-symlinks --preserve-symlinks-main $npmCli run dev
-} finally {
-    $env:NODE_OPTIONS = $previousNodeOptions
-}
-```
-
-Deja ese proceso abierto; Ctrl+C termina el servidor y permite restaurar la variable. Para instalar mediante esta ruta usa los mismos flags con $npmCli ci (sin run). No pedir administrador ni desactivar protecciones si continúa el bloqueo: registra el error y ejecuta los comandos desde una terminal normal autorizada. La ruta observada en esta máquina es C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js; el procedimiento la detecta, no depende de ese nombre fijo.
+Con el mismo bloque de opciones, usa node $npmCli ci para instalar o node $npmCli run dev para arrancar el servidor. Ctrl+C termina Vite y permite restaurar la variable.
 
 ## Validación en navegador
 
-Los tests permanentes cubren validación, migración, journal/CAS, perfiles, controladores de presentación, confirmaciones y componentes compilados con Vue. Los transportes y almacenamiento de esas pruebas son simulados. No acreditan disponibilidad física del monitor, recorte real, contraste, lector de pantalla o reproducción de vídeo.
+Arranca Vite y abre Chrome normal con un perfil de ensayo exclusivo en .preview.local y CDP en loopback. Usa datos sintéticos. Los arneses crean y eliminan contextos desechables. Conserva el sandbox de Chrome y deja el perfil personal fuera del ensayo.
 
-El script tests/command-center.smoke.mjs está versionado y su sintaxis puede comprobarse con node --check. Crea un contexto CDP aislado con datos ficticios y capturas privadas. **Su recorrido conserva supuestos antiguos**, por ejemplo gestión de confirmaciones nativas Page.javascriptDialogOpening frente al diálogo compartido actual y secuencias de perfiles/ceremonia; necesita revisión antes de dar por cubierto el flujo actual de pruebas. No se ha ejecutado ni corregido en esta operación documental. No presentarlo como suite E2E actual aprobada.
+```powershell
+$trialProfile = Join-Path (Get-Location) ('.preview.local/chrome-' + [guid]::NewGuid())
+Start-Process -FilePath 'C:\Program Files\Google\Chrome\Application\chrome.exe' -ArgumentList '--remote-debugging-port=9224', ('--user-data-dir="' + $trialProfile + '"'), 'about:blank'
+$env:SMOKE_URL = 'http://127.0.0.1:5173'
+node --experimental-strip-types tests/public-window.smoke.mjs
+node --experimental-strip-types tests/finale-ceremony.smoke.mjs
+node --experimental-strip-types tests/sanctuary-quality.smoke.mjs
+node --experimental-strip-types tests/enigma.smoke.mjs
+```
 
-Si un desarrollador decide revisarlo fuera del entorno restringido, necesita preview activo y un Chromium/Edge local autorizado con DevTools en loopback:9223 y perfil de prueba separado. El script usa por defecto http://127.0.0.1:4173, configurable con SMOKE_URL; esa elección pertenece a datos sintéticos, no al origen real del organizador. No iniciar DevTools sobre el perfil habitual ni exponerlo a la red. npm run test:smoke falla si ese endpoint no existe. Los procedimientos históricos no deben ejecutarse automáticamente.
+Ajusta el ejecutable y SMOKE_URL al equipo y puerto reales. FINALE_CDP_PORT modifica el puerto de los tres primeros scripts y ENIGMA_CDP_PORT el del Oráculo. finale.smoke.mjs es un alias de finale-ceremony.smoke.mjs. Los ensayos verifican DOM, acciones, persistencia y medidas de ventanas mediante CDP. Las salidas privadas quedan en .preview.local. public-window guarda su recorrido de ventanas, finale-ceremony guarda el recorrido completo y sanctuary-quality mide composición e interacción. El Oráculo conserva capturas y secuencias en su propia carpeta. El ensayo opcional de pantalla completa del Oráculo usa ENIGMA_TEST_FULLSCREEN=1.
 
-En el entorno de Codex se observó bloqueo de Edge/Mojo (Access is denied). No repetir headless como condición de cierre ni usar flags que desactiven la seguridad. Si no hay navegador inspeccionable, comprobar HTTP/medios/compilación y declarar pendientes visuales; pedir la revisión humana con Vite activo.
+npm run test:smoke ejecuta tests/command-center.smoke.mjs. Este usa el puerto fijo 9223 y, sin SMOKE_URL, espera preview en 4173. Consulta sus incidencias y las de los demás arneses en [VALIDATION](VALIDATION.md). Un fallo del arnés requiere revisar el selector y el flujo antes de atribuirlo al juego.
 
-## Ensayo de organizador y monitor
+Si Chrome no abre, revisa stderr y comprueba /json/version en el puerto elegido. Windows puede denegar Mojo o Crashpad dentro del sandbox de ejecución. Usa una terminal normal autorizada con perfil aislado. Comprueba que administra el origen previsto antes de cargar datos sintéticos.
 
-Utiliza datos ficticios en un perfil de navegador aislado. No vacíes almacenamiento real; exporta configuración privada antes de cualquier prueba sobre el equipo del evento.
+## Datos y recuperación
 
-1. Arranca/reutiliza Vite y abre administración/pública del mismo origen. Confirma perfil en cabecera, añade integrantes, traslada varios y designa capitanes. Guarda. Comprueba orden español, exclusividad y persistencia tras recarga.
-2. Muestra la ceremonia: debe abrir/obtener pública desde la interacción y esperar respuesta fresca. Cierra pública, repite; comprueba aviso si se bloquea el popup. Seleccionar una previa no debe publicar.
-3. Recorre color/nombre de ambos equipos, aceptar/rechazar/agotar propuestas y nombre manual. Verifica decisiones al retroceder/recargar, formación completa, capitán primero y grupos mayores de doce. Continúa al vídeo e inicia sus controles manualmente.
-4. Crea dos pruebas distintas con el editor genérico, configura textos e imágenes diferentes y guarda. Duplica: contenido independiente y resultado pendiente. Ordena, retira una del recorrido y cancela la confirmación una vez; al guardar la retirada activa vuelve a portada sin perder su resultado.
-5. Presenta misión, amplía/normal y recarga pública. Guarda ganador: no debe anunciar. Anúncialo expresamente, corrige el resultado y verifica que el anuncio previo no cambia solo; vuelve a mostrar contenido.
-6. Repite a 1920×1080, 1366×768 y 390×844, con horizontal/vertical/cuadrada, sin imagen/nombre inexistente, título160/acción120/regla100 combinados. Revisa misión vertical, textos generales, imagen completa, teclado, foco, Escape y movimiento reducido. Para probar fondo ausente usa bloqueo de recursos de DevTools, sin borrar/renombrar el archivo aprobado.
-7. Cambia entre Colegio y Urbanización y revisa aislamiento; prueba importación v2/v3/v4 y exportación sin resultados/binaries en datos ficticios. Abre dos editores para comprobar que un borrador desactualizado no sobrescribe cambios recientes. Ensaya reset solo sobre preparación sintética y comprueba vuelta pública a portada y otro perfil intacto.
-8. Con servidor local activo, desconecta internet manualmente y repite imágenes, vídeo y cambios entre ventanas. No desactives red automáticamente desde Codex. Observa las solicitudes en Network, deben ser locales. Comprueba lectura a tres–cinco metros con un facilitador/niño. Guarda capturas en .preview.local y no las publiques.
+Conserva el puerto y perfil habituales para recuperar una partida. Revisa avisos de almacenamiento y cierra las ventanas de ensayo antes de repetir. Exporta configuración desde administración antes de una sustitución deliberada y mantén los archivos en privado. Las reglas de historial, journal, restablecimiento y legado están en [PROJECT](PROJECT.md#persistencia-y-recuperación). Ante un conflicto conserva los cambios guardados y revisa el borrador antes de reintentar.
 
-Para vasos, añade el [ensayo físico de su ficha](challenges/LOS-VASOS-SAGRADOS.md#ensayo-y-criterios). La inspección de un PNG no demuestra que niños entiendan el relevo al verlo pequeño en el portal.
+Una comprobación HTTP sirve para confirmar el arranque y la disponibilidad de archivos. Para acreditar monitor extendido, decodificación, sonido y desconexión de internet ejecuta el [ensayo físico](VALIDATION.md#ensayo-antes-del-evento). El proceso local debe seguir activo al desconectar internet.
 
-## Privacidad y traslado
-
-Copia privadamente las dos carpetas de medios y el fondo compartido al ordenador del evento, instala dependencias y compila allí. Exporta/importa configuración en el origen elegido; resultados/progreso no están incluidos, así que no cambies de origen durante una partida. No es un backup completo.
-
-public/private-media queda ignorado excepto .gitkeep. JSON personales, historias, capturas, prompts privados, builds y cachés no se preparan en Git. El actual trabajo no autoriza commit/push/merge/reset/clean. Revisa tanto archivos nuevos como rastreados antes de cualquier publicación autorizada posterior.
+Los [imprimibles](../printables/README.md) se generan con su propio paquete. Los builds y capturas que incluyen medios o datos privados se quedan en el equipo.

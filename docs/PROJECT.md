@@ -1,73 +1,8 @@
 # Proyecto — El secreto del maestro Wu
 
-Estado vigente: 18/11/2026. Este documento describe el producto y el código actual; [README](../README.md) explica el uso, [DEVELOPMENT](DEVELOPMENT.md) el entorno y ensayo, y [VALIDATION](VALIDATION.md) la evidencia. Las decisiones anteriores están completas en [history/INDEX.md](history/INDEX.md).
+Aventura local de cumpleaños para dos clanes, dirigida por un adulto desde un centro de mando y proyectada en una pantalla pública. El adulto arbitra las pruebas y anuncia sus resultados. La entrega de pistas es física. El juego incluye un desenlace configurable por perfil y un Oráculo independiente.
 
-## Contenido
-
-- [Visión y alcance](#visión-y-alcance)
-- [Estado implementado](#estado-implementado)
-- [Arquitectura](#arquitectura)
-- [Modelo de configuración](#modelo-de-configuración)
-- [Persistencia y recuperación](#persistencia-y-recuperación)
-- [Presentación y sincronización](#presentación-y-sincronización)
-- [Arte y multimedia](#arte-y-multimedia)
-- [Limitaciones y siguientes hitos](#limitaciones-y-siguientes-hitos)
-
-## Visión y alcance
-
-### Desenlace integrado — Hito 11.3
-
-Escena estable `finale` al terminar las pruebas visibles. Configuración v5 conservada (frase, secreto y medios/mensaje opcionales), sin valores por defecto. Ahora es una ceremonia persistente: Wu llama a cada clan con nombre, color, emblema original, capitán y todos los integrantes. La preparación exige capitán perteneciente a cada equipo, nombre y color; bloqueos legibles al organizador, sin inventar ni reescribir equipos.
-
-Confirmación SÍ/NO sin caducidad, turno individual de cada clan y dos derrotas diferenciadas. La cooperación solo se revela tras el segundo fallo; un acierto individual inesperado se reconoce y lleva a la proclamación del primer capitán sin fabricar derrotas. El acto conjunto permite reintentos sin regresar a los clanes. Frases públicas/privadas usan el mismo controlador y normalización (Ñ distinta de N), conservando solo la última propuesta rechazada de su propio turno para mostrarla en el resultado. El mensaje adicional existente se conserva, pero solo aparece después del giro; no se infieren ni reescriben sus palabras.
-
-`finale.ts` contiene el modelo explícito y preparación; `finaleNarrative.ts` deriva el guion público del punto actual. El control existente `ninja-control-v3.finales[perfil]` añade `ceremonyPhase`, tres contadores `attempts`, `earlyCorrect`, `cluesMissing` y `rejectedAnswer` opcional (texto exacto y turno), junto a ejecución, firma y sonido anteriores. Lectura de progreso anterior normalizada en memoria, sin borrar claves ni éxitos. Se conservan Web Lock, CAS, historial/journal, aislamiento de perfiles y acuses obsoletos rechazados. Preguntas estables sin reloj; las animaciones pertenecen al renderizador. Recargar/salir asienta una ejecución y no la repite al montar. Cambios de configuración final invalidan solo su resultado mediante el journal.
-
-GSAP/Canvas locales: fallo inicial 3,5 s, segundo 5,5 s, victoria de 4 s conservando el orden de inscripciones, dos corrientes, fragmentos y estelas, apertura visual de sectores/cámara y secreto desde aproximadamente 3,55 s. Se conservan 156 partículas máximas y DPR 1,5. La revelación «El corazón del sello» centra una reliquia de piedra con inscripción en oro, dejando visible el anillo y una zona lateral segura para Wu. Reutiliza la textura del santuario original; su cuerpo desplazable conserva secretos exactos de hasta 3000 caracteres y adapta la escala según longitud sin cambiar su valor. Wu reutiliza arte local aprobado con máscaras de presentación; sin nuevos recursos ni dependencias. El vídeo opcional posterior nunca tapa el pergamino. Movimiento reducido y medios ausentes dejan estados legibles.
-
-Controles diferenciados: restablecer escena (cancelar efectos conservando historia), volver a empezar (confirmar si hay progreso, limpiar solo final), repetir revelación (conservar victoria) y volver a portada (conservar progreso). Las confirmaciones públicas de portada/restauración/repetición se montan en el santuario y se cancelan al salir; usan el diálogo existente. El contenido se centra en el sello, la identidad mantiene su color y los integrantes se listan solo al llamar a cada clan. Previa estática 16:9 sin nombres, secretos ni formulario. Se preservan adquisición síncrona, separación de ventanas y handshake fresco. Uso, licencias y ensayo en [FINALE](FINALE.md), evidencia en [VALIDATION](VALIDATION.md).
-
-### Enigma independiente — Hitos 10, 10.1 y 10.2
-
-Implementado /?screen=enigma#palabra=AMISTAD. main.ts elige la raíz antes de importar App mediante carga dinámica. EnigmaStage.vue, useEnigma.ts, enigma.ts, enigmaAudio.ts y enigma.css contienen presentación, estado local, validación y audio opcional; no importan perfiles, almacenamiento ni sincronización. Las rutas habituales conservan su aplicación y no cambia ningún esquema.
-
-Expresión española hasta 48 caracteres normalizados, sin distinguir caso/tildes vocálicas, preservando Ñ. Solución visible solo tras acertar. Secuencia finita: carga, despertar, letras escalonadas, celebración de rayos/fragmentos y victoria estable; fallo con reintentos y victoria repetible. Hash y desmontaje cancelan temporizadores. Movimiento reducido muestra el resultado estable; errores de audio no bloquean la secuencia.
-
-10.1 diferencia estructuralmente los resultados: victoria expansiva y luminosa con cinco fuegos escalonados, tres oleadas de fragmentos/estrellas y estelas; derrota con fases explícitas collapsing → extinguishing → falling → failure, anillos fracturados y contraídos, grietas, sombra, propuesta disuelta y ceniza descendente. Efectos ópticos CSS sobre el mismo recurso inalterado; sin animación costosa permanente ni parpadeos repetidos. La derrota termina en silencio y permite recuperar la escena inicial. Reiniciar tras ganar cancela sonidos/temporizadores, elimina efectos, limpia la propuesta, oculta solución y devuelve el foco; mantiene URL, secreto y preferencia de sonido. Se puede cancelar una repetición; las llamadas repetidas no superponen secuencias. No usa almacenamiento del juego.
-
-10.2 refina únicamente la presentación: reposo de victoria con halo localizado dorado/turquesa, trazos del sello y letras realzados sin animación residual; REINICIAR ENIGMA principal y primero, Repetir revelación secundario, en fila adaptable. Derrota conserva su composición con el mensaje «¡Un ninja nunca se rinde! Reunid vuestras ideas y volved a intentarlo.». Sin cambios de validación, URL, estado, audio ni recursos.
-
-Santuario nuevo privado en public/private-media/enigma-sanctuary.png, con respaldo original src/assets/enigma-sanctuary.svg. Sin modificar imágenes anteriores, dependencias ni red externa. El hash es visible al inspeccionar la URL; no aporta seguridad. Esta experiencia no incorpora pistas ni desenlace a los perfiles.
-
-Aventura cinematográfica privada, personal y no comercial, para un cumpleaños de niños de aproximadamente ocho años. El Maestro Wu guía a dos clanes en el monasterio. El ordenador acompaña actividades dirigidas por un adulto y un monitor extendido muestra la aventura; no mide el mundo físico ni decide ganadores.
-
-El juego completo aprobado prevé exactamente dos equipos que compiten en pruebas físicas, intelectuales, digitales y manuales, reciben fragmentos complementarios y resuelven juntos un acertijo final. Ningún equipo debe poder resolverlo solo. Mensaje final: **«UN NINJA EN SOLITARIO ES MUY FUERTE, PERO JUNTOS SON INVENCIBLES»**.
-
-Dos jornadas consecutivas tienen participantes diferentes: Colegio y Urbanización. La visión incluye importación CSV de nombre/género/edad, propuestas de nombres basadas en CSV, pistas y desenlace; CSV y entrega integrada de pistas siguen previstos; el desenlace configurable ya está implementado. Las versiones anteriores de organización por sesiones son legado de recuperación, no otra modalidad activa.
-
-La dirección privada NINJAGO y su fan art están aprobados. No se presenta como arte oficial ni licencia de terceros. La interfaz no muestra LEGO; tampoco descarga logotipos oficiales. Español en los copys, con START GAME y el sello LET'S GO ya aprobados.
-
-## Estado implementado
-
-Imprimibles: [generador local independiente](../printables/README.md), HTML/CSS y SVG originales, exportación Chrome y QA con PDF.js como herramienta separada. Cuatro piezas completadas desde los originales rasterizados de `public/private-media/colegio/pistas/`, transcritos y cotejados visualmente; fuente fijada por SHA-256. Nuevo contenido, PDF y previas ignorados fuera de `public/`/`dist/`. Se conserva la muestra previa. No implementa entrega de pistas, recorridos ni desenlace en la aplicación.
-
-| Área | Funcionamiento actual |
-| --- | --- |
-| Portada y Wu | START GAME, arte privado con respaldo original y vídeo local manual dentro de un marco |
-| Organización | Dos perfiles, participantes editables, dos equipos, asignación exclusiva múltiple/manual o sorteo explícito equilibrado por número |
-| Identidad | Capitán perteneciente al equipo, tres sugerencias iniciales editables por equipo nuevo, listas vacías respetadas, nombres/colores definitivos |
-| Ceremonia | Llegada, color/nombre del equipo 1, color/nombre del equipo 2, equipos definitivos y continuación a Wu; confirmación privada del adulto |
-| Formación | Capitán primero, resto alfabético español; hasta ocho en dos columnas, hasta doce en tres, grupos deterministas mayores; omitir/repetir/pausar |
-| Pruebas | Definiciones editables, orden, inclusión, duplicación con ID nuevo, borrado confirmado y previa real |
-| Misión pública | Plantilla única vertical del Hito 09.3: número, título, imagen completa, acción y regla; ampliación dentro de la misma escena |
-| Resultados | Ganador manual por prueba/perfil, pendiente, anuncio explícito y regreso al contenido; sin puntuación |
-| Datos | Importación/exportación JSON de configuración, conversión legacy explícita, historial local, rechazo de escrituras obsoletas y reset por perfil |
-| Ventanas | Misma aplicación/origen, control de escena, handshake fresco y sincronización con respaldo storage |
-
-La Prueba 02 **Los Vasos Sagrados** tiene [ficha definitiva](challenges/LOS-VASOS-SAGRADOS.md) e ilustración privada preparada; no se registra automáticamente. Su ejemplo de cinco participantes no fija el número de integrantes del juego. El aro y los perfiles existentes no se modifican.
-
-El propietario aprueba la pantalla pública 09.3 y exige conservarla: no rediseñar cielo, portal, personajes, monasterio, portada, ceremonia ni vídeo. La revisión documental y Prueba 02 no cambian la aplicación.
-
+Consulta [uso](../README.md), [mantenimiento](DEVELOPMENT.md), [desenlace](FINALE.md) y [validación](VALIDATION.md).
 ## Arquitectura
 
 Vue 3.5.45, TypeScript 5.9.3, Vite 8.3.8 y vue-tsc 3.3.14 según package.json; instalación reproducible con package-lock.json. Composition API y script setup, una SPA estática con Vue y GSAP 3.15.1 local para el desenlace. Sin backend, autenticación, analítica o red externa requerida.
@@ -87,6 +22,7 @@ Vue 3.5.45, TypeScript 5.9.3, Vite 8.3.8 y vue-tsc 3.3.14 según package.json; i
 | src/scenes.ts, src/useSceneCatalogue.ts, src/SceneController.vue | Catálogo estable, navegación y previa separada de la activa |
 | src/usePresentation.ts, src/publicScreen.ts | Control persistido, coordinación, handshake y disponibilidad de pública |
 | src/ProfileResources.vue, src/ProfileTransfer.vue | Referencias locales, JSON, conversión y reset |
+| src/FinaleStage.vue, src/FinaleControls.vue, src/FinaleEditor.vue, src/finale.ts, src/finaleNarrative.ts, src/useFinaleCinema.ts | Escena final, operaciones privadas, modelo, guion y efectos |
 | src/WuMessage.vue, src/MonasteryBackdrop.vue, src/style.css, src/assets/lets-go.svg | Vídeo, apertura aprobada, fallback y sello original |
 
 src/session.ts y src/sessionStorage.ts, SessionManager.vue y TeamEditor.vue conservan contratos/componentes legacy y regresiones; los dos componentes no están montados en la administración actual. src/hoopChallenge.ts conserva datos de ejemplo usados por tests: no es un registro de pruebas ni un botón activo. No hay componente ni motor especial de vasos.
@@ -128,7 +64,7 @@ Las escrituras activas comparten el Web Lock ninja-local-write y comparación de
 
 Los borradores son por perfil dentro del panel abierto. No se guardan por teclear ni sobreviven como backup a cerrar; beforeunload protege de manera orientativa. Guardar cambios solo de pruebas conserva exactamente la ceremonia. Cambiar preparación (integrantes, equipos o medios) reinicia sus confirmaciones. Ocultar conserva resultados; eliminar los retira. Retirar una prueba activa vuelve a portada mediante el mismo journal. Borrado/reset rechazan resultados cambiados desde la revisión.
 
-**Descartar borrador** recupera el último guardado. **Repetir ceremonia** conserva la preparación y reinicia sus confirmaciones. **Restablecer perfil** ofrece exportación previa, exige aceptación y afecta solo al activo: vacía participantes/pruebas/resultados, deja dos equipos con sus IDs pero sin integrantes/capitanes/nombre/color, restaura tres propuestas y referencias de medios predeterminadas, reinicia ceremonia y vuelve a portada también en pública. Conserva el otro perfil, sus borradores, medios físicos, historiales y legacy. Por tanto no equivale a borrar todos los datos personales históricos.
+**Descartar borrador** recupera el último guardado. **Repetir ceremonia** conserva la preparación y reinicia sus confirmaciones. **Restablecer perfil** ofrece exportación previa, exige aceptación y afecta solo al activo: vacía participantes/pruebas/resultados, deja dos equipos con sus IDs pero sin integrantes/capitanes/nombre/color, restaura tres propuestas y referencias de medios predeterminadas, reinicia la ceremonia y el desenlace y vuelve a portada también en pública. Conserva el otro perfil, sus borradores, medios físicos, historiales y legacy. Por tanto no equivale a borrar todos los datos personales históricos.
 
 No eliminar claves ninja-config-v1:*, ninja-progress-v1:* ni ninja-presentation-v1/v2. La recuperación legacy permite descargar el original y convertir explícitamente uno al perfil elegido. Importar JSON requiere revisar y confirmar reemplazo: puede reasignar el ID de origen al perfil destino, mantiene referencias internas, conserva historial previo y reinicia presentación. No importa resultados ni medios.
 
@@ -142,19 +78,14 @@ Previa es estado transitorio independiente; no publica, no abre ventanas ni camb
 
 Guardar resultado no cambia escena ni emite anuncio. Anunciar publica una instantánea; corregir lo guardado no cambia un anuncio previo hasta una nueva acción explícita. Ampliar imagen conserva escena/configuración/resultados y recarga; volver a normal, navegar, cambiar perfil, mostrar otra vez o anunciar ganador restablece la vista según el control existente. El tiempo/reproducción de vídeo no se sincroniza y debe dirigirse desde la pública.
 
+## Oráculo independiente
+
+main.ts elige la raíz mediante screen=enigma antes de importar App. EnigmaStage.vue, useEnigma.ts, enigma.ts y enigmaAudio.ts mantienen estado en memoria, sin importar perfiles, almacenamiento ni sincronización. El fragmento de la URL admite letras españolas y espacios hasta 48 caracteres normalizados. La comparación ignora caso, espacios sobrantes y tildes vocálicas, y distingue Ñ de N. Cambiar el fragmento o desmontar cancela los temporizadores. Reiniciar vuelve a la entrada y mantiene la palabra y el ajuste de sonido. Movimiento reducido lleva al resultado estable. El fondo privado opcional enigma-sanctuary.png tiene respaldo SVG local.
+
 ## Arte y multimedia
 
-El estado aprobado 09.3 usa una sola columna de misión, imagen completa contain, acción y regla dentro de la proyección, rótulos permanentes legibles y movimiento reducido. No modificar su diseño para la Prueba 02. El fondo privado compartido public/private-media/la-llamada-del-cielo.png se conserva sin filtros, recortes ni reinterpretación; SkyMonastery se usa solo si falla. Recursos por perfil y preparación en [README](../README.md#medios-privados).
+La misión usa una sola columna. Imagen completa con contain, acción y regla dentro del portal. El fondo compartido la-llamada-del-cielo.png tiene respaldo SkyMonastery. Las referencias se resuelven mediante BASE_URL y nombres locales en la carpeta del perfil. Un medio ausente conserva un respaldo legible. El vídeo de Wu se controla desde la pantalla pública dentro de su marco, con controles nativos. Las rutas de preparación están en [Medios privados](../README.md#medios-privados).
 
-Las rutas usan BASE_URL y nombres locales. No hay fallback de un perfil al otro. Sin archivo, se mantienen emblemas/escenario/avisos legibles; los mensajes técnicos son privados al organizador. Vídeo MP4/WebM local en marco con controles, sin fullscreen automático. Un build Vite copia public (incluidos medios privados) a dist; no debe publicarse.
+## Límites
 
-La imagen vasos-sagrados.png fue generada con imagegen integrado y las dos ilustraciones locales como referencias de estilo, sin modificar ninguna. Las copias de ambos perfiles son idénticas. El prompt exacto permanece privado en public/private-media/vasos-sagrados.prompt.txt. Mecánica, textos y preparación en su ficha; inspección/validación en [VALIDATION](VALIDATION.md).
-
-## Limitaciones y siguientes hitos
-
-- Implementado: experiencia local jugable descrita arriba, sin adjudicación automática. No hay importación CSV, puntuación, sensores, entrega integrada de pistas, autenticación o backend. El final cooperativo configurable sí está implementado.
-- La visión futura mantiene CSV de participantes/nombres, pruebas de distintas disciplinas, entrega integrada de fragmentos complementarios. Requiere orden posterior; no es autorización de desarrollo actual.
-- No hay backup completo de resultados/progreso ni sincronización entre servidores/orígenes. Cambiar de navegador/host/puerto requiere preparación consciente y JSON de configuración más medios separados.
-- Diseño 09.3 aprobado por el propietario; no afirmar por ello pruebas nuevas de Codex en monitor, sincronización física, lector de pantalla o internet desconectado. Estado comprobado y pendientes en VALIDATION.
-- La Prueba 02 requiere alta manual y ensayo físico. No se consultaron perfiles reales ni se determinó si ya existe una prueba equivalente.
-- Sin publicación en esta operación: no commit, push, merge, reset, clean o cambios de main. Las autorizaciones históricas no se trasladan a esta revisión.
+La aplicación funciona por HTTP loopback y carece de autenticación, backend, CSV, puntuación automática y entrega integrada de pistas. Las pistas en papel usan un [generador independiente](../printables/README.md). El almacenamiento local depende del origen y del perfil del navegador. Vite copia public a dist, incluidos los recursos privados presentes.

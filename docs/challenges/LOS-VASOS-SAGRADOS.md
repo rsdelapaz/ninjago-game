@@ -63,33 +63,17 @@ El adulto adjudica el ganador con los controles existentes de Presentación. Gua
 
 ## Alta sin modificar otras pruebas
 
-1. Abre http://localhost:5173/?screen=admin (o el puerto/origen real ya elegido) y comprueba si estás en Colegio o Urbanización. Revisa toda la lista y las previas antes de crear: una prueba equivalente puede tener otro título. Conserva intacta la del aro.
+1. Abre http://127.0.0.1:5173/?screen=admin (o el puerto/origen real ya elegido) y comprueba si estás en Colegio o Urbanización. Revisa toda la lista y las previas antes de crear: una prueba equivalente puede tener otro título. Conserva intacta la del aro.
 2. Si no existe, pulsa Nueva prueba y copia los cinco campos anteriores. No importes una configuración completa para añadir solo esta prueba y no cambies los IDs existentes.
-3. Comprueba que la imagen se resuelve desde la carpeta de ese perfil. El archivo ya está copiado privadamente en ambos perfiles; escribir su nombre no lo sube ni cambia otros archivos.
+3. Comprueba que la imagen se resuelve desde la carpeta de ese perfil. Copia el PNG autorizado a la carpeta del perfil si falta. El editor guarda la referencia.
 4. Revisa la misma plantilla pública en la previa. Marca Incluir en el recorrido y coloca esta prueba como segunda incluida con las flechas si debe presentarse como 02. La numeración se calcula; otras ocultas no cuentan.
 5. Pulsa Guardar cambios en la cabecera. Usa Ir al control de presentación → Mostrar esta escena cuando corresponda. Seleccionar en el editor o revisar una previa no debe alterar la pública.
 6. Para usarla el otro día, repite la revisión/alta en el otro perfil. Compartir el PNG no comparte las definiciones, resultados o participantes.
 
-**Estado entregado:** campos e imagen preparados; no se han consultado ni escrito perfiles reales del navegador y no se afirma que la prueba esté dada de alta. Esa última acción corresponde al organizador en el editor.
-
-## Recurso privado y control visual
-
-Archivos idénticos:
-
-- public/private-media/colegio/vasos-sagrados.png
-- public/private-media/urbanizacion/vasos-sagrados.png
-
-PNG 1672×941, horizontal aproximadamente 16:9. SHA-256 de ambas copias: E6DA565BA1795F016F2F56075042F7858C962EF86359DBA768CDECB850AD2C40.
-
-Generado con imagegen integrado de Codex, tomando aro-del-dragon-unido.png y la-llamada-del-cielo.png únicamente como referencias de acabado tridimensional/iluminación. No se editaron referencias ni medios anteriores. Prompt exacto: public/private-media/vasos-sagrados.prompt.txt, privado e ignorado.
-
-La inspección de la imagen generada distingue base marcada, cuatro ninjas esperando en fila, el verde como único corredor de vuelta con un vaso, dos vasos encajados en la base y dos todavía separados en el recorrido. Hay cinco ninjas y cinco vasos como ejemplo, sin cantidad fija para el juego. La flecha discreta refuerza el regreso. No aparecen aros, manos enlazadas, texto, vasos de cristal/lanzados ni torre invertida. No se necesitó una segunda generación.
-
-La ilustración original se ha inspeccionado con el visor de imágenes. No equivale a medir su comprensión al tamaño real de la proyección ni a ver la pantalla pública en el monitor. Recurso privado: no añadir al repositorio ni publicar el build que lo contenga.
-
+El archivo vasos-sagrados.png es privado y se resuelve en la carpeta de cada perfil. La imagen muestra un ejemplo de cinco ninjas y cinco vasos. Ajusta el material al número real de participantes.
 ## Ensayo y criterios
 
 - Enseña la previa dentro del portal, sin cambiar el diseño aprobado. Comprueba a 1920×1080 y 1366×768 que se entienden la base, el regreso de un único corredor, la fila de vasos y la pila encajada. Prueba ampliación/normal, ausencia del archivo y anuncio del ganador.
 - Desde tres–cinco metros, pide a un facilitador o niño que explique cuándo sale el siguiente y cuántos vasos puede recoger cada ninja. Corregir verbalmente antes de competir si interpreta una salida simultánea o una torre.
 - Ensaya un relevo por equipo con material real: suelo que no resbale, separación entre recorridos, plástico ligero y sin lanzamientos. Cuenta un vaso por participante y confirma que todos realizan un turno.
-- La comprensión en el portal y el ensayo físico no se han realizado desde Codex. Consulta [validación actual](../VALIDATION.md); no están acreditados por el test automatizado o la inspección del PNG.
+- Consulta el [estado de validación](../VALIDATION.md) para los ensayos pendientes.
