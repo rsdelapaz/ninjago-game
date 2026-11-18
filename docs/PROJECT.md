@@ -1,91 +1,52 @@
-# Proyecto — El secreto del maestro Wu
+# Ninja Adventure — Project brief and phased execution
 
-Aventura local de cumpleaños para dos clanes, dirigida por un adulto desde un centro de mando y proyectada en una pantalla pública. El adulto arbitra las pruebas y anuncia sus resultados. La entrega de pistas es física. El juego incluye un desenlace configurable por perfil y un Oráculo independiente.
+Status: planning complete, implementation not yet verified. Product owner directs work from ChatGPT, develops/reviews in VS Code, and is new to Codex.
 
-Consulta [uso](../README.md), [mantenimiento](DEVELOPMENT.md), [desenlace](FINALE.md) y [validación](VALIDATION.md).
-## Arquitectura
+## Product vision
+A private, non-commercial LEGO NINJAGO-themed immersive adventure, guided by Master Wu, for approximately eight-year-old children, combining physical play, riddles and local digital experiences. Exactly two rival teams accumulate complementary clues. Their finale succeeds only through cooperation: **«UN NINJA EN SOLITARIO ES MUY FUERTE, PERO JUNTOS SON INVENCIBLES»**.
 
-Vue 3.5.45, TypeScript 5.9.3, Vite 8.3.8 y vue-tsc 3.3.14 según package.json; instalación reproducible con package-lock.json. Composition API y script setup, una SPA estática con Vue y GSAP 3.15.1 local para el desenlace. Sin backend, autenticación, analítica o red externa requerida.
+## Non-negotiables
+- Run from a **local** computer without internet during the event. Locally served site, local media and no runtime requests to external services.
+- Two-day event with different participants each day; data must reset/configure per session in a later milestone.
+- Separate operator display and public show on an external extended monitor; operator triggers transitions.
+- Video is embedded in a designed frame, not fullscreen. Narrative and visual identity unmistakably evoke LEGO NINJAGO, Master Wu, the dojo, ninja powers and ancient mysteries; UI layouts and any newly produced supporting artwork should be original.
+- Physical test outcomes are manually adjudicated. For those tests the public screen shows number, title and brief description.
+- Content such as tasks and clues should be configurable without editing view logic.
+- Favor accessible typography, clear controls, large-screen readability, mouse/keyboard operation and graceful media failures.
+- Maintain the NINJAGO theme and Master Wu as story guide. This is an unofficial personal event, not an official LEGO product. Do not publish or redistribute copyrighted source media unless usage rights allow it; keep user-provided show assets local and outside the public Git repository. Personal use does not automatically clear all rights.
 
-| Archivos | Responsabilidad |
-| --- | --- |
-| src/main.ts, src/App.vue | Montaje; selección de administración por screen=admin; conexión entre control y pantallas |
-| src/OrganizerPanel.vue, src/command-center.css | Dashboard modular, perfil activo, guardado/borradores y navegación |
-| src/ParticipantEditor.vue, src/ProfileTeams.vue | Participantes, orden español, integrantes, traslados y capitanes |
-| src/profile.ts, src/profileStorage.ts, src/useProfileDraft.ts | Validación/configuración, persistencia y borradores por perfil |
-| src/ceremony.ts, src/ceremonyStorage.ts | Máquina de estados, elecciones y journal recuperable |
-| src/CeremonyStage.vue, src/CeremonyControls.vue, src/ceremony.css | Ceremonia pública y acciones privadas |
-| src/ClanReveal.vue, src/reveal.ts, src/useRevealClock.ts | Formación compacta y progreso exclusivamente visual |
-| src/challenges.ts, src/challengeResults.ts | Definiciones y resultados separados |
-| src/ChallengeEditor.vue, src/ChallengeControls.vue | Preparación y guion privado, inclusión visible, adjudicación y anuncio |
-| src/ChallengeStage.vue, src/challenge-sky.css, src/SkyMonastery.vue | Misión/ganador/previa con fondo compartido; escenario original solo de respaldo |
-| src/scenes.ts, src/useSceneCatalogue.ts, src/SceneController.vue | Catálogo estable, navegación y previa separada de la activa |
-| src/usePresentation.ts, src/publicScreen.ts | Control persistido, coordinación, handshake y disponibilidad de pública |
-| src/ProfileResources.vue, src/ProfileTransfer.vue | Referencias locales, JSON, conversión y reset |
-| src/FinaleStage.vue, src/FinaleControls.vue, src/FinaleEditor.vue, src/finale.ts, src/finaleNarrative.ts, src/useFinaleCinema.ts | Escena final, operaciones privadas, modelo, guion y efectos |
-| src/WuMessage.vue, src/MonasteryBackdrop.vue, src/style.css, src/assets/lets-go.svg | Vídeo, apertura aprobada, fallback y sello original |
+## Chosen implementation
+Vue 3 + Composition API + TypeScript + Vite. Small SPA without backend and without unnecessary runtime dependencies. Local JSON/CSV input for later content; browser-local state where appropriate. For the first prototype, a simple two-window synchronization mechanism is enough. Use current compatible stable versions rather than blindly pinning unverified numbers.
 
-src/session.ts y src/sessionStorage.ts, SessionManager.vue y TeamEditor.vue conservan contratos/componentes legacy y regresiones; los dos componentes no están montados en la administración actual. src/hoopChallenge.ts conserva datos de ejemplo usados por tests: no es un registro de pruebas ni un botón activo. No hay componente ni motor especial de vasos.
+## Milestone plan
+### M0 — Repo and working agreements
+- GitHub repository present, project brief and Codex instructions committed.
+- Set up user machine: VS Code, Git, Node LTS, official Vue extension and Codex extension.
 
-## Modelo de configuración
+### M1 — First playable slice (next)
+- Screen 1: cinematic **LEGO NINJAGO** birthday-adventure introduction, references to Master Wu and an ancient secret, a clear focal point and prominent «COMENZAR AVENTURA» button.
+- Screen 2: **Master Wu** presentation with placeholder/user-provided local MP4 inside decorative dojo/temple frame.
+- Operator page/window starts the experience and navigates between the two screens; separate show display receives changes reliably on same machine.
+- Public interface in Spanish, with optional concise English thematic taglines if explicitly approved.
+- Clearly documented local launch; verify without network after dependencies are installed.
+- Acceptance: build succeeds; no remote assets; transition works across two windows; missing video shows a useful fallback; playable with keyboard and on extended display.
 
-**ProfileConfig schemaVersion 5** (src/profile.ts) contiene id colegio/urbanizacion, participantes, assignmentMode manual/automatic, dos equipos, media, challenges ordenados y finale (frase, secreto, vídeo/audio y mensaje de fallo). Cada participante tiene ID y nombre, con edad/género opcionales. Cada equipo tiene ID, memberIds exclusivos, captainId miembro o null, sugerencias, nombre definitivo y color hex o null.
+### M2 — Session and teams
+- Session setup/reset for two different days.
+- CSV import of participants (name, gender, age), validation and preview; manual/random assignment to exactly two teams.
+- Editable team names; optional name catalog from local CSV; editable team colors.
 
-Los perfiles iniciales están vacíos de participantes y pruebas, con equipos sin nombre/color/capitán y tres propuestas humorísticas editables por equipo. No se rellenan propuestas de perfiles ya existentes. La ordenación española es de visualización, no una mutación del orden persistido. Mover un capitán invalida la capitanía solo si deja su equipo. El sorteo se solicita expresamente y no se repite al recargar.
+### M3 — Challenges and clue administration
+- Content-driven challenge definitions, human-entered results, public challenge display, clue release; simple recovery/resume.
 
-| Campo Challenge | Uso y límite |
-| --- | --- |
-| id | Identidad estable interna; el organizador no la mantiene manualmente |
-| title | Título público, obligatorio, hasta 160 caracteres |
-| publicInstruction | Acción pública breve, hasta 120; vacío permitido mientras se prepara |
-| keyRule | Regla pública opcional, hasta 100 |
-| description | Narración/guion e instrucciones completas del organizador, hasta 4000; nunca se proyecta completo |
-| imageFilename | Nombre local opcional PNG/JPG/WebP, hasta 120, sin rutas/URL ni .. |
-| visible | Inclusión en recorrido; el array determina el orden |
+### M4 — Finale and rehearsal
+- Complementary clue validation, cooperative finale, local multimedia, full offline rehearsal, backup and operator guide.
 
-El número se deriva de la lista visible, no se guarda. Hasta 500 pruebas, presupuesto de definiciones de 750 000 caracteres y JSON exportado de hasta 1 MiB. Duplicar genera ID nuevo sin resultado. La identidad global del juego pertenece a la plantilla/escenario, no a los campos de cada prueba. No hay templateId ni selector de tipos.
+## Acceptance and release gates
+No milestone is done based only on generated source. Require actual build/test evidence and an operator smoke test. Fix blocking faults before visual polish. Do not add libraries, cloud infrastructure, authentication or multi-agent orchestration unless a demonstrated need arises.
 
-Compatibilidad: v2 normaliza a v5 sin pruebas; v3 conserva cada description íntegra y añade publicInstruction/keyRule vacíos en memoria. No se infiere una frase breve del texto anterior. Administración avisa de preparación y pública pide escuchar al organizador mientras falta. Una lectura no escribe originales; exportar/guardar produce v5; las configuraciones v2/v3/v4 reciben finale vacío únicamente en memoria. Las versiones antiguas de la aplicación no admiten v5: actualizar ambas ventanas y conservar exportaciones privadas. La configuración legacy v1 solo se convierte al elegir y confirmar destino. JSON desconocido, progreso, binarios y referencias inválidas se rechazan.
+## Deliverables
+Working source repository, README setup/run instructions, user/operator guide, decisions and validation notes. The first MVP may use CSS illustrative assets until bespoke art/music/video is available. Do not claim that placeholder imagery is approved final art.
 
-## Persistencia y recuperación
-
-Todo reside en localStorage del origen del navegador. No hay base de datos ni copia en la nube. El historial local puede agotarse o perderse si se borran los datos del navegador; exportar configuración no es un backup completo de la partida.
-
-| Clave | Contenido |
-| --- | --- |
-| ninja-profile-v2:colegio / urbanizacion | Configuración actual v5; el nombre histórico de clave se mantiene deliberadamente |
-| ninja-ceremony-v1:perfil | Fase, propuestas y decisiones confirmadas de ceremonia |
-| ninja-challenge-results-v1:perfil | Mapa ID de prueba → ID de equipo ganador o pendiente |
-| ninja-control-v3 | Perfil/escena/revisión/token, revelación, anuncio, imagen ampliada y progreso del final por perfil |
-| ninja-profile-history:perfil:... | Copia anterior a reemplazar configuración |
-| ninja-ceremony-pending:perfil | Journal de configuración/progreso/navegación para recuperación |
-
-Las escrituras activas comparten el Web Lock ninja-local-write y comparación de la versión revisada (CAS). Si otra ventana cambia los datos, la operación se rechaza. Los registros del journal se recuperan sin sobrescribir cambios posteriores; se admite su representación normalizada al recuperar repetidamente un registro antiguo. No hay una segunda implementación de almacenamiento.
-
-Los borradores son por perfil dentro del panel abierto. No se guardan por teclear ni sobreviven como backup a cerrar; beforeunload protege de manera orientativa. Guardar cambios solo de pruebas conserva exactamente la ceremonia. Cambiar preparación (integrantes, equipos o medios) reinicia sus confirmaciones. Ocultar conserva resultados; eliminar los retira. Retirar una prueba activa vuelve a portada mediante el mismo journal. Borrado/reset rechazan resultados cambiados desde la revisión.
-
-**Descartar borrador** recupera el último guardado. **Repetir ceremonia** conserva la preparación y reinicia sus confirmaciones. **Restablecer perfil** ofrece exportación previa, exige aceptación y afecta solo al activo: vacía participantes/pruebas/resultados, deja dos equipos con sus IDs pero sin integrantes/capitanes/nombre/color, restaura tres propuestas y referencias de medios predeterminadas, reinicia la ceremonia y el desenlace y vuelve a portada también en pública. Conserva el otro perfil, sus borradores, medios físicos, historiales y legacy. Por tanto no equivale a borrar todos los datos personales históricos.
-
-No eliminar claves ninja-config-v1:*, ninja-progress-v1:* ni ninja-presentation-v1/v2. La recuperación legacy permite descargar el original y convertir explícitamente uno al perfil elegido. Importar JSON requiere revisar y confirmar reemplazo: puede reasignar el ID de origen al perfil destino, mantiene referencias internas, conserva historial previo y reinicia presentación. No importa resultados ni medios.
-
-## Presentación y sincronización
-
-Catálogo: intro → ceremony → wu → challenge:ID de cada prueba visible → finale. Los números del catálogo completo y los números públicos de prueba tienen recorridos distintos; ambos se calculan. Se preservan decisiones de ceremonia al navegar hacia atrás. Los dos equipos deben tener miembros/capitán para entrar a ceremonia; las elecciones se confirman por el adulto, sin exigir nombre/color al preparar.
-
-La pública usa la misma aplicación sin screen=admin. Ambos clientes comparten origen, perfil de navegador y almacenamiento. BroadcastChannel comunica control sin nombres de participantes; storage es respaldo. El panel obtiene/abre ninja-public síncronamente desde el clic original y espera una respuesta fresca tras montar/inicializar la aplicación. Si no llega, no se cambia la escena; informa y ofrece recuperación. Ventanas cerradas y respuestas antiguas no acreditan disponibilidad.
-
-Previa es estado transitorio independiente; no publica, no abre ventanas ni cambia resultados. Se reconcilia tras navegación confirmada, perfil o retirada de escena. La previa de activa refleja imagen ampliada y el ganador anunciado; el editor muestra el borrador normal.
-
-Guardar resultado no cambia escena ni emite anuncio. Anunciar publica una instantánea; corregir lo guardado no cambia un anuncio previo hasta una nueva acción explícita. Ampliar imagen conserva escena/configuración/resultados y recarga; volver a normal, navegar, cambiar perfil, mostrar otra vez o anunciar ganador restablece la vista según el control existente. El tiempo/reproducción de vídeo no se sincroniza y debe dirigirse desde la pública.
-
-## Oráculo independiente
-
-main.ts elige la raíz mediante screen=enigma antes de importar App. EnigmaStage.vue, useEnigma.ts, enigma.ts y enigmaAudio.ts mantienen estado en memoria, sin importar perfiles, almacenamiento ni sincronización. El fragmento de la URL admite letras españolas y espacios hasta 48 caracteres normalizados. La comparación ignora caso, espacios sobrantes y tildes vocálicas, y distingue Ñ de N. Cambiar el fragmento o desmontar cancela los temporizadores. Reiniciar vuelve a la entrada y mantiene la palabra y el ajuste de sonido. Movimiento reducido lleva al resultado estable. El fondo privado opcional enigma-sanctuary.png tiene respaldo SVG local.
-
-## Arte y multimedia
-
-La misión usa una sola columna. Imagen completa con contain, acción y regla dentro del portal. El fondo compartido la-llamada-del-cielo.png tiene respaldo SkyMonastery. Las referencias se resuelven mediante BASE_URL y nombres locales en la carpeta del perfil. Un medio ausente conserva un respaldo legible. El vídeo de Wu se controla desde la pantalla pública dentro de su marco, con controles nativos. Las rutas de preparación están en [Medios privados](../README.md#medios-privados).
-
-## Límites
-
-La aplicación funciona por HTTP loopback y carece de autenticación, backend, CSV, puntuación automática y entrega integrada de pistas. Las pistas en papel usan un [generador independiente](../printables/README.md). El almacenamiento local depende del origen y del perfil del navegador. Vite copia public a dist, incluidos los recursos privados presentes.
+## Open assets (not blockers for M1)
+The user-provided local Master Wu video/audio/illustrations are not yet supplied to the repo. Implement a resilient placeholder so coding and UI review can proceed.
