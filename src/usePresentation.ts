@@ -6,12 +6,14 @@ import { ceremonyFinalProblems, type CeremonyAction, type CeremonyProgress } fro
 import { orderedScenes, sceneById } from './scenes.ts'
 import { changeReveal, createReveal, revealPlan, validReveal, type RevealState, type RevealAction } from './reveal.ts'
 import { readResults, saveResult, resultsKey, type ChallengeResults } from './challengeResults.ts'
+import { currentFinale, finalePreparationProblems, settledFinale, transitionFinale, validFinaleProgress, type FinaleAction, type FinaleProgress } from './finale.ts'
 export type Scene = string
-export type PresentationState = Omit<GameProgress, 'profileId'> & { profileId: ProfileId | null; reveal?: RevealState; announcement?: { challengeId: string; winner: string }; imageView?: { challengeId: string; expanded: boolean } }
+export type PresentationState = Omit<GameProgress, 'profileId'> & { profileId: ProfileId | null; reveal?: RevealState; announcement?: { challengeId: string; winner: string }; imageView?: { challengeId: string; expanded: boolean }; finales?: Partial<Record<ProfileId, FinaleProgress>> }
 const key = presentationKey
 function valid(value: unknown): value is PresentationState {
   if (!value || typeof value !== 'object') return false
   const s = value as PresentationState
+  if (s.finales !== undefined && (!s.finales || typeof s.finales !== 'object' || Array.isArray(s.finales) || Object.entries(s.finales).some(([id, progress]) => !isProfileId(id) || !validFinaleProgress(progress)))) return false
   return isProfileId(s.profileId) && typeof s.sceneId === 'string' && s.sceneId.length <= 160 && Number.isSafeInteger(s.revision) && s.revision >= 0 && typeof s.token === 'string' && (s.reveal === undefined || validReveal(s.reveal)) && (s.imageView === undefined || !!s.imageView && typeof s.imageView.challengeId === 'string' && s.imageView.challengeId.length <= 120 && typeof s.imageView.expanded === 'boolean')
 }
 export function usePresentation() {
@@ -61,23 +63,34 @@ export function usePresentation() {
       const errors = ceremonyFinalProblems(config, progress)
       if (!['ready', 'complete'].includes(progress.phase) || errors.length) throw Error('Completa la ceremonia antes de mostrar el vídeo. ' + errors.join(' '))
     }
+    if (sceneId === 'finale') {
+      const problems = finalePreparationProblems(config)
+      if (problems.length) throw Error('Desenlace bloqueado: ' + problems.join(' '))
+    }
   }
-  function nextControl(sceneId: string, id: ProfileId): GameProgress & { reveal: RevealState } {
-    return { profileId: id, sceneId, revision: Math.max(Date.now(), state.value.revision + 1), token: Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-'), reveal: sceneId === 'ceremony' && state.value.sceneId === sceneId && state.value.profileId === id && state.value.reveal ? { ...state.value.reveal } : createReveal(Date.now()) }
+  function nextControl(sceneId: string, id: ProfileId): PresentationState & { profileId: ProfileId } {
+    const finales = { ...state.value.finales }, oldId = state.value.profileId
+    // Leaving an animation cancels its presentation and retains a coherent settled outcome.
+    if (oldId && state.value.sceneId === 'finale' && (sceneId !== 'finale' || id !== oldId) && finales[oldId]) finales[oldId] = settledFinale(finales[oldId]!)
+    return { profileId: id, sceneId, finales, revision: Math.max(Date.now(), state.value.revision + 1), token: Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-'), reveal: sceneId === 'ceremony' && state.value.sceneId === sceneId && state.value.profileId === id && state.value.reveal ? { ...state.value.reveal } : createReveal(Date.now()) }
   }
-  function writeControl(sceneId: string, id: ProfileId, reveal?: RevealState, announcement?: PresentationState['announcement'], imageView?: PresentationState['imageView']) {
+  function writeControl(sceneId: string, id: ProfileId, reveal?: RevealState, announcement?: PresentationState['announcement'], imageView?: PresentationState['imageView'], finaleProgress?: FinaleProgress) {
     const next: PresentationState = nextControl(sceneId, id)
     if (reveal) next.reveal = reveal; if (announcement) next.announcement = announcement
     if (imageView) next.imageView = imageView
+    if (finaleProgress) next.finales = { ...next.finales, [id]: finaleProgress }
     localStorage.setItem(key, JSON.stringify(next))
-    refreshProfile(); channel?.postMessage(next) // no participant names in channel messages
+    refreshProfile(); channel?.postMessage({ profileId: id }) // Notification only: no secrets, proposals or names over the channel.
   }
+  let writeSettled: Promise<void> = Promise.resolve()
   async function run(write: () => void) {
     if (busy.value) return false
     busy.value = true
+    let release!: () => void
+    writeSettled = new Promise<void>(resolve => { release = resolve })
     try { await initialized; await withLocalWrite(write); warning.value = ''; return true }
     catch (e) { refreshProfile(); report(e); return false }
-    finally { busy.value = false }
+    finally { busy.value = false; release() }
   }
   function publish(sceneId: string, id: ProfileId) {
     const expected = controlBaseline
@@ -143,19 +156,50 @@ export function usePresentation() {
       writeControl(sceneId, id, undefined, { challengeId, winner })
     })
   }
+  function actFinale(action: FinaleAction) {
+    const id = state.value.profileId, expected = controlBaseline, config = configBaseline
+    if (!id || state.value.sceneId !== 'finale') return Promise.resolve(false)
+    return run(() => {
+      checkCurrent(expected)
+      if (localStorage.getItem(profileKey(id)) !== config) throw Error('El desenlace cambió. Revisa la configuración antes de continuar.')
+      const saved = readProfile(localStorage, id)
+      checkScene('finale', saved, readCeremony(localStorage, id))
+      const next = transitionFinale(saved.finale, currentFinale(saved.finale, state.value.finales?.[id]), action, crypto.randomUUID())
+      writeControl('finale', id, undefined, undefined, undefined, next)
+    })
+  }
+  async function finishFinale(runId: string, retried = false): Promise<boolean> {
+    // Reduced motion can finish during the same local write that delivered a public answer.
+    // Wait for that write to release its lock, then read fresh state and preserve all CAS checks.
+    if (busy.value) await writeSettled
+    const id = state.value.profileId, expected = controlBaseline, config = configBaseline
+    if (!id || state.value.sceneId !== 'finale') return Promise.resolve(false)
+    const progress = profile.value && currentFinale(profile.value.finale, state.value.finales?.[id])
+    if (!progress || progress.runId !== runId || !['revealing', 'rejecting'].includes(progress.status)) return Promise.resolve(false)
+    const completed = await run(() => {
+      checkCurrent(expected)
+      if (localStorage.getItem(profileKey(id)) !== config) throw Error('La configuración cambió durante el desenlace.')
+      writeControl('finale', id, undefined, undefined, undefined, settledFinale(progress))
+    })
+    // A simultaneous sound command may win CAS. Acknowledge only the same still-current run.
+    return !completed && !retried ? finishFinale(runId, true) : completed
+  }
   function resetProfile(request: ProfileResetRequest): Promise<boolean> {
     const expected = request.expectedControl
     return run(() => {
       checkCurrent(expected)
       if (state.value.profileId !== request.profileId) throw Error('El perfil que quieres restablecer ya no es el activo.')
       const next = nextControl('intro', request.profileId)
+      // A completed result must not survive a full profile reset, even with identical future settings.
+      if (next.finales) delete next.finales[request.profileId]
       applyProfileReset(localStorage, request, next)
-      refreshProfile(); channel?.postMessage(next)
+      refreshProfile(); channel?.postMessage({ profileId: request.profileId })
     })
   }
   onUnmounted(() => { disposed = true; channel?.close(); window.removeEventListener('storage', storage) })
   const activeScene = computed(() => sceneById(state.value.sceneId, profile.value) || orderedScenes[0]!)
   const reveal = computed(() => state.value.reveal || createReveal(state.value.revision))
   const imageExpanded = computed(() => state.value.imageView?.challengeId === activeScene.value.challengeId && state.value.imageView?.expanded === true && !state.value.announcement)
-  return { state, profile, ceremony, reveal, results, resultsVersion, recordResult, announceResult, imageExpanded, setImageExpanded, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
+  const finale = computed(() => profile.value ? currentFinale(profile.value.finale, state.value.finales?.[profile.value.id]) : null)
+  return { state, profile, ceremony, reveal, results, resultsVersion, recordResult, announceResult, imageExpanded, setImageExpanded, finale, actFinale, finishFinale, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
 }

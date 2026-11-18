@@ -3,6 +3,7 @@ import { profileKey, presentationKey, readProfile, saveProfile, onlyChallengesCh
 import { createCeremony, parseCeremony, transitionCeremony, type CeremonyAction, type CeremonyProgress } from './ceremony.ts'
 import { pruneResults, resultsKey } from './challengeResults.ts'
 import { sceneById } from './scenes.ts'
+import { finaleProblems } from './finale.ts'
 export type ProfileResetRequest = { profileId: ProfileId; expectedConfig: string | null; expectedProgress: string | null; expectedControl: string | null; expectedResults?: string | null }
 type NavigationWrite = { before: string | null; after: string }
 type PendingWrite = { before: string; after: string; beforeProgress: string | null; afterProgress: string; navigation?: NavigationWrite }
@@ -24,7 +25,9 @@ export function recoverCeremony(storage: Storage, id: ProfileId) {
     const n = record.navigation
     if (typeof n.after !== 'string' || n.before !== null && typeof n.before !== 'string') throw Error('Navegación de recuperación no válida.')
     const next = JSON.parse(n.after) as GameProgress
-    if (next.profileId !== id || next.sceneId !== 'intro' || !Number.isSafeInteger(next.revision) || next.revision < 0 || typeof next.token !== 'string') throw Error('Navegación de recuperación no válida.')
+    const prior = n.before === null ? null : JSON.parse(n.before) as GameProgress
+    const sameSceneCleanup = prior && next.profileId === prior.profileId && next.sceneId === prior.sceneId
+    if (!(next.profileId === id && next.sceneId === 'intro') && !sameSceneCleanup || !Number.isSafeInteger(next.revision) || next.revision < 0 || typeof next.token !== 'string') throw Error('Navegación de recuperación no válida.')
     const currentControl = storage.getItem(presentationKey)
     if (currentControl !== n.before && currentControl !== n.after) throw Error('La presentación cambió después del restablecimiento interrumpido. No se sobrescribirá.')
   }
@@ -51,9 +54,12 @@ function checkExpected(storage: Storage, id: ProfileId, expectedConfig: string, 
 }
 export function applyProfileConfig(storage: Storage, config: ProfileConfig, before: string, beforeProgress: string | null) {
   checkExpected(storage, config.id, before, beforeProgress)
-  const raw = storage.getItem(presentationKey), control = JSON.parse(raw || 'null') as GameProgress | null
-  const navigation = control?.profileId === config.id && !sceneById(control.sceneId, config)
-    ? { before: raw, after: JSON.stringify({ ...control, sceneId: 'intro', revision: Math.max(Date.now(), control.revision + 1), token: newId(), announcement: undefined }) } : undefined
+  const raw = storage.getItem(presentationKey), control = JSON.parse(raw || 'null') as (GameProgress & { finales?: Record<string, unknown> }) | null
+  const finaleChanged = JSON.stringify(parseProfile(JSON.parse(before)).finale) !== JSON.stringify(config.finale)
+  const retired = control?.profileId === config.id && (!sceneById(control.sceneId, config) || control.sceneId === 'finale' && (finaleChanged || finaleProblems(config.finale).length > 0))
+  const finales = { ...control?.finales }; if (finaleChanged) delete finales[config.id]
+  const navigation = control && (retired || finaleChanged && control.finales?.[config.id])
+    ? { before: raw, after: JSON.stringify({ ...control, finales, sceneId: retired ? 'intro' : control.sceneId, revision: Math.max(Date.now(), control.revision + 1), token: newId(), ...(retired ? { announcement: undefined } : {}) }) } : undefined
   const preserve = onlyChallengesChanged(config, before), progress = preserve ? readCeremony(storage, config.id) : createCeremony(config.id)
   if (!preserve) progress.revision = Date.now()
   writeProfileProgress(storage, config.id, before, beforeProgress, { config, progress }, navigation, preserve)

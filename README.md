@@ -1,12 +1,14 @@
 # El secreto del maestro Wu
 
-Aventura privada de cumpleaños ambientada en NINJAGO para niños de unos ocho años. Dos clanes se presentan, eligen su identidad con el Maestro Wu, ven su mensaje y compiten en pruebas físicas dirigidas por un adulto. El objetivo final previsto es unir las pistas de ambos equipos; ese desenlace todavía no está implementado.
+Aventura privada de cumpleaños ambientada en NINJAGO para niños de unos ocho años. Dos clanes se presentan, eligen su identidad con el Maestro Wu, ven su mensaje y compiten en pruebas dirigidas por un adulto. El desenlace integrado permite reunir sus pistas y revelar un secreto configurado para cada perfil; la entrega de pistas sigue siendo física y dirigida por el organizador.
 
 La aplicación Vue funciona desde un servidor local, sin internet durante el evento. El organizador dirige una ventana de administración y los niños ven otra en el monitor extendido. Los resultados se deciden y anuncian manualmente.
 
 ## Contenido
 
 ## El despertar del enigma
+
+El **ceremonia final del Hito 11.3** se configura en **Desenlace final** y aparece al terminar el catálogo de pruebas. Consulta [preparación, funcionamiento y ensayo](docs/FINALE.md). No requiere una URL con la respuesta y permanece bloqueado si faltan la frase correcta o el texto secreto. El Oráculo que se explica a continuación sigue siendo una experiencia independiente.
 
 Acceso independiente: http://localhost:5173/?screen=enigma#palabra=AMISTAD o http://localhost:5173/?screen=enigma#palabra=PODER%20NINJA. No requiere perfiles ni administración ni altera el juego. Sustituye el valor por una expresión codificada para URL: letras españolas y espacios, hasta 48 caracteres normalizados. Ignora caso, espacios sobrantes y tildes vocálicas; Ñ y N son distintas. Una URL inválida muestra un aviso sin iniciar el reto.
 
@@ -18,8 +20,11 @@ El fondo nuevo opcional public/private-media/enigma-sanctuary.png permanece priv
 
 ## Índice
 
+Las [cuatro pistas imprimibles](printables/README.md) están rediseñadas a partir de los originales privados, con generación independiente, texto seleccionable y vistas de impresión. Las nuevas salidas quedan bajo `printables/`, ignoradas por Git y fuera del build; no se incorporan al juego automáticamente.
+
 - [Instalar y arrancar](#instalar-y-arrancar)
 - [Preparar y presentar](#preparar-y-presentar)
+- [Desenlace final](docs/FINALE.md)
 - [Crear pruebas](#crear-pruebas)
 - [Medios privados](#medios-privados)
 - [Pruebas de desarrollo](#pruebas-de-desarrollo)
@@ -62,6 +67,7 @@ Preview parte del puerto 4173. Abre http://localhost:4173/?screen=admin y prepar
 4. Pulsa **Preparar pantalla pública**, mueve esa ventana al monitor extendido y maximízala. En **Presentación**, selecciona una escena y pulsa **Mostrar esta escena**. Elegir una miniatura solo cambia la previa. El panel espera confirmación de una pública montada; una referencia de ventana no basta.
 5. Desde START GAME o Presentación, recorre llegada de clanes → color/nombre del primero → color/nombre del segundo → equipos definitivos → mensaje de Wu. Dirige SÍ/NO y nombre manual desde el panel. Inicia el vídeo con sus controles: no hay autoplay sonoro ni fullscreen automático.
 6. Después presenta las pruebas visibles del recorrido. **Guardar un ganador no lo anuncia**: utiliza **Anunciar ganador al público** expresamente. **Mostrar de nuevo la prueba** recupera su contenido.
+7. En **Desenlace final**, configura frase y secreto, guarda y pulsa **Mostrar el final**. Wu convoca cada clan con sus integrantes y capitán: NO permite seguir buscando; SÍ abre su respuesta. Tras el segundo fallo se revela el giro y se llama al capitán del primer equipo para proclamar la frase final. Un acierto individual inesperado se reconoce y pasa directamente al capitán. Responde en pública con Enter o desde el control privado. La victoria despliega un pergamino con el secreto exacto. Restablecer conserva la historia; volver a empezar limpia solo el final con confirmación; repetir revelación conserva la victoria; portada conserva el progreso. Recargar no repite efectos. Preparación y medios opcionales en [FINALE](docs/FINALE.md).
 
 La preparación exige integrantes y capitanes; no exige nombres/colores definitivos. Los borradores se conservan al cambiar de módulo o perfil mientras el panel está abierto, pero no son autoguardado. Exporta un JSON privado en **Configuración y JSON** antes del evento. Consulta [recuperación y restablecimiento](docs/PROJECT.md#persistencia-y-recuperación) antes de borrar o reemplazar datos.
 
@@ -96,6 +102,8 @@ public/private-media/
 ```
 
 El editor guarda solo nombres de archivo, no sube imágenes. Cada perfil resuelve sus medios en su propia carpeta. El fondo de misión es compartido; no lo dupliques ni modifiques. Sin imagen de misión aparece un emblema; sin arte, escenario de respaldo; sin vídeo, aviso legible. El JSON no incluye binarios ni resultados.
+
+El desenlace usa el nuevo fondo privado compartido `public/private-media/finale-sanctuary.png`; sin él conserva un escenario vectorial de respaldo. Sus archivos opcionales de vídeo/audio se guardan en la carpeta del perfil y se indican por nombre en Desenlace final. Los JSON **v5 contienen la frase y el secreto configurados**: conservarlos privadamente. Importar v2/v3/v4 deja el desenlace vacío en memoria, sin reescribir originales al leer.
 
 public/private-media, dist, node_modules, .preview.local y secretos .env permanecen ignorados; solo los .gitkeep de medios se rastrean. No añadas exportaciones personales al repositorio. La ilustración fan es para uso privado, personal y no comercial; no acredita licencia ni permiso de publicación. El código no solicita recursos externos durante el juego.
 

@@ -8,22 +8,22 @@ import MonasteryBackdrop from './MonasteryBackdrop.vue'
 import WuMessage from './WuMessage.vue'
 import letsGoSeal from './assets/lets-go.svg'
 import CeremonyStage from './CeremonyStage.vue'
-import { browserScreenTransport, createPublicScreen } from './publicScreen'
+import { browserScreenTransport, createPublicScreen, openPublicView, reserveAdminWindow } from './publicScreen'
 import type { CeremonyAction } from './ceremony'
 import type { RevealAction } from './reveal'
 import ConfirmationDialog from './ConfirmationDialog.vue'
 import ChallengeStage from './ChallengeStage.vue'
+import FinaleStage from './FinaleStage.vue'
+import type { FinaleAction } from './finale'
 
 // Explicit reactive state: https://vuejs.org/api/sfc-script-setup.html#reactivity
 const isAdmin = new URLSearchParams(location.search).get('screen') === 'admin'
-const { state, profile, ceremony, reveal, busy, activeScene, select, selectProfile, actCeremony, actReveal, results, resultsVersion, recordResult, announceResult, imageExpanded, setImageExpanded, resetProfile, refreshProfile, warning, initialized } = usePresentation()
+if (isAdmin) reserveAdminWindow(window)
+const { state, profile, ceremony, reveal, busy, activeScene, select, selectProfile, actCeremony, actReveal, results, resultsVersion, recordResult, announceResult, imageExpanded, setImageExpanded, finale, actFinale, finishFinale, resetProfile, refreshProfile, warning, initialized } = usePresentation()
 const publicUrl = new URL(import.meta.env.BASE_URL, location.origin).href
 const screenTransport = browserScreenTransport()
 function openPublicWindow() {
-  // Obtain/reuse the named window without reloading a live ceremony or its video.
-  const view = window.open('', 'ninja-public', 'popup,width=1280,height=720')
-  if (view && view.location.href === 'about:blank') view.location.replace(publicUrl)
-  return view
+  return openPublicView(window, publicUrl)
 }
 const publicScreen = createPublicScreen({ role: isAdmin ? 'admin' : 'public', transport: screenTransport, open: openPublicWindow })
 const { available: publicReady, message: publicMessage, waiting: publicWaiting } = publicScreen
@@ -34,12 +34,13 @@ watch([profile, ceremony], () => { if (publicMounted && !isAdmin) publicScreen.m
 onUnmounted(() => { mounted = false; publicScreen.dispose(); screenTransport.dispose() })
 function withPublicScreen(action: () => Promise<unknown> | undefined) {
   const revision = state.value.revision, id = state.value.profileId
+  const configuration = JSON.stringify(profile.value)
   requestWarning.value = ''
   // ensure opens synchronously in this click stack, then waits for a live public application's reply.
   const ready = publicScreen.ensure()
   return ready.then(confirmed => {
     if (!confirmed || !mounted) return
-    if (state.value.revision !== revision || state.value.profileId !== id) { requestWarning.value = 'La presentación cambió durante la apertura. Revisa el perfil y repite la acción.'; return }
+    if (state.value.revision !== revision || state.value.profileId !== id || JSON.stringify(profile.value) !== configuration) { requestWarning.value = 'La presentación o su configuración cambió durante la apertura. Revisa el perfil y repite la acción.'; return }
     return action()
   })
 }
@@ -48,6 +49,8 @@ const commandCeremony = (action: CeremonyAction) => withPublicScreen(() => actCe
 const commandReveal = (action: RevealAction) => withPublicScreen(() => actReveal(action))
 const commandAnnouncement = (id: string, winner: string) => withPublicScreen(() => announceResult(id, winner))
 const commandImageView = (id: string, expanded: boolean) => withPublicScreen(() => setImageExpanded(id, expanded))
+const commandFinale = (action: FinaleAction) => withPublicScreen(() => actFinale(action))
+const publicFinale = (action: FinaleAction) => !isAdmin && publicMounted ? actFinale(action) : Promise.resolve(false)
 const scene = computed(() => state.value.sceneId)
 watch(state, async () => { await nextTick(); if (!isAdmin) heading.value?.focus() })
 const heading = ref<HTMLHeadingElement | null>(null)
@@ -72,9 +75,10 @@ async function goTo(target: string) {
 </script>
 
 <template>
-  <ConfirmationDialog v-if="isAdmin" />
+  <ConfirmationDialog v-if="isAdmin || activeScene.type === 'finale'" :class="{ 'sanctuary-confirmation': !isAdmin }" />
   <ProfileChooser v-if="!profile" :warning="warning" @choose="selectProfile" />
-  <OrganizerPanel v-else-if="isAdmin" :profile="profile" :scene="activeScene" :ceremony="ceremony!" :reveal="reveal" :busy="operatorBusy" :reset-profile="resetProfile" :results="results" :results-version="resultsVersion" :record-result="recordResult" :image-expanded="imageExpanded" :showing-winner="!!state.announcement" :announced-winner="state.announcement?.winner" @image-view="commandImageView" @announce="commandAnnouncement" :public-ready="publicReady" :public-waiting="publicWaiting" :public-message="publicMessage" :public-url="publicUrl" :warning="requestWarning || warning" @select="showScene" @activate="selectProfile" @ceremony="commandCeremony" @reveal="commandReveal" @open-public="publicScreen.ensure()" @saved="refreshProfile" />
+  <OrganizerPanel :control-revision="state.revision" :finale-progress="finale || undefined" @finale="commandFinale" v-else-if="isAdmin" :profile="profile" :scene="activeScene" :ceremony="ceremony!" :reveal="reveal" :busy="operatorBusy" :reset-profile="resetProfile" :results="results" :results-version="resultsVersion" :record-result="recordResult" :image-expanded="imageExpanded" :showing-winner="!!state.announcement" :announced-winner="state.announcement?.winner" @image-view="commandImageView" @announce="commandAnnouncement" :public-ready="publicReady" :public-waiting="publicWaiting" :public-message="publicMessage" :public-url="publicUrl" :warning="requestWarning || warning" @select="showScene" @activate="selectProfile" @ceremony="commandCeremony" @reveal="commandReveal" @open-public="publicScreen.ensure()" @saved="refreshProfile" />
+  <FinaleStage v-else-if="activeScene.type === 'finale' && finale" :key="profile.id + ':finale'" :config="profile" :progress="finale"  :send-action="publicFinale" @home="goTo('intro')" @finish="finishFinale" />
   <ChallengeStage v-else-if="activeScene.type === 'challenge' && profile.challenges.find(c => c.id === activeScene.challengeId)" :key="`${profile.id}:${activeScene.id}`" :challenge="profile.challenges.find(c => c.id === activeScene.challengeId)!" :config="profile" :number="activeScene.challengeNumber!" :expanded="imageExpanded" :winner="state.announcement?.challengeId === activeScene.challengeId ? state.announcement?.winner : undefined" />
   <CeremonyStage v-else-if="activeScene.type === 'ceremony' && ceremony" :config="profile" :progress="ceremony" :reveal="reveal" />
   <main v-else class="adventure" :class="{ 'video-scene': activeScene.type === 'video', 'is-transitioning': transitioning }" :aria-busy="transitioning">

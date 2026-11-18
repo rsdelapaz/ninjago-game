@@ -30,7 +30,7 @@ export function saveProfile(storage: Storage, config: ProfileConfig, previous: s
 export function onlyChallengesChanged(config: ProfileConfig, previous: string | null) {
   if (!previous) return false
   const old = parseProfile(JSON.parse(previous))
-  return JSON.stringify({ ...old, challenges: [] }) === JSON.stringify({ ...parseProfile(config), challenges: [] })
+  return JSON.stringify({ ...old, challenges: [], finale: null }) === JSON.stringify({ ...parseProfile(config), challenges: [], finale: null })
 }
 // All active browser writers share this lock. Never silently degrade to unsafe concurrent writes.
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API

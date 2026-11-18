@@ -18,15 +18,15 @@ test('challenge creation, editing, duplicate IDs, reorder, hide/show and deletio
   const b=duplicateChallenge(p.challenges,a.id);assert.notEqual(a.id,b.id);b.title='Otra prueba';b.publicInstruction='Otra misión';b.keyRule='Otra regla';assert.notEqual(a.title,b.title);assert.equal(a.publicInstruction,'Cruzad el río.');assert.equal(a.keyRule,'Sin tocar el suelo.')
   moveChallenge(p.challenges,b.id,-1);assert.equal(p.challenges[0].id,b.id)
   moveChallenge(p.challenges,b.id,-1);assert.equal(p.challenges[0].id,b.id)
-  b.visible=false;assert.equal(scenesFor(p).length,4);b.visible=true;assert.equal(scenesFor(p).length,5)
+  b.visible=false;assert.equal(scenesFor(p).length,5);b.visible=true;assert.equal(scenesFor(p).length,6)
   p.challenges.splice(0,1);assert.deepEqual(cloneProfile(p).challenges,[a])
 })
 test('v2 normalization and v1 conversion preserve every prior field without rewriting originals',()=>{
   const c=createProfile('urbanizacion');c.participants=[{id:'p',name:'Prueba ficticia',age:8}];c.teams[0].memberIds=['p'];c.teams[0].captainId='p';c.teams[0].name='Dragones';c.teams[0].color='#123456';c.teams[1].suggestedNames=[]
-  const old={...c,schemaVersion:2};delete old.challenges
+  const old={...c,schemaVersion:2};delete old.challenges;delete old.finale
   const raw=JSON.stringify(old), migrated=parseProfile(old)
-  assert.equal(migrated.schemaVersion,4);assert.deepEqual(migrated.challenges,[])
-  const {challenges,schemaVersion,...remaining}=migrated
+  assert.equal(migrated.schemaVersion,5);assert.deepEqual(migrated.challenges,[])
+  const {challenges,schemaVersion,finale,...remaining}=migrated
   assert.deepEqual(remaining,((({schemaVersion,...v})=>v)(old)));assert.equal(JSON.stringify(old),raw)
   const legacy=createConfig(), converted=migrateLegacy(legacy,'colegio');assert.deepEqual(converted.challenges,[]);assert.deepEqual(converted.participants,legacy.participants)
   const s=new MemoryStorage();s.setItem(profileKey(c.id),raw);initializeProfiles(s);readProfile(s,c.id);assert.equal(s.getItem(profileKey(c.id)),raw)
@@ -34,7 +34,7 @@ test('v2 normalization and v1 conversion preserve every prior field without rewr
 test('zero, one, ten and numerous challenges generate stable scenes and visible numbering',()=>{
   for(const count of [0,1,10,73]) {
     const c=createProfile('colegio');c.challenges=Array.from({length:count},()=>newChallenge())
-    const list=scenesFor(c);assert.equal(list.length,3+count);assert.equal(new Set(list.map(s=>s.id)).size,list.length)
+    const list=scenesFor(c);assert.equal(list.length,4+count);assert.equal(new Set(list.map(s=>s.id)).size,list.length);assert.equal(list.at(-1).id,'finale')
     for(let i=0;i<count;i++) {const s=list[i+3];assert.equal(s.challengeNumber,i+1);assert.equal(sceneByNumber(i+4,c).id,s.id);assert.equal(sceneById(s.id,c).challengeId,c.challenges[i].id);assert.equal(adjacentScene(list[i+2].id,1,c).id,s.id);assert.equal(adjacentScene(s.id,-1,c).id,list[i+2].id)}
     if(count>1){const first=list[3].id;c.challenges[0].visible=false;assert.equal(sceneById(first,c),undefined);assert.equal(sceneByNumber(4,c).challengeNumber,1);assert.equal(sceneByNumber(4,c).challengeId,c.challenges[1].id)}
   }
@@ -47,9 +47,10 @@ test('v3 reads normalize public fields without rewriting old descriptions, resul
   current.challenges=[challenge];applyProfileConfig(s,current,s.getItem(profileKey(current.id)),null)
   saveResult(s,current,challenge.id,current.teams[1].id,null)
   const old={...current,schemaVersion:3,challenges:current.challenges.map(({publicInstruction,keyRule,...c})=>c)}
+  delete old.finale
   const raw=JSON.stringify(old);s.setItem(profileKey('colegio'),raw)
   const before=[...s.data], normalized=readProfile(s,'colegio')
-  assert.equal(normalized.schemaVersion,4);assert.equal(normalized.challenges[0].description,challenge.description)
+  assert.equal(normalized.schemaVersion,5);assert.equal(normalized.challenges[0].description,challenge.description)
   assert.equal(normalized.challenges[0].publicInstruction,'');assert.equal(normalized.challenges[0].keyRule,'')
   assert.equal(normalized.challenges[0].id,challenge.id);assert.deepEqual([...s.data],before)
   assert.deepEqual(parseProfile(old),normalized);assert.deepEqual(parseProfile(JSON.parse(exportProfile(normalized))),normalized)
@@ -67,7 +68,10 @@ test('v4 text boundaries round trip; v3 cannot smuggle new public fields',()=>{
   const config=createProfile('colegio'), challenge=newChallenge();config.challenges=[challenge]
   challenge.publicInstruction='Á'.repeat(120);challenge.keyRule='Ñ'.repeat(100);challenge.description='Guion privado completo.'
   assert.deepEqual(parseProfile(JSON.parse(exportProfile(config))),config)
-  assert.throws(()=>parseProfile({...config,schemaVersion:3}),/Prueba no válida/)
+  const legacyV4={...config,schemaVersion:4};delete legacyV4.finale
+  assert.deepEqual(parseProfile(legacyV4),config)
+  const invalidV3={...config,schemaVersion:3};delete invalidV3.finale
+  assert.throws(()=>parseProfile(invalidV3),/Prueba no válida/)
   const s=new MemoryStorage();initializeProfiles(s);applyProfileConfig(s,config,s.getItem(profileKey(config.id)),null)
   saveResult(s,config,challenge.id,config.teams[0].id,null)
   const copy=duplicateChallenge(config.challenges,challenge.id)
@@ -81,6 +85,7 @@ test('a v3 journal survives repeated recovery interruptions and rejects real lat
     const s=new MemoryStorage();initializeProfiles(s)
     const config=readProfile(s,'colegio');config.challenges=[newChallenge()]
     const before={...config,schemaVersion:3,challenges:config.challenges.map(({publicInstruction,keyRule,...c})=>c)}
+    delete before.finale
     const after=structuredClone(before);after.challenges[0].title='Elección recuperada'
     const oldProgress=JSON.stringify(createCeremony('colegio')), progress=createCeremony('colegio');progress.revision=7
     const beforeRaw=JSON.stringify(before), afterRaw=JSON.stringify(after), afterProgress=JSON.stringify(progress)
@@ -90,7 +95,7 @@ test('a v3 journal survives repeated recovery interruptions and rejects real lat
     const original=s.setItem.bind(s);let failures=2
     s.setItem=(key,value)=>{if(key===ceremonyKey('colegio')&&failures>0){failures--;throw Error('simulated recovery quota')}original(key,value)}
     assert.throws(()=>recoverCeremony(s,'colegio'),/quota/)
-    assert.equal(JSON.parse(s.getItem(profileKey('colegio'))).schemaVersion,4)
+    assert.equal(JSON.parse(s.getItem(profileKey('colegio'))).schemaVersion,5)
     assert.throws(()=>recoverCeremony(s,'colegio'),/quota/)
     if(laterEdit) {
       const newer=readProfile(s,'colegio');newer.challenges[0].title='Cambio posterior real'

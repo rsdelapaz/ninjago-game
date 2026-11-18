@@ -3,6 +3,23 @@ import { computed, ref } from 'vue'
 export type ScreenMessage = { protocol: 'ninja-public-v1'; type: 'probe' | 'ready'; requestId: string; screenId?: string }
 export type ScreenTransport = { send: (message: ScreenMessage) => void; subscribe: (receive: (data: unknown) => void) => () => void }
 export type ScreenRole = 'admin' | 'public'
+// A public tab can later navigate to administration while retaining its browsing-context name.
+export function reserveAdminWindow(host: Pick<Window, 'name'>) {
+  if (host.name === 'ninja-public') host.name = 'ninja-admin'
+}
+export function openPublicView(host: Window, url: string): Window | null {
+  reserveAdminWindow(host) // Also defend against a name changed after mounting.
+  const view = host.open('', 'ninja-public', 'popup,width=1280,height=720')
+  if (!view) return null
+  if (view === host) throw Error('La ventana pública debe ser distinta de la administración. Abre la alternativa manual en una pestaña nueva.')
+  let current = false
+  try {
+    const actual = new URL(view.location.href), expected = new URL(url)
+    current = actual.origin === expected.origin && actual.pathname === expected.pathname && actual.search === expected.search
+  } catch { /* An old named window may be on another origin; navigate it back, never the admin. */ }
+  if (!current) view.location.replace(url)
+  return view
+}
 function validMessage(data: unknown): data is ScreenMessage {
   if (!data || typeof data !== 'object') return false
   const m = data as ScreenMessage
@@ -61,7 +78,7 @@ export function createPublicScreen(options: {
     waiting.value = true; status.value = 'checking'; message.value = ''
     // Intentionally synchronous, before any await or microtask; window.open alone never marks ready.
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/open
-    if (!fresh || !publicWindow) {
+    if (!fresh) {
       try { publicWindow = options.open() }
       catch (error) {
         finish(false)

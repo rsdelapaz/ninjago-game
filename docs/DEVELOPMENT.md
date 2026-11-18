@@ -1,5 +1,25 @@
 # Desarrollo y validación local
 
+## Ceremonia final — Hito 11.3
+
+Regresión de calidad del santuario: `node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/sanctuary-quality.smoke.mjs`. Usa el mismo Chrome/Vite y contexto sintético aislado. Verifica clics físicos y Enter en controles públicos y sus confirmaciones, restauración de borrador, portada desde cinco estados, frase rechazada exacta/escapada tras recarga, aislamiento de turnos/perfiles y victoria conservada. Mide alineación al sello, separación de Wu y ausencia de solapamiento en 1920×1080, 1366×768 y 1280×720. Guarda evidencia privada en `.preview.local/sanctuary-quality/`.
+
+Contrato, fases, controles, compatibilidad y arte en [FINALE](FINALE.md). Suite normal `npm test`, TypeScript y build con el procedimiento de Windows de este documento. No se añade infraestructura ni dependencias.
+
+Ensayo vigente: `node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/finale-ceremony.smoke.mjs`. El anterior `tests/finale.smoke.mjs` es un alias; se conserva su fuente anterior en la evidencia privada del Hito 11.1. Chrome normal CDP loopback 9224 y Vite deben estar disponibles. Variables `SMOKE_URL`, `FINALE_CDP_PORT`.
+
+El arnés crea y elimina un contexto sintético con administración y pública; no toca almacenamiento del propietario. Comprueba turnos completos, NO/reload/SÍ, todos los nombres y capitán, primer fallo sin giro, segundo fallo y cooperación, capitán del primer equipo, fallo/acierto conjunto, acierto individual honesto, concurrencia, restore/restart/replay/home, perfiles y pergaminos cortos/largos. Revisa 1920×1080, 1366×768 y 390×844, medios ausentes y movimiento reducido. Guarda capturas/fotogramas/registros en `.preview.local/finale-11-3/`; la evidencia anterior se conserva. Espera nuevos documentos al recargar y fases/estado confirmados, no retrasos de sincronización arbitrarios.
+
+CDP emula página activa para que la oclusión de Windows no suspenda el renderizado; no cambia el reloj del juego ni desactiva seguridad. Las capturas estables esperan las animaciones CSS finitas, las de VFX muestrean tiempo real. No equivale a medir FPS del monitor.
+
+`node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/public-window.smoke.mjs` conserva la regresión de ventanas: nombre heredado, destinos separados, repetición, URL antigua, cierre/reapertura y enlace manual. La apertura rechazada se simula con retorno `null` solo en ese contexto, no cambiando políticas de Chrome.
+
+No usar perfiles/JSON reales para ensayar. Un build incluye medios privados presentes y no se publica. Quedan aprobación artística del propietario, prueba física de monitor/altavoces y desconexión real con HTTP loopback activo.
+
+## Imprimibles privados
+
+Preparación, Chrome aislado, esquema de contenido y regeneración de las cuatro piezas en [printables/README.md](../printables/README.md). Herramienta independiente: `node --preserve-symlinks --preserve-symlinks-main printables/src/generate.mjs printables/content/pista-01.json` (repetir 02–04; sin argumento genera la muestra). Instalar previamente con `npm ci --prefix printables --ignore-scripts --omit=optional`; no cambia dependencias ni scripts del juego. Originales rasterizados cotejados visualmente y fijados por SHA-256; no publicar `content/`, `output/` o `previews/`. La CSP restringe cargas al servidor loopback temporal y el renderizado PDF usa intención de impresión para funcionar en una pestaña de fondo.
+
 ## Ensayo del enigma independiente
 
 Mantener Vite y abrir /?screen=enigma#palabra=AMISTAD. El script tests/enigma.smoke.mjs usa Chrome normal ya abierto con DevTools loopback en 9224, perfil de ensayo separado y sin desactivar su sandbox. Crea y elimina únicamente su propio contexto limpio; no altera perfiles del propietario. Ejecutar `node --preserve-symlinks --preserve-symlinks-main tests/enigma.smoke.mjs`. Variables opcionales: SMOKE_URL (por defecto http://localhost:5173) y ENIGMA_CDP_PORT (9224).

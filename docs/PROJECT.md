@@ -1,6 +1,6 @@
 # Proyecto — El secreto del maestro Wu
 
-Estado vigente: 17/11/2026. Este documento describe el producto y el código actual; [README](../README.md) explica el uso, [DEVELOPMENT](DEVELOPMENT.md) el entorno y ensayo, y [VALIDATION](VALIDATION.md) la evidencia. Las decisiones anteriores están completas en [history/INDEX.md](history/INDEX.md).
+Estado vigente: 18/11/2026. Este documento describe el producto y el código actual; [README](../README.md) explica el uso, [DEVELOPMENT](DEVELOPMENT.md) el entorno y ensayo, y [VALIDATION](VALIDATION.md) la evidencia. Las decisiones anteriores están completas en [history/INDEX.md](history/INDEX.md).
 
 ## Contenido
 
@@ -14,6 +14,18 @@ Estado vigente: 17/11/2026. Este documento describe el producto y el código act
 - [Limitaciones y siguientes hitos](#limitaciones-y-siguientes-hitos)
 
 ## Visión y alcance
+
+### Desenlace integrado — Hito 11.3
+
+Escena estable `finale` al terminar las pruebas visibles. Configuración v5 conservada (frase, secreto y medios/mensaje opcionales), sin valores por defecto. Ahora es una ceremonia persistente: Wu llama a cada clan con nombre, color, emblema original, capitán y todos los integrantes. La preparación exige capitán perteneciente a cada equipo, nombre y color; bloqueos legibles al organizador, sin inventar ni reescribir equipos.
+
+Confirmación SÍ/NO sin caducidad, turno individual de cada clan y dos derrotas diferenciadas. La cooperación solo se revela tras el segundo fallo; un acierto individual inesperado se reconoce y lleva a la proclamación del primer capitán sin fabricar derrotas. El acto conjunto permite reintentos sin regresar a los clanes. Frases públicas/privadas usan el mismo controlador y normalización (Ñ distinta de N), conservando solo la última propuesta rechazada de su propio turno para mostrarla en el resultado. El mensaje adicional existente se conserva, pero solo aparece después del giro; no se infieren ni reescriben sus palabras.
+
+`finale.ts` contiene el modelo explícito y preparación; `finaleNarrative.ts` deriva el guion público del punto actual. El control existente `ninja-control-v3.finales[perfil]` añade `ceremonyPhase`, tres contadores `attempts`, `earlyCorrect`, `cluesMissing` y `rejectedAnswer` opcional (texto exacto y turno), junto a ejecución, firma y sonido anteriores. Lectura de progreso anterior normalizada en memoria, sin borrar claves ni éxitos. Se conservan Web Lock, CAS, historial/journal, aislamiento de perfiles y acuses obsoletos rechazados. Preguntas estables sin reloj; las animaciones pertenecen al renderizador. Recargar/salir asienta una ejecución y no la repite al montar. Cambios de configuración final invalidan solo su resultado mediante el journal.
+
+GSAP/Canvas locales: fallo inicial 3,5 s, segundo 5,5 s, victoria de 4 s conservando el orden de inscripciones, dos corrientes, fragmentos y estelas, apertura visual de sectores/cámara y secreto desde aproximadamente 3,55 s. Se conservan 156 partículas máximas y DPR 1,5. La revelación «El corazón del sello» centra una reliquia de piedra con inscripción en oro, dejando visible el anillo y una zona lateral segura para Wu. Reutiliza la textura del santuario original; su cuerpo desplazable conserva secretos exactos de hasta 3000 caracteres y adapta la escala según longitud sin cambiar su valor. Wu reutiliza arte local aprobado con máscaras de presentación; sin nuevos recursos ni dependencias. El vídeo opcional posterior nunca tapa el pergamino. Movimiento reducido y medios ausentes dejan estados legibles.
+
+Controles diferenciados: restablecer escena (cancelar efectos conservando historia), volver a empezar (confirmar si hay progreso, limpiar solo final), repetir revelación (conservar victoria) y volver a portada (conservar progreso). Las confirmaciones públicas de portada/restauración/repetición se montan en el santuario y se cancelan al salir; usan el diálogo existente. El contenido se centra en el sello, la identidad mantiene su color y los integrantes se listan solo al llamar a cada clan. Previa estática 16:9 sin nombres, secretos ni formulario. Se preservan adquisición síncrona, separación de ventanas y handshake fresco. Uso, licencias y ensayo en [FINALE](FINALE.md), evidencia en [VALIDATION](VALIDATION.md).
 
 ### Enigma independiente — Hitos 10, 10.1 y 10.2
 
@@ -31,11 +43,13 @@ Aventura cinematográfica privada, personal y no comercial, para un cumpleaños 
 
 El juego completo aprobado prevé exactamente dos equipos que compiten en pruebas físicas, intelectuales, digitales y manuales, reciben fragmentos complementarios y resuelven juntos un acertijo final. Ningún equipo debe poder resolverlo solo. Mensaje final: **«UN NINJA EN SOLITARIO ES MUY FUERTE, PERO JUNTOS SON INVENCIBLES»**.
 
-Dos jornadas consecutivas tienen participantes diferentes: Colegio y Urbanización. La visión incluye importación CSV de nombre/género/edad, propuestas de nombres basadas en CSV, pistas y desenlace; esas partes siguen previstas, no implementadas. Las versiones anteriores de organización por sesiones son legado de recuperación, no otra modalidad activa.
+Dos jornadas consecutivas tienen participantes diferentes: Colegio y Urbanización. La visión incluye importación CSV de nombre/género/edad, propuestas de nombres basadas en CSV, pistas y desenlace; CSV y entrega integrada de pistas siguen previstos; el desenlace configurable ya está implementado. Las versiones anteriores de organización por sesiones son legado de recuperación, no otra modalidad activa.
 
 La dirección privada NINJAGO y su fan art están aprobados. No se presenta como arte oficial ni licencia de terceros. La interfaz no muestra LEGO; tampoco descarga logotipos oficiales. Español en los copys, con START GAME y el sello LET'S GO ya aprobados.
 
 ## Estado implementado
+
+Imprimibles: [generador local independiente](../printables/README.md), HTML/CSS y SVG originales, exportación Chrome y QA con PDF.js como herramienta separada. Cuatro piezas completadas desde los originales rasterizados de `public/private-media/colegio/pistas/`, transcritos y cotejados visualmente; fuente fijada por SHA-256. Nuevo contenido, PDF y previas ignorados fuera de `public/`/`dist/`. Se conserva la muestra previa. No implementa entrega de pistas, recorridos ni desenlace en la aplicación.
 
 | Área | Funcionamiento actual |
 | --- | --- |
@@ -56,7 +70,7 @@ El propietario aprueba la pantalla pública 09.3 y exige conservarla: no redise�
 
 ## Arquitectura
 
-Vue 3.5.45, TypeScript 5.9.3, Vite 8.3.8 y vue-tsc 3.3.14 según package.json; instalación reproducible con package-lock.json. Composition API y script setup, una SPA estática con Vue como única dependencia de runtime. Sin backend, autenticación, analítica o red externa requerida.
+Vue 3.5.45, TypeScript 5.9.3, Vite 8.3.8 y vue-tsc 3.3.14 según package.json; instalación reproducible con package-lock.json. Composition API y script setup, una SPA estática con Vue y GSAP 3.15.1 local para el desenlace. Sin backend, autenticación, analítica o red externa requerida.
 
 | Archivos | Responsabilidad |
 | --- | --- |
@@ -79,7 +93,7 @@ src/session.ts y src/sessionStorage.ts, SessionManager.vue y TeamEditor.vue cons
 
 ## Modelo de configuración
 
-**ProfileConfig schemaVersion 4** (src/profile.ts) contiene id colegio/urbanizacion, participantes, assignmentMode manual/automatic, dos equipos, media y challenges ordenados. Cada participante tiene ID y nombre, con edad/género opcionales. Cada equipo tiene ID, memberIds exclusivos, captainId miembro o null, sugerencias, nombre definitivo y color hex o null.
+**ProfileConfig schemaVersion 5** (src/profile.ts) contiene id colegio/urbanizacion, participantes, assignmentMode manual/automatic, dos equipos, media, challenges ordenados y finale (frase, secreto, vídeo/audio y mensaje de fallo). Cada participante tiene ID y nombre, con edad/género opcionales. Cada equipo tiene ID, memberIds exclusivos, captainId miembro o null, sugerencias, nombre definitivo y color hex o null.
 
 Los perfiles iniciales están vacíos de participantes y pruebas, con equipos sin nombre/color/capitán y tres propuestas humorísticas editables por equipo. No se rellenan propuestas de perfiles ya existentes. La ordenación española es de visualización, no una mutación del orden persistido. Mover un capitán invalida la capitanía solo si deja su equipo. El sorteo se solicita expresamente y no se repite al recargar.
 
@@ -95,7 +109,7 @@ Los perfiles iniciales están vacíos de participantes y pruebas, con equipos si
 
 El número se deriva de la lista visible, no se guarda. Hasta 500 pruebas, presupuesto de definiciones de 750 000 caracteres y JSON exportado de hasta 1 MiB. Duplicar genera ID nuevo sin resultado. La identidad global del juego pertenece a la plantilla/escenario, no a los campos de cada prueba. No hay templateId ni selector de tipos.
 
-Compatibilidad: v2 normaliza a v4 sin pruebas; v3 conserva cada description íntegra y añade publicInstruction/keyRule vacíos en memoria. No se infiere una frase breve del texto anterior. Administración avisa de preparación y pública pide escuchar al organizador mientras falta. Una lectura no escribe originales; exportar/guardar produce v4. Las versiones antiguas de la aplicación no admiten v4: actualizar ambas ventanas y conservar exportaciones privadas. La configuración legacy v1 solo se convierte al elegir y confirmar destino. JSON desconocido, progreso, binarios y referencias inválidas se rechazan.
+Compatibilidad: v2 normaliza a v5 sin pruebas; v3 conserva cada description íntegra y añade publicInstruction/keyRule vacíos en memoria. No se infiere una frase breve del texto anterior. Administración avisa de preparación y pública pide escuchar al organizador mientras falta. Una lectura no escribe originales; exportar/guardar produce v5; las configuraciones v2/v3/v4 reciben finale vacío únicamente en memoria. Las versiones antiguas de la aplicación no admiten v5: actualizar ambas ventanas y conservar exportaciones privadas. La configuración legacy v1 solo se convierte al elegir y confirmar destino. JSON desconocido, progreso, binarios y referencias inválidas se rechazan.
 
 ## Persistencia y recuperación
 
@@ -103,10 +117,10 @@ Todo reside en localStorage del origen del navegador. No hay base de datos ni co
 
 | Clave | Contenido |
 | --- | --- |
-| ninja-profile-v2:colegio / urbanizacion | Configuración actual v4; el nombre histórico de clave se mantiene deliberadamente |
+| ninja-profile-v2:colegio / urbanizacion | Configuración actual v5; el nombre histórico de clave se mantiene deliberadamente |
 | ninja-ceremony-v1:perfil | Fase, propuestas y decisiones confirmadas de ceremonia |
 | ninja-challenge-results-v1:perfil | Mapa ID de prueba → ID de equipo ganador o pendiente |
-| ninja-control-v3 | Perfil/escena/revisión/token, revelación, anuncio e imagen ampliada opcionales |
+| ninja-control-v3 | Perfil/escena/revisión/token, revelación, anuncio, imagen ampliada y progreso del final por perfil |
 | ninja-profile-history:perfil:... | Copia anterior a reemplazar configuración |
 | ninja-ceremony-pending:perfil | Journal de configuración/progreso/navegación para recuperación |
 
@@ -120,7 +134,7 @@ No eliminar claves ninja-config-v1:*, ninja-progress-v1:* ni ninja-presentation-
 
 ## Presentación y sincronización
 
-Catálogo: intro → ceremony → wu → challenge:ID de cada prueba visible. Los números del catálogo completo y los números públicos de prueba tienen recorridos distintos; ambos se calculan. Se preservan decisiones de ceremonia al navegar hacia atrás. Los dos equipos deben tener miembros/capitán para entrar a ceremonia; las elecciones se confirman por el adulto, sin exigir nombre/color al preparar.
+Catálogo: intro → ceremony → wu → challenge:ID de cada prueba visible → finale. Los números del catálogo completo y los números públicos de prueba tienen recorridos distintos; ambos se calculan. Se preservan decisiones de ceremonia al navegar hacia atrás. Los dos equipos deben tener miembros/capitán para entrar a ceremonia; las elecciones se confirman por el adulto, sin exigir nombre/color al preparar.
 
 La pública usa la misma aplicación sin screen=admin. Ambos clientes comparten origen, perfil de navegador y almacenamiento. BroadcastChannel comunica control sin nombres de participantes; storage es respaldo. El panel obtiene/abre ninja-public síncronamente desde el clic original y espera una respuesta fresca tras montar/inicializar la aplicación. Si no llega, no se cambia la escena; informa y ofrece recuperación. Ventanas cerradas y respuestas antiguas no acreditan disponibilidad.
 
@@ -138,8 +152,8 @@ La imagen vasos-sagrados.png fue generada con imagegen integrado y las dos ilust
 
 ## Limitaciones y siguientes hitos
 
-- Implementado: experiencia local jugable descrita arriba, sin adjudicación automática. No hay importación CSV, puntuación, sensores, pistas entregadas, acertijo/final cooperativo implementado, autenticación o backend.
-- La visión futura mantiene CSV de participantes/nombres, pruebas de distintas disciplinas, fragmentos complementarios y cierre común. Requiere orden posterior; no es autorización de desarrollo actual.
+- Implementado: experiencia local jugable descrita arriba, sin adjudicación automática. No hay importación CSV, puntuación, sensores, entrega integrada de pistas, autenticación o backend. El final cooperativo configurable sí está implementado.
+- La visión futura mantiene CSV de participantes/nombres, pruebas de distintas disciplinas, entrega integrada de fragmentos complementarios. Requiere orden posterior; no es autorización de desarrollo actual.
 - No hay backup completo de resultados/progreso ni sincronización entre servidores/orígenes. Cambiar de navegador/host/puerto requiere preparación consciente y JSON de configuración más medios separados.
 - Diseño 09.3 aprobado por el propietario; no afirmar por ello pruebas nuevas de Codex en monitor, sincronización física, lector de pantalla o internet desconectado. Estado comprobado y pendientes en VALIDATION.
 - La Prueba 02 requiere alta manual y ensayo físico. No se consultaron perfiles reales ni se determinó si ya existe una prueba equivalente.

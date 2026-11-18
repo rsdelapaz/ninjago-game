@@ -1,12 +1,25 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { browserScreenTransport, createPublicScreen } from '../src/publicScreen.ts'
+import { browserScreenTransport, createPublicScreen, openPublicView, reserveAdminWindow } from '../src/publicScreen.ts'
 function bus() {
   const listeners=new Set(),messages=[]
   return {messages,port:()=>({send(message){messages.push(message);listeners.forEach(l=>l(message))},subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn)}})}
 }
 const timing={heartbeatMs:10,timeoutMs:80,staleMs:25}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms))
+
+test('admin never owns the public target; named reuse repairs old URLs without replacing a live public scene',()=>{
+  let opens=0,replaces=0
+  const view={location:{href:'about:blank',replace(url){replaces++;this.href=url}}}
+  const host={name:'ninja-public',open(_url,name){opens++;assert.equal(name,'ninja-public');assert.notEqual(host.name,name);return view}}
+  reserveAdminWindow(host);assert.equal(host.name,'ninja-admin')
+  host.name='ninja-public';assert.equal(openPublicView(host,'http://localhost:5173/'),view)
+  assert.equal(replaces,1);assert.equal(opens,1)
+  openPublicView(host,'http://localhost:5173/');assert.equal(replaces,1)
+  view.location.href='http://localhost:5173/?screen=admin';openPublicView(host,'http://localhost:5173/');assert.equal(replaces,2)
+  host.open=()=>null;assert.equal(openPublicView(host,'http://localhost:5173/'),null)
+  host.open=()=>host;assert.throws(()=>openPublicView(host,'http://localhost:5173/'),/distinta/)
+})
 test('opening is synchronous and a window reference is not readiness; rendering must acknowledge',async()=>{
   const b=bus(),events=[]
   const publicView=createPublicScreen({role:'public',transport:b.port(),open:()=>{},...timing})
