@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import type { ProfileConfig } from './profile'
-import { finaleCanAnswer, finaleRejectedAnswer, normalizeFinaleAnswer, type FinaleAction, type FinaleProgress } from './finale'
+import { finaleCanAnswer, finaleHasProgress, finaleRejectedAnswer, normalizeFinaleAnswer, type FinaleAction, type FinaleProgress } from './finale'
 import { finaleNarrative } from './finaleNarrative'
 import { confirmAction } from './confirmation'
 import { useFinaleCinema } from './useFinaleCinema'
+import FinaleWordBoard from './FinaleWordBoard.vue'
 import './finale.css'
 const props = defineProps<{ config: ProfileConfig; progress: FinaleProgress; preview?: boolean; sendAction?: (action: FinaleAction) => Promise<boolean> }>()
 const emit = defineEmits<{ finish: [runId: string]; home: [] }>()
@@ -43,10 +44,11 @@ async function send(action:FinaleAction){
  proposalProblem.value='';actionNotice.value=''
  if(action.type==='submit'&&!normalizeFinaleAnswer(action.proposal)){proposalProblem.value='Escribid una frase de hasta 256 caracteres significativos, sin caracteres de control.';proposalInput.value?.focus();return}
  const reviewed=JSON.stringify([props.config,props.progress])
- if((action.type==='replay'||action.type==='restore'&&animating.value)&&!await confirmAction(action.type==='replay'?'Se volverá a abrir el pergamino. El resultado se conserva.':'Se detendrán los efectos y se recuperará este punto de la historia. Los intentos y el resultado se conservan.',action.type==='replay'?'¿Repetir revelación?':'¿Restablecer escena?'))return
+ if(action.type==='replay'&&!await confirmAction('Se volverá a abrir el pergamino. El resultado se conserva.','¿Repetir revelación?'))return
+ if(action.type==='reset'&&finaleHasProgress(props.progress)&&!await confirmAction('Volveréis al inicio de la ceremonia final. Se borrarán los intentos, el resultado y el tablero del desenlace.','¿Restablecer escena?',true))return
  if(disposed||reviewed!==JSON.stringify([props.config,props.progress]))return
  submitting.value=true
- try{const accepted=await props.sendAction(action);if(!disposed&&accepted&&action.type==='restore')actionNotice.value='Escena restablecida. Podéis continuar.';if(!disposed&&!accepted)proposalProblem.value='La escena ha cambiado o está ocupada. Revisad el estado antes de continuar.'}
+ try{const accepted=await props.sendAction(action);if(!disposed&&accepted&&action.type==='reset')actionNotice.value='Escena restablecida. Podéis comenzar la ceremonia.';if(!disposed&&!accepted)proposalProblem.value='La escena ha cambiado o está ocupada. Revisad el estado antes de continuar.'}
  catch{if(!disposed)proposalProblem.value='No se pudo entregar la respuesta. Volved a intentarlo.'}finally{submitting.value=false}
 }
 async function home(){const reviewed=JSON.stringify([props.config,props.progress]);if(await confirmAction('Volveréis a la portada. Esta ceremonia y su resultado se conservarán.','¿Volver a la portada?')&&!disposed&&reviewed===JSON.stringify([props.config,props.progress]))emit('home')}
@@ -54,7 +56,8 @@ async function toggleAudio(){if(audioAllowed.value){audioAllowed.value=false;sto
 watch(()=>props.progress.runId,()=>{root.value?.getAnimations?.({subtree:true}).forEach(animation=>{if(Number.isFinite(animation.effect?.getComputedTiming().endTime))animation.cancel()});stopAudio();audioNotice.value='';videoFailed.value=false;proposal.value='';proposalProblem.value='';actionNotice.value=''})
 watch(()=>props.progress.sound,enabled=>{if(!enabled)stopAudio()})
 watch(revealed,async value=>{if(!value)return;await nextTick();if(!disposed&&audioAllowed.value&&props.progress.sound&&audio.value){try{await audio.value.play()}catch{audioNotice.value='Podéis seguir leyendo el secreto.'}}})
-watch([phase,()=>props.progress.runId,submitting,canAnswer],async([value,run])=>{await nextTick();if(disposed||props.preview||phase.value!==value||props.progress.runId!==run)return;if(canAnswer.value&&!submitting.value)proposalInput.value?.focus({preventScroll:true});else if(!submitting.value){if(revealed.value)root.value?.querySelector<HTMLElement>('.finale-secret-copy')?.focus({preventScroll:true});else heading.value?.focus({preventScroll:true})}},{flush:'post',immediate:true})
+watch([phase,()=>props.progress.runId,submitting,canAnswer],async([value,run])=>{await nextTick();if(disposed||props.preview||story.value.phase==='words'||phase.value!==value||props.progress.runId!==run)return;if(canAnswer.value&&!submitting.value)proposalInput.value?.focus({preventScroll:true});else if(!submitting.value){if(revealed.value)root.value?.querySelector<HTMLElement>('.finale-secret-copy')?.focus({preventScroll:true});else heading.value?.focus({preventScroll:true})}},{flush:'post',immediate:true})
+watch(()=>story.value.phase, async value=>{if(value!=='words'||props.preview)return;await nextTick();if(story.value.phase==='words')heading.value?.focus({preventScroll:true})},{flush:'post',immediate:true})
 onUnmounted(()=>{disposed=true;stopAudio();void audioContext?.close().catch(()=>{})})
 </script>
 <template>
@@ -94,15 +97,16 @@ onUnmounted(()=>{disposed=true;stopAudio();void audioContext?.close().catch(()=>
   <canvas ref="canvas" class="finale-particles" aria-hidden="true"></canvas>
   <header class="finale-header"><p>EL SECRETO <span>DEL MAESTRO WU</span></p><button v-if="progress.sound" type="button" :aria-pressed="audioAllowed" @click="toggleAudio">{{audioAllowed?'Silenciar esta pantalla':'Activar sonido aquí'}}</button><span v-else class="finale-header-mark" aria-hidden="true">EL SANTUARIO ANCESTRAL</span></header>
   <section class="finale-story" aria-labelledby="finale-title">
-   <aside class="finale-wu" aria-label="El Maestro Wu en el santuario"><img v-if="!wuFailed" :src="wuUrl" alt="El Maestro Wu con su sombrero y su bastón" @error="wuFailed=true"/><p v-else class="finale-wu-fallback">MAESTRO WU<span>El maestro os acompaña con sus palabras.</span></p><span class="finale-wu-name">MAESTRO WU <small>GUARDIÁN DEL SANTUARIO</small></span></aside>
+   <aside v-if="story.phase!=='words'" class="finale-wu" aria-label="El Maestro Wu en el santuario"><img v-if="!wuFailed" :src="wuUrl" alt="El Maestro Wu con su sombrero y su bastón" @error="wuFailed=true"/><p v-else class="finale-wu-fallback">MAESTRO WU<span>El maestro os acompaña con sus palabras.</span></p><span class="finale-wu-name">MAESTRO WU <small>GUARDIÁN DEL SANTUARIO</small></span></aside>
    <div class="finale-dialogue" :key="story.phase">
-    <p class="finale-kicker">{{revealed?'EL LEGADO DEL MAESTRO WU':resolved?'EL PODER HA DESPERTADO':animating?'EL SELLO ESTÁ ESCUCHANDO…':'EL MAESTRO WU OS HABLA'}}</p>
+    <p v-if="story.phase!=='words'" class="finale-kicker">{{revealed?'EL LEGADO DEL MAESTRO WU':resolved?'EL PODER HA DESPERTADO':animating?'EL SELLO ESTÁ ESCUCHANDO…':'EL MAESTRO WU OS HABLA'}}</p>
     <h1 id="finale-title" ref="heading" tabindex="-1">{{revealed?'EL SECRETO HA SIDO REVELADO':resolved?'¡LO HABÉIS CONSEGUIDO!':animating?'EL SELLO DESPIERTA':showMembers?'EL ÚLTIMO SECRETO':story.title}}</h1>
     <section v-if="roster&&!animating&&!revealed" class="finale-clan" :aria-label="`Integrantes de ${roster.name}`">
      <div class="finale-clan-heading"><svg class="finale-emblem" viewBox="0 0 80 80" aria-hidden="true"><path d="m40 4 28 16 6 30-34 26L6 50l6-30Z"/><path :d="story.index===1?'M25 50 40 15 55 50 40 42Z':'m20 45 24-29-4 22 20-4-25 30 5-22Z'"/></svg><span>{{roster.name}}</span></div>
      <ul v-if="showMembers" class="finale-roster"><li v-for="person in roster.members" :key="person.id" :data-captain="person.id===roster.captain?.id" :class="{'finale-captain':person.id===roster.captain?.id}"><small v-if="person.id===roster.captain?.id">CAPITÁN</small><span>{{person.name}}</span></li></ul>
     </section>
     <div v-if="!animating&&!revealed" class="finale-dialogue-lines"><p v-for="(line,index) in story.lines" :key="index" :style="{'--line':index}">{{line}}</p></div>
+    <FinaleWordBoard v-if="story.phase==='words' && progress.wordBoard" :answer="config.finale.answer" :board="progress.wordBoard" :disabled="submitting" @move="(from,to)=>send({type:'move-word',from,to})" />
     <p v-if="story.custom&&!animating" class="finale-custom-message">{{story.custom}}</p>
     <section v-if="rejectedAnswer&&!animating" class="finale-rejected-answer" aria-label="Respuesta rechazada de este turno"><h2>VUESTRA RESPUESTA</h2><blockquote><p>{{rejectedAnswer}}</p></blockquote><small>EL SELLO NO LA RECONOCE</small></section>
 
@@ -117,7 +121,7 @@ onUnmounted(()=>{disposed=true;stopAudio();void audioContext?.close().catch(()=>
     <p v-if="audioNotice" class="finale-media-notice" role="status">{{audioNotice}}</p>
    </div>
   </section>
-  <footer class="finale-footer"><p v-if="actionNotice" class="finale-action-status" role="status">{{actionNotice}}</p><span>{{revealed?'EL LEGADO PERMANECE':'EL SELLO AGUARDA.'}}</span><nav class="finale-transport" aria-label="Controles de la escena"><button data-action="restore" :disabled="submitting" @click="send({type:'restore'})">RESTABLECER ESCENA</button><button v-if="progress.status==='success'" data-action="replay" :disabled="submitting" @click="send({type:'replay'})">REPETIR REVELACIÓN</button><button data-action="home" :disabled="submitting" @click="home">VOLVER A LA PORTADA</button></nav></footer>
+  <footer class="finale-footer"><p v-if="actionNotice" class="finale-action-status" role="status">{{actionNotice}}</p><span>{{revealed?'EL LEGADO PERMANECE':'EL SELLO AGUARDA.'}}</span><nav class="finale-transport" aria-label="Controles de la escena"><button data-action="reset" :disabled="submitting" @click="send({type:'reset'})">RESTABLECER ESCENA</button><button v-if="progress.status==='success'" data-action="replay" :disabled="submitting" @click="send({type:'replay'})">REPETIR REVELACIÓN</button><button data-action="home" :disabled="submitting" @click="home">VOLVER A LA PORTADA</button></nav></footer>
   <p class="finale-sr" role="status" aria-live="polite" aria-atomic="true">{{animating?'El sello está escuchando.':story.title}}{{!canvasAvailable?' La experiencia continúa con el sello estático.':''}}</p>
  </main>
 </template>

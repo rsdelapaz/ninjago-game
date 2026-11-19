@@ -18,8 +18,9 @@ export function finaleNarrative(config: ProfileConfig, progress: FinaleProgress)
     fail2: { title: 'EL SANTUARIO GUARDA SILENCIO', lines: ['Dos clanes han presentado sus respuestas… y el sello sigue cerrado.'], action: 'ESCUCHAR AL MAESTRO WU' },
     truth: { title: 'AHORA COMPRENDO EL MISTERIO', lines: ['Cada clan guarda una parte del mensaje. Ninguno tiene la frase completa.', '¡Unid vuestras pistas! Ordenadlas y formad una sola frase. Solo así podréis descubrir mi último secreto.'], action: 'UNIR LAS PISTAS' },
     captain: { title: `CAPITÁN ${captain}`, lines: progress.earlyCorrect ? ['El sello ha reconocido vuestras palabras.', `Capitán ${captain}, acércate.`, 'Habéis descubierto la frase. Cuando estéis preparados, pronúnciala en voz alta ante todos.'] : [`Capitán ${captain}, acércate.`, 'Tus compañeros han recorrido un largo camino. Ahora los dos clanes comparten un mismo propósito.', 'Cuando estéis preparados, pronuncia en voz alta la frase que habéis descubierto juntos.'], action: 'ESTAMOS PREPARADOS' },
+    words: { title: 'LAS PALABRAS DEL DESTINO', lines: ['Las pistas han sido reunidas. Descubrid el orden del mensaje.'], action: 'ENTREGAR LA RESPUESTA' },
     joint: { title: 'LA ÚLTIMA FRASE', lines: [`Capitán ${captain}, el santuario te escucha. Pronuncia la frase ante todos y entregad vuestra respuesta al sello.`] },
-    jointFail: { title: 'AÚN FALTA ALGO', lines: ['El sello ha despertado un instante, pero aún falta algo. Revisad cada fragmento y volved a intentarlo. Esta vez, todos juntos.'], action: 'VOLVER A INTENTARLO' },
+    jointFail: { title: 'AÚN FALTA ALGO', lines: ['El sello ha despertado un instante, pero aún falta algo. Revisad cada fragmento y volved a intentarlo. Esta vez, todos juntos.'], action: progress.earlyCorrect ? 'VOLVER A INTENTARLO' : 'VOLVER A LAS PALABRAS' },
     victory: { title: 'EL SECRETO HA SIDO REVELADO', lines: ['Recordad este día, ninjas. Las mayores victorias son las que conseguimos juntos.'] },
   }
   const script = scripts[phase] || { title: 'EL SELLO ESTÁ ESCUCHANDO…', lines: [] }

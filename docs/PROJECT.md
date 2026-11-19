@@ -18,6 +18,10 @@ A private, non-commercial LEGO NINJAGO-themed immersive adventure, guided by Mas
 ## Chosen implementation
 Vue 3 + Composition API + TypeScript + Vite. Small SPA without backend and without unnecessary runtime dependencies. Local JSON/CSV input for later content; browser-local state where appropriate. For the first prototype, a simple two-window synchronization mechanism is enough. Use current compatible stable versions rather than blindly pinning unverified numbers.
 
+## Public opening
+
+START GAME checks the active profile with `ceremonyProblems()` before animating. The existing presentation write checks the persisted preparation again under the shared Web Lock. The public opening attempts to loop the shared local `private-media/intro-theme.mp3` at 30% volume. The player is released when the exit starts or an operator scene change arrives. The music preference lives in the open public page.
+
 ## Milestone plan
 ### M0 — Repo and working agreements
 - GitHub repository present, project brief and Codex instructions committed.

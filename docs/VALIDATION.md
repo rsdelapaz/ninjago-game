@@ -1,5 +1,17 @@
 # Validación preestreno
 
+## Música y arranque de portada · 19 de noviembre de 2026
+
+Rama `feat/intro-music-start-guard` desde `origin/main` en `bd9015e`, con Node 26.13.1, Chrome 157 y Vite en `http://127.0.0.1:5173/`.
+
+- `npm test`: 122 aprobadas. `npm run typecheck`, `npm run build` y `git diff --check`: correctos.
+- `tests/intro.smoke.mjs`: selector, ausencia de reproducción en administración, intento de autoplay rechazado y recuperación con un reproductor simulado, archivo ausente con audio nativo, pausa y retorno a portada, START GAME con teclado y foco en el aviso, avance con equipos preparados y rechazo concurrente con Web Lock real. La prueba bloqueó HTTP fuera del origen local y no registró solicitudes externas. En una ejecución adicional se comprobó que avanzaba el vídeo local de Wu. Ese avance no se usa como criterio del arnés porque la reproducción iniciada por CDP quedó pendiente en otras ejecuciones.
+- `tests/public-window.smoke.mjs`: pasó la separación, reutilización y reapertura de la ventana pública, el bloqueo simulado y el enlace manual.
+- `tests/enigma.smoke.mjs`: activó y silenció el sonido del Oráculo. El ensayo completo quedó inconcluso al agotar Chrome el tiempo de espera de `Page.captureScreenshot`.
+- Faltaba `public/private-media/intro-theme.mp3`. Quedan por comprobar la decodificación y el sonido de esa pista en el equipo del evento, el autoplay nativo con el archivo instalado y el ensayo físico sin internet.
+
+## Auditoría anterior
+
 Auditoría del 18 de noviembre de 2026 sobre feat/upgrade-prologue-art en b65ae33f11157e934f467a646d4562e0bdacc074. Node 24.19.0 y Chrome 157.0.8103.52 en Windows. Se usaron perfiles ficticios y contextos desechables de CDP. Vite sirvió en http://127.0.0.1:5189/.
 
 ## Resultados

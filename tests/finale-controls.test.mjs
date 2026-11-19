@@ -12,6 +12,7 @@ test('actual finale reset confirmation rejects unmounted controls, changed progr
   const js = ts.transpileModule(compiled, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText
     .replace(/from ['"]vue['"]/g, `from '${import.meta.resolve('vue')}'`)
     .replace(/from ['"]\.\/(confirmation|finale|finaleNarrative)['"]/g,(_,name)=>`from '${new URL('../src/'+name+'.ts',import.meta.url).href}'`)
+    .replace(/import FinaleWordBoard from ['"]\.\/FinaleWordBoard\.vue['"]/, 'const FinaleWordBoard = { render: () => null }')
   const Controls = (await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'))).default
   const node = tag => ({ tag, children: [], props: {} })
   const renderer = createRenderer({
@@ -29,7 +30,7 @@ test('actual finale reset confirmation rejects unmounted controls, changed progr
     let mounted = true
     try {
       app.mount(root); await nextTick()
-      const button = all(root).find(el => el.tag === 'button' && el.text?.includes('VOLVER A EMPEZAR'))
+      const button = all(root).find(el => el.tag === 'button' && el.text?.includes('RESTABLECER ESCENA'))
       assert(button, scenario + ': reset action is present')
       const pending = button.props.onClick()
       assert(confirmations.request.value, scenario + ': confirmation must be explicit')

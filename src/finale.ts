@@ -1,12 +1,13 @@
 import type { Participant, ProfileConfig, ProfileTeam } from './profile.ts'
+import { createWordBoard, finaleWords, validWordBoard, type WordBoard } from './finaleWords.ts'
 export type FinaleConfig = { answer: string; secret: string; videoFilename: string; audioFilename: string; failureMessage: string }
 export type FinaleStatus = 'ready' | 'rejecting' | 'failure' | 'revealing' | 'success'
-export const finaleCeremonyPhases = ['intro', 'call1', 'clues1', 'answer1', 'fail1', 'call2', 'clues2', 'answer2', 'fail2', 'truth', 'captain', 'joint', 'jointFail', 'explosion', 'victory'] as const
+export const finaleCeremonyPhases = ['intro', 'call1', 'clues1', 'answer1', 'fail1', 'call2', 'clues2', 'answer2', 'fail2', 'truth', 'captain', 'words', 'joint', 'jointFail', 'explosion', 'victory'] as const
 export type FinaleCeremonyPhase = typeof finaleCeremonyPhases[number]
 // Optional ceremony fields admit historical progress without rewriting it during a read.
-export type FinaleProgress = { runId: string; status: FinaleStatus; signature: string; sound: boolean; ceremonyPhase?: FinaleCeremonyPhase; attempts?: [number, number, number]; earlyCorrect?: boolean; cluesMissing?: boolean; rejectedAnswer?: { text: string; turn: 0 | 1 | 2 } }
+export type FinaleProgress = { runId: string; status: FinaleStatus; signature: string; sound: boolean; ceremonyPhase?: FinaleCeremonyPhase; attempts?: [number, number, number]; earlyCorrect?: boolean; cluesMissing?: boolean; rejectedAnswer?: { text: string; turn: 0 | 1 | 2 }; wordBoard?: WordBoard }
 export type CeremonyFinaleProgress = FinaleProgress & { ceremonyPhase: FinaleCeremonyPhase; attempts: [number, number, number]; earlyCorrect: boolean; cluesMissing: boolean }
-export type FinaleAction = { type: 'submit'; proposal: string } | { type: 'retry' | 'replay' | 'reset' | 'restore' | 'advance' } | { type: 'sound'; enabled: boolean } | { type: 'clues'; ready: boolean }
+export type FinaleAction = { type: 'submit'; proposal: string } | { type: 'retry' | 'replay' | 'reset' | 'restore' | 'advance' } | { type: 'sound'; enabled: boolean } | { type: 'clues'; ready: boolean } | { type: 'move-word'; from: number; to: number }
 export const MAX_FINALE_ANSWER = 256
 export const emptyFinale = (): FinaleConfig => ({ answer: '', secret: '', videoFilename: '', audioFilename: '', failureMessage: '' })
 export function normalizeFinaleAnswer(value: string): string | null {
@@ -74,6 +75,8 @@ export function validFinaleProgress(value: unknown): value is FinaleProgress {
   const p = value as FinaleProgress
   if (p.rejectedAnswer !== undefined && (!p.rejectedAnswer || typeof p.rejectedAnswer !== 'object' || ![0,1,2].includes(p.rejectedAnswer.turn) || !normalizeFinaleAnswer(p.rejectedAnswer.text) || !['rejecting','failure'].includes(p.status))) return false
   if (!(typeof p.runId === 'string' && p.runId.length <= 160 && ['ready', 'rejecting', 'failure', 'revealing', 'success'].includes(p.status) && typeof p.signature === 'string' && p.signature.length <= 6000 && typeof p.sound === 'boolean')) return false
+  if (p.wordBoard !== undefined && (!validWordBoard(p.wordBoard) || p.earlyCorrect || !['words', 'joint', 'jointFail', 'explosion', 'victory'].includes(p.ceremonyPhase || ''))) return false
+  if (p.ceremonyPhase === 'words' && !p.wordBoard) return false
   if (p.ceremonyPhase === undefined) return p.attempts === undefined && p.earlyCorrect === undefined && p.cluesMissing === undefined
   if (!finaleCeremonyPhases.includes(p.ceremonyPhase) || !Array.isArray(p.attempts) || p.attempts.length !== 3 || !p.attempts.every(count => Number.isSafeInteger(count) && count >= 0) || typeof p.earlyCorrect !== 'boolean' || typeof p.cluesMissing !== 'boolean') return false
   if (p.status === 'revealing') return p.ceremonyPhase === 'explosion'
@@ -83,7 +86,9 @@ export function validFinaleProgress(value: unknown): value is FinaleProgress {
   return !['fail1', 'fail2', 'jointFail', 'explosion', 'victory'].includes(p.ceremonyPhase)
 }
 export function currentFinale(config: FinaleConfig, saved?: FinaleProgress): CeremonyFinaleProgress {
-  return saved && validFinaleProgress(saved) && saved.signature === finaleSignature(config) ? normalizedProgress(saved) : createFinaleProgress(config)
+  return saved && validFinaleProgress(saved) && saved.signature === finaleSignature(config) &&
+    (!saved.wordBoard || validWordBoard(saved.wordBoard, finaleWords(config.answer).length))
+    ? normalizedProgress(saved) : createFinaleProgress(config)
 }
 export function finaleRejectedAnswer(config: FinaleConfig, progress: FinaleProgress): string {
   const rejected = progress.rejectedAnswer, phase = finaleCeremony(progress)
@@ -97,11 +102,23 @@ export function transitionFinale(config: FinaleConfig, saved: FinaleProgress, ac
   if (action.type === 'sound') return { ...progress, sound: action.enabled }
   if (action.type === 'reset') return { ...createFinaleProgress(config), runId, sound: progress.sound }
   if (action.type === 'restore') return { ...settledFinale(progress), runId }
+  if (action.type === 'move-word') {
+    const board = progress.wordBoard
+    const { from, to } = action
+    if (progress.ceremonyPhase !== 'words' || !board ||
+        ![from, to].every(index => Number.isInteger(index) && index >= 0 && index < board.order.length) || from === to) {
+      throw Error('Ese movimiento de ficha ya no está disponible.')
+    }
+    const order = [...board.order]
+    order.splice(to, 0, order.splice(from, 1)[0])
+    return { ...progress, wordBoard: { ...board, order } }
+  }
   if (action.type === 'advance') {
-    const following: Partial<Record<FinaleCeremonyPhase, FinaleCeremonyPhase>> = { intro: 'call1', call1: 'clues1', fail1: 'call2', call2: 'clues2', fail2: 'truth', truth: 'captain', captain: 'joint' }
+    const following: Partial<Record<FinaleCeremonyPhase, FinaleCeremonyPhase>> = { intro: 'call1', call1: 'clues1', fail1: 'call2', call2: 'clues2', fail2: 'truth', truth: 'captain', captain: progress.earlyCorrect ? 'joint' : 'words', words: 'joint' }
     const next = following[progress.ceremonyPhase]
     if (!next || ['rejecting', 'revealing'].includes(progress.status)) throw Error('Esta acción no corresponde al estado actual del desenlace.')
-    return { ...withoutRejected(progress), ceremonyPhase: next, status: 'ready', runId, cluesMissing: false }
+    const updated = { ...withoutRejected(progress), ceremonyPhase: next, status: 'ready' as const, runId, cluesMissing: false }
+    return next === 'words' ? { ...updated, wordBoard: createWordBoard(finaleWords(config.answer)) } : updated
   }
   if (action.type === 'clues') {
     if (progress.status !== 'ready' || !['clues1', 'clues2'].includes(progress.ceremonyPhase)) throw Error('Espera a la pregunta sobre las pistas de este clan.')
@@ -116,7 +133,11 @@ export function transitionFinale(config: FinaleConfig, saved: FinaleProgress, ac
     if (proposal !== normalizeFinaleAnswer(config.answer)) return { ...progress, runId, attempts, status: 'rejecting', rejectedAnswer: { text: action.proposal, turn: index } }
     return index < 2 ? { ...withoutRejected(progress), runId, attempts, status: 'ready', ceremonyPhase: 'captain', earlyCorrect: true } : { ...withoutRejected(progress), runId, attempts, status: 'revealing', ceremonyPhase: 'explosion' }
   }
-  if (action.type === 'retry' && progress.status === 'failure' && progress.ceremonyPhase === 'jointFail') return { ...withoutRejected(progress), runId, status: 'ready', ceremonyPhase: 'joint' }
+  if (action.type === 'retry' && progress.status === 'failure' && progress.ceremonyPhase === 'jointFail') {
+    const updated = { ...withoutRejected(progress), runId, status: 'ready' as const }
+    return progress.earlyCorrect ? { ...updated, ceremonyPhase: 'joint' } :
+      { ...updated, ceremonyPhase: 'words', wordBoard: progress.wordBoard ?? createWordBoard(finaleWords(config.answer)) }
+  }
   if (action.type === 'replay' && progress.status === 'success') return { ...progress, runId, status: 'revealing', ceremonyPhase: 'explosion' }
   throw Error('Esta acción no corresponde al estado actual del desenlace.')
 }
