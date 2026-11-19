@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 
 defineProps<{ src: string }>()
+defineEmits<{ ended: [] }>()
 const failed = ref(false)
 
 </script>
@@ -12,7 +13,7 @@ const failed = ref(false)
     <div class="video-frame">
       <span v-for="corner in ['tl', 'tr', 'bl', 'br']" :key="corner" class="frame-corner" :class="corner" aria-hidden="true"></span>
       <!-- Native inline controls: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video -->
-      <video v-if="!failed" controls playsinline preload="metadata" :src="src" aria-label="Mensaje del maestro Wu" @error="failed = true">
+      <video v-if="!failed" controls playsinline preload="metadata" :src="src" aria-label="Mensaje del maestro Wu" @ended="$emit('ended')" @error="failed = true">
         Tu navegador no puede reproducir el mensaje del maestro Wu.
       </video>
       <div v-else class="message-placeholder" role="status">

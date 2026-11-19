@@ -16,6 +16,7 @@ test('actual finale keeps preview secret-free, restores without replay, respects
     .replace(/from ['"]vue['"]/g, `from '${import.meta.resolve('vue')}'`)
     .replace(/from ['"]\.\/(useFinaleCinema|finale|finaleNarrative|confirmation)['"]/g, (_, name) => `from '${new URL('../src/' + name + '.ts', import.meta.url).href}'`)
     .replace(/import ['"].*finale\.css['"];?\r?\n/g, '')
+    .replace(/import FinaleWordBoard from ['"]\.\/FinaleWordBoard\.vue['"]/, 'const FinaleWordBoard = { render: () => null }')
     .replaceAll('import.meta.env.BASE_URL', "'./'")
   const Stage = (await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'))).default
   const keys = ['window', 'document', 'Document', 'ShadowRoot', 'localStorage', 'BroadcastChannel']

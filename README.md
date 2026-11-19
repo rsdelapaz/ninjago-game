@@ -39,7 +39,7 @@ Preview parte del puerto 4173. Abre http://127.0.0.1:4173/?screen=admin y prepar
 2. En **Participantes**, introduce nombres y, opcionalmente, edad/género. En **Equipos**, asigna integrantes y un capitán de cada equipo. **Añadir ninjas** permite selección múltiple y traslados confirmados; también hay reparto aleatorio explícito. Guarda los cambios antes de presentar.
 3. Edita las sugerencias de nombres si quieres. Los nombres definitivos y colores pueden quedar sin definir: se eligen durante la ceremonia. Las listas vaciadas intencionadamente no se rellenan automáticamente.
 4. Pulsa **Preparar pantalla pública**, mueve esa ventana al monitor extendido y maximízala. En **Presentación**, selecciona una escena y pulsa **Mostrar esta escena**. Elegir una miniatura solo cambia la previa. El panel espera confirmación de una pública montada; una referencia de ventana no basta.
-5. Desde **START GAME** o Presentación, recorre llegada de clanes → color/nombre del primero → color/nombre del segundo → equipos definitivos → mensaje de Wu. Dirige SÍ/NO y nombre manual desde el panel. Inicia el vídeo con sus controles: no hay autoplay sonoro ni fullscreen automático.
+5. Desde **START GAME** o Presentación, recorre llegada de clanes → color/nombre del primero → color/nombre del segundo → equipos definitivos → mensaje de Wu. Si algún equipo carece de integrantes o capitán, START GAME mantiene la portada y pide ayuda al organizador. Dirige SÍ/NO y nombre manual desde el panel. Inicia el vídeo con sus controles: no hay autoplay sonoro ni fullscreen automático.
 6. Después presenta las pruebas visibles del recorrido. **Guardar un ganador no lo anuncia**: utiliza **Anunciar ganador al público** expresamente. **Mostrar de nuevo la prueba** recupera su contenido.
 7. Configura el secreto, prepara las pistas físicas y dirige el recorrido con la [guía del desenlace](docs/FINALE.md).
 
@@ -69,6 +69,7 @@ Un clon del repositorio **no incluye** ilustraciones, vídeos ni datos de partic
 
 ```text
 public/private-media/
+  intro-theme.mp3                     # Música de portada compartida y opcional
   la-llamada-del-cielo.png
   finale-sanctuary.png
   ninjago-key-art.png                 # Retrato compartido de Wu en el desenlace
@@ -84,6 +85,8 @@ public/private-media/
     aro-del-dragon-unido.png
     vasos-sagrados.png
 ```
+
+Copia la pista instrumental a `public/private-media/intro-theme.mp3` y recarga la pantalla pública. Si sirves con `npm run preview`, vuelve a ejecutar `npm run build` después de copiarla. En portada, usa **Activar música** si el navegador pide un clic. **Silenciar música** mantiene el silencio al volver a la portada durante esa visita. La pista se detiene al salir de la portada. Si falta o no puede reproducirse, el juego sigue disponible.
 
 El editor guarda solo nombres de archivo, no sube imágenes. Cada perfil resuelve sus medios en su propia carpeta. El fondo de misión es compartido; no lo dupliques ni modifiques. Sin imagen de misión aparece un emblema; sin arte, escenario de respaldo; sin vídeo, aviso legible. El JSON no incluye binarios ni resultados.
 

@@ -281,3 +281,14 @@
 .finale-revealed .finale-sigil{width:min(78svh,76vw);left:calc(50% - min(39svh,38vw));top:calc(49% - min(39svh,38vw));}
 @supports(background-clip:text){.finale-revealed .finale-secret-copy>p{color:transparent;background:linear-gradient(#fff4c5 5%,#f7d793 32%,#be8b43 49%,#ffe7ab 53%,#e3b867 80%,#a57537);background-clip:text;-webkit-background-clip:text;text-shadow:none;filter:drop-shadow(0 2px 0 #805d2d) drop-shadow(0 5px 4px #000);}}
 .finale-revealed [data-inscription-size="monumental"] .finale-secret-copy{max-height:40svh;}
+
+.finale-stage.finale-story-words .finale-story { width: min(100%, 78rem); min-height: 0; }
+.finale-story-words .finale-dialogue { padding: 0; text-align: center; }
+.finale-story-words .finale-dialogue h1 { font-size: clamp(2rem, 4.5vw, 5rem); }
+.finale-story-words .finale-dialogue-lines { margin: .85rem auto clamp(1.4rem, 4vh, 3rem); }
+.finale-story-words .finale-dialogue-lines p { font-size: clamp(1.1rem, 1.8vw, 1.65rem); }
+.finale-story-words .finale-cinematic-shade { background: radial-gradient(ellipse at 50% 56%, #102a2a66, #06151bb0 75%); }
+.finale-story-words .finale-sigil { opacity: .55; }
+@media (max-height: 800px) {
+  .finale-story-words .finale-dialogue-lines { margin-bottom: 1.4rem; }
+}

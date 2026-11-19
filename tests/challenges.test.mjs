@@ -34,9 +34,12 @@ test('v2 normalization and v1 conversion preserve every prior field without rewr
 test('zero, one, ten and numerous challenges generate stable scenes and visible numbering',()=>{
   for(const count of [0,1,10,73]) {
     const c=createProfile('colegio');c.challenges=Array.from({length:count},()=>newChallenge())
-    const list=scenesFor(c);assert.equal(list.length,4+count);assert.equal(new Set(list.map(s=>s.id)).size,list.length);assert.equal(list.at(-1).id,'finale')
-    for(let i=0;i<count;i++) {const s=list[i+3];assert.equal(s.challengeNumber,i+1);assert.equal(sceneByNumber(i+4,c).id,s.id);assert.equal(sceneById(s.id,c).challengeId,c.challenges[i].id);assert.equal(adjacentScene(list[i+2].id,1,c).id,s.id);assert.equal(adjacentScene(s.id,-1,c).id,list[i+2].id)}
-    if(count>1){const first=list[3].id;c.challenges[0].visible=false;assert.equal(sceneById(first,c),undefined);assert.equal(sceneByNumber(4,c).challengeNumber,1);assert.equal(sceneByNumber(4,c).challengeId,c.challenges[1].id)}
+    const list=scenesFor(c);assert.equal(list.length,4+count+Number(count>0));assert.equal(new Set(list.map(s=>s.id)).size,list.length);assert.equal(list.at(-1).id,'finale')
+    assert.equal(adjacentScene('wu',1,c).id,count ? 'trials-opening' : 'finale')
+    for(let i=0;i<count;i++) {const s=list[i+4];assert.equal(s.challengeNumber,i+1);assert.equal(sceneByNumber(i+5,c).id,s.id);assert.equal(sceneById(s.id,c).challengeId,c.challenges[i].id);assert.equal(adjacentScene(list[i+3].id,1,c).id,s.id);assert.equal(adjacentScene(s.id,-1,c).id,list[i+3].id)}
+    if(count>1){const first=list[4].id;c.challenges[0].visible=false;assert.equal(sceneById(first,c),undefined);assert.equal(sceneByNumber(5,c).challengeNumber,1);assert.equal(sceneByNumber(5,c).challengeId,c.challenges[1].id)}
+    c.challenges.forEach(challenge=>{challenge.visible=false})
+    assert.equal(sceneById('trials-opening',c),undefined)
   }
 })
 

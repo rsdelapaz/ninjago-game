@@ -48,7 +48,7 @@ test('actual catalogue markup highlights active separately from preview and neve
   for(const publicReady of [false,true]){
     const html=await renderToString(createSSRApp({render:()=>h(Component,{...base,publicReady})}))
     const cards=[...html.matchAll(/<button[^>]*class="scene-card[^>]*>[\s\S]*?<\/button>/g)].map(m=>m[0])
-    assert.equal(cards.length,5)
+    assert.equal(cards.length,6)
     assert.match(cards[0],/is-active/);assert.match(cards[0],/aria-current="step"/)
     assert.match(cards[3],/is-preview/);assert(!cards[3].includes('aria-current'));assert(!cards[3].includes('is-active'))
     assert(cards[3].includes('Vista previa'))

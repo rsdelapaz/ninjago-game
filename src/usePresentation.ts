@@ -3,7 +3,7 @@ import { ceremonyProblems, isProfileId, profileIds, type GameProgress, type Prof
 import { initializeProfiles, profileKey, presentationKey, readProfile, withLocalWrite } from './profileStorage.ts'
 import { applyCeremony, applyProfileReset, ceremonyKey, readCeremony, recoverCeremony, type ProfileResetRequest } from './ceremonyStorage.ts'
 import { ceremonyFinalProblems, type CeremonyAction, type CeremonyProgress } from './ceremony.ts'
-import { orderedScenes, sceneById } from './scenes.ts'
+import { adjacentScene, orderedScenes, sceneById, trialsOpening } from './scenes.ts'
 import { changeReveal, createReveal, revealPlan, validReveal, type RevealState, type RevealAction } from './reveal.ts'
 import { readResults, saveResult, resultsKey, type ChallengeResults } from './challengeResults.ts'
 import { currentFinale, finalePreparationProblems, settledFinale, transitionFinale, validFinaleProgress, type FinaleAction, type FinaleProgress } from './finale.ts'
@@ -59,9 +59,9 @@ export function usePresentation() {
     if (sceneId === 'ceremony') {
       const errors = ceremonyProblems(config); if (errors.length) throw Error(errors.join(' '))
     }
-    if (sceneId === 'wu') {
+    if (sceneId === 'wu' || sceneId === trialsOpening.id) {
       const errors = ceremonyFinalProblems(config, progress)
-      if (!['ready', 'complete'].includes(progress.phase) || errors.length) throw Error('Completa la ceremonia antes de mostrar el vídeo. ' + errors.join(' '))
+      if (!['ready', 'complete'].includes(progress.phase) || errors.length) throw Error((sceneId === 'wu' ? 'Completa la ceremonia antes de mostrar el vídeo. ' : 'Completa la ceremonia antes de abrir las pruebas. ') + errors.join(' '))
     }
     if (sceneId === 'finale') {
       const problems = finalePreparationProblems(config)
@@ -92,16 +92,28 @@ export function usePresentation() {
     catch (e) { refreshProfile(); report(e); return false }
     finally { busy.value = false; release() }
   }
-  function publish(sceneId: string, id: ProfileId) {
+  function publish(target: string | ((config: ProfileConfig) => string), id: ProfileId) {
     const expected = controlBaseline
     return run(() => {
       checkCurrent(expected)
       recoverCeremony(localStorage, id)
-      checkScene(sceneId, readProfile(localStorage, id), readCeremony(localStorage, id))
+      const config = readProfile(localStorage, id)
+      const sceneId = typeof target === 'string' ? target : target(config)
+      checkScene(sceneId, config, readCeremony(localStorage, id))
       writeControl(sceneId, id)
     })
   }
   function select(sceneId: string) { if (state.value.profileId) return publish(sceneId, state.value.profileId) }
+  function advanceTrials(from: 'wu' | 'trials-opening') {
+    const { profileId, sceneId } = state.value
+    const expectedType = from === 'wu' ? 'threshold' : 'challenge'
+    if (!profileId || sceneId !== from || adjacentScene(from, 1, profile.value)?.type !== expectedType) return Promise.resolve(false)
+    return publish(config => {
+      const next = adjacentScene(from, 1, config)
+      if (!next || next.type !== expectedType) throw Error('El recorrido ha cambiado. Revisa las pruebas visibles.')
+      return next.id
+    }, profileId)
+  }
   // The profile's ceremony is preserved; choose its catalogue entry to resume it.
   function selectProfile(id: ProfileId) { return publish('intro', id) }
   function actCeremony(action: CeremonyAction) {
@@ -201,5 +213,5 @@ export function usePresentation() {
   const reveal = computed(() => state.value.reveal || createReveal(state.value.revision))
   const imageExpanded = computed(() => state.value.imageView?.challengeId === activeScene.value.challengeId && state.value.imageView?.expanded === true && !state.value.announcement)
   const finale = computed(() => profile.value ? currentFinale(profile.value.finale, state.value.finales?.[profile.value.id]) : null)
-  return { state, profile, ceremony, reveal, results, resultsVersion, recordResult, announceResult, imageExpanded, setImageExpanded, finale, actFinale, finishFinale, busy, activeScene, select, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
+  return { state, profile, ceremony, reveal, results, resultsVersion, recordResult, announceResult, imageExpanded, setImageExpanded, finale, actFinale, finishFinale, busy, activeScene, select, advanceTrials, selectProfile, actCeremony, actReveal, resetProfile, refreshProfile, warning, initialized }
 }

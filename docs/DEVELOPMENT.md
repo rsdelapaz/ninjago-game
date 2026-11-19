@@ -45,13 +45,19 @@ Arranca Vite y abre Chrome normal con un perfil de ensayo exclusivo en .preview.
 $trialProfile = Join-Path (Get-Location) ('.preview.local/chrome-' + [guid]::NewGuid())
 Start-Process -FilePath 'C:\Program Files\Google\Chrome\Application\chrome.exe' -ArgumentList '--remote-debugging-port=9224', ('--user-data-dir="' + $trialProfile + '"'), 'about:blank'
 $env:SMOKE_URL = 'http://127.0.0.1:5173'
+node --experimental-strip-types tests/intro.smoke.mjs
 node --experimental-strip-types tests/public-window.smoke.mjs
 node --experimental-strip-types tests/finale-ceremony.smoke.mjs
+node --experimental-strip-types tests/finale-words.smoke.mjs
 node --experimental-strip-types tests/sanctuary-quality.smoke.mjs
 node --experimental-strip-types tests/enigma.smoke.mjs
 ```
 
 Ajusta el ejecutable y SMOKE_URL al equipo y puerto reales. FINALE_CDP_PORT modifica el puerto de los tres primeros scripts y ENIGMA_CDP_PORT el del Oráculo. finale.smoke.mjs es un alias de finale-ceremony.smoke.mjs. Los ensayos verifican DOM, acciones, persistencia y medidas de ventanas mediante CDP. Las salidas privadas quedan en .preview.local. public-window guarda su recorrido de ventanas, finale-ceremony guarda el recorrido completo y sanctuary-quality mide composición e interacción. El Oráculo conserva capturas y secuencias en su propia carpeta. El ensayo opcional de pantalla completa del Oráculo usa ENIGMA_TEST_FULLSCREEN=1.
+
+El ensayo de portada también acepta FINALE_CDP_PORT y usa 9224 por defecto. Simula la reproducción y el rechazo de autoplay, comprueba con audio nativo el caso de archivo ausente y verifica el flujo entre administración y pantalla pública. Para comprobar la pista instalada y el sonido, sigue el ensayo físico.
+
+El ensayo de Las palabras del destino usa FINALE_CDP_PORT y guarda capturas de Chrome con datos sintéticos en `.preview.local/palabras-del-destino/`.
 
 npm run test:smoke ejecuta tests/command-center.smoke.mjs. Este usa el puerto fijo 9223 y, sin SMOKE_URL, espera preview en 4173. Consulta sus incidencias y las de los demás arneses en [VALIDATION](VALIDATION.md). Un fallo del arnés requiere revisar el selector y el flujo antes de atribuirlo al juego.
 
